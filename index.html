@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080d1c">
+  <meta name="description" content="DX STORE - Marketplace produk digital dan akun game.">
+  <title>DX STORE | Digital Marketplace</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="background-glow"></div>
+
+  <header class="header">
+    <a href="#" class="brand">
+      <span class="brand-icon">DX</span>
+      <span>DX <strong>STORE</strong></span>
+    </a>
+
+    <nav class="navigation">
+      <a href="#home">Beranda</a>
+      <a href="#products">Produk Digital</a>
+      <a href="#accounts">Akun Game</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="loginButton" class="btn-outline">Masuk</button>
+      <button id="registerButton" class="btn-primary">Daftar</button>
+      <button id="menuButton" class="menu-button" aria-label="Buka menu">☰</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-content">
+        <span class="eyebrow">✦ DIGITAL MARKETPLACE</span>
+        <h1>
+          LEVEL UP YOUR
+          <span>DIGITAL WORLD.</span>
+        </h1>
+        <p>
+          Temukan produk digital dan akun game pilihan
+          dalam satu marketplace modern.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#products" class="btn-primary">Jelajahi Produk ↗</a>
+          <a href="#accounts" class="btn-outline">Lihat Akun Game</a>
+        </div>
+
+        <div class="hero-stats">
+          <div><strong>DX</strong><span>STORE</span></div>
+          <div><strong>24/7</strong><span>Marketplace</span></div>
+          <div><strong>100%</strong><span>Digital</span></div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="visual-orbit orbit-one"></div>
+        <div class="visual-orbit orbit-two"></div>
+        <div class="visual-card">
+          <div class="visual-logo">DX</div>
+          <span>PREMIUM DIGITAL</span>
+          <h2>STORE</h2>
+          <div class="visual-bottom">NEXT GENERATION MARKETPLACE</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="products">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">EXPLORE COLLECTION</span>
+          <h2>Produk Digital</h2>
+          <p>Berbagai produk digital pilihan.</p>
+        </div>
+        <a href="#products" class="text-link">Lihat semua ↗</a>
+      </div>
+
+      <div class="product-grid" id="productGrid">
+        <div class="loading-card">Memuat produk digital...</div>
+      </div>
+    </section>
+
+    <section class="section" id="accounts">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">GAMING MARKETPLACE</span>
+          <h2>Marketplace Akun Game</h2>
+          <p>Temukan listing akun game dari penjual.</p>
+        </div>
+        <a href="#accounts" class="text-link">Lihat semua ↗</a>
+      </div>
+
+      <div class="product-grid" id="accountGrid">
+        <div class="loading-card">Memuat akun game...</div>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <span class="eyebrow">JOIN DX STORE</span>
+      <h2>Mulai Perjalanan Digitalmu.</h2>
+      <p>Daftar untuk menjelajahi marketplace DX STORE.</p>
+      <button class="btn-primary" id="ctaRegister">Buat Akun Sekarang ↗</button>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a href="#" class="brand">
+      <span class="brand-icon">DX</span>
+      <span>DX <strong>STORE</strong></span>
+    </a>
+    <p>© <span id="currentYear"></span> DX STORE. All rights reserved.</p>
+  </footer>
+
+  <div id="authModal" class="modal hidden">
+    <div class="modal-content">
+      <button id="closeModal" class="modal-close" aria-label="Tutup">×</button>
+      <span class="eyebrow">WELCOME TO DX STORE</span>
+      <h2 id="authTitle">Masuk Akun</h2>
+
+      <form id="authForm">
+        <label for="authEmail">Email</label>
+        <input id="authEmail" type="email" placeholder="nama@email.com" required>
+
+        <label for="authPassword">Password</label>
+        <input id="authPassword" type="password" placeholder="Password" required minlength="6">
+
+        <button type="submit" id="authSubmit" class="btn-primary full-width">
+          Masuk
+        </button>
+      </form>
+
+      <p id="authMessage" class="auth-message"></p>
+      <p class="auth-switch" id="authSwitch">
+        Belum punya akun? <button type="button" id="switchAuth">Daftar</button>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
