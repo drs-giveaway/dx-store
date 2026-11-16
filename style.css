@@ -521,3 +521,98 @@ input:focus {
     animation-duration: .01ms !important;
   }
 }
+
+/* ===== DX STORE PREMIUM 3D UPGRADE ===== */
+
+body {
+  background:
+    radial-gradient(ellipse at 15% 10%, rgba(25,125,255,.22), transparent 38%),
+    radial-gradient(ellipse at 85% 30%, rgba(137,65,255,.18), transparent 38%),
+    #070b18 !important;
+  color: #f5f7ff;
+}
+
+.header, header {
+  background: rgba(7,11,24,.88) !important;
+  backdrop-filter: blur(22px);
+  border-bottom: 1px solid rgba(90,160,255,.2);
+  box-shadow: 0 8px 30px rgba(0,0,0,.2);
+}
+
+button {
+  transition: transform .25s, box-shadow .25s, filter .25s;
+}
+
+button:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.12);
+  box-shadow: 0 10px 30px rgba(40,145,255,.3);
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 80% 40%, rgba(53,125,255,.15), transparent 35%);
+}
+
+.hero h1, .hero h2 {
+  background: linear-gradient(100deg,#fff,#54dfff,#9a72ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.product-card,
+.account-card,
+.card,
+.panel {
+  background: linear-gradient(145deg,rgba(25,40,70,.95),rgba(10,17,34,.98)) !important;
+  border: 1px solid rgba(105,166,255,.2) !important;
+  border-radius: 20px !important;
+  box-shadow:
+    0 15px 35px rgba(0,0,0,.25),
+    inset 0 1px rgba(255,255,255,.07);
+  transition: transform .3s, box-shadow .3s, border-color .3s;
+}
+
+.product-card:hover,
+.account-card:hover,
+.card:hover {
+  transform: translateY(-7px);
+  border-color: rgba(64,190,255,.65) !important;
+  box-shadow: 0 20px 45px rgba(28,130,255,.16);
+}
+
+input, select, textarea {
+  background: #0b1428 !important;
+  color: #fff !important;
+  border: 1px solid rgba(100,160,255,.22) !important;
+  border-radius: 12px !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #36baff !important;
+  box-shadow: 0 0 0 3px rgba(54,186,255,.12);
+}
+
+.modal, .modal-content {
+  backdrop-filter: blur(18px);
+}
+
+footer {
+  border-top: 1px solid rgba(100,160,255,.2);
+  background: #080e1d;
+}
+
+@media(max-width:600px) {
+  .product-card,
+  .account-card,
+  .card {
+    border-radius: 15px !important;
+  }
+
+  button {
+    min-height: 42px;
+  }
+}
