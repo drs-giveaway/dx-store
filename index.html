@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080d1c">
+  <meta name="theme-color" content="#070b18">
   <meta name="description" content="DX STORE - Marketplace produk digital dan akun game.">
   <title>DX STORE | Digital Marketplace</title>
 
@@ -12,22 +12,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 
   <style>
-    /* DX STORE MASCOT */
     .mascot-visual {
       position: relative;
       min-height: 480px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: grid;
+      place-items: center;
       overflow: hidden;
-      background: radial-gradient(
-        circle,
-        rgba(40,168,255,.17),
-        transparent 68%
-      );
+      isolation: isolate;
+      background: radial-gradient(circle, rgba(40,168,255,.17), transparent 68%);
     }
 
     .mascot-visual::before {
@@ -38,24 +33,20 @@
       border-radius: 50%;
       background: #168cff;
       filter: blur(100px);
-      opacity: .3;
+      opacity: .35;
+      z-index: -1;
     }
 
-    .dx-mascot {
-      position: relative;
-      z-index: 2;
-      display: block;
-      width: 100%;
-      max-width: 470px;
+    .mascot-art {
+      width: min(100%, 450px);
       height: auto;
-      object-fit: contain;
-      filter: drop-shadow(0 0 25px rgba(40,168,255,.35));
+      overflow: visible;
+      filter: drop-shadow(0 15px 35px rgba(40,168,255,.25));
       animation: mascotFloat 4s ease-in-out infinite;
     }
 
     .mascot-label {
       position: absolute;
-      z-index: 3;
       right: 5px;
       bottom: 12px;
       display: flex;
@@ -64,7 +55,7 @@
       padding: 13px 17px;
       border: 1px solid rgba(81,229,255,.5);
       border-radius: 13px;
-      background: rgba(10,20,43,.9);
+      background: rgba(10,20,43,.92);
       box-shadow: 0 0 25px rgba(40,168,255,.2);
     }
 
@@ -86,13 +77,9 @@
     }
 
     @media (max-width: 760px) {
-      .mascot-visual {
-        min-height: 350px;
-      }
-
-      .dx-mascot {
-        max-width: 340px;
-      }
+      .mascot-visual { min-height: 350px; }
+      .mascot-art { max-width: 340px; }
+      .mascot-label { right: 0; bottom: 5px; }
     }
   </style>
 </head>
@@ -101,7 +88,7 @@
   <div class="background-glow"></div>
 
   <header class="header">
-    <a href="#" class="brand">
+    <a href="#home" class="brand">
       <span class="brand-icon">DX</span>
       <span>DX <strong>STORE</strong></span>
     </a>
@@ -113,15 +100,14 @@
     </nav>
 
     <div class="header-actions">
-      <button id="loginButton" class="btn-outline">Masuk</button>
-      <button id="registerButton" class="btn-primary">Daftar</button>
-      <button id="menuButton" class="menu-button" aria-label="Buka menu">☰</button>
+      <button id="loginButton" class="btn-outline" type="button">Masuk</button>
+      <button id="registerButton" class="btn-primary" type="button">Daftar</button>
+      <button id="menuButton" class="menu-button" type="button" aria-label="Buka menu">☰</button>
     </div>
   </header>
 
   <main>
     <section class="hero" id="home">
-
       <div class="hero-content">
         <span class="eyebrow">✦ DIGITAL MARKETPLACE</span>
 
@@ -136,13 +122,8 @@
         </p>
 
         <div class="hero-actions">
-          <a href="#products" class="btn-primary">
-            Jelajahi Produk ↗
-          </a>
-
-          <a href="#accounts" class="btn-outline">
-            Lihat Akun Game
-          </a>
+          <a href="#products" class="btn-primary">Jelajahi Produk ↗</a>
+          <a href="#accounts" class="btn-outline">Lihat Akun Game</a>
         </div>
 
         <div class="hero-stats">
@@ -150,12 +131,10 @@
             <strong>DX</strong>
             <span>STORE</span>
           </div>
-
           <div>
             <strong>24/7</strong>
             <span>Marketplace</span>
           </div>
-
           <div>
             <strong>100%</strong>
             <span>Digital</span>
@@ -163,20 +142,99 @@
         </div>
       </div>
 
-      <!-- MASKOT DX STORE -->
+      <!-- MASKOT SVG DX STORE -->
       <div class="hero-visual mascot-visual">
-        <img
-          src="dx-mascot.png"
-          alt="Maskot resmi DX STORE"
-          class="dx-mascot"
-        >
+        <svg class="mascot-art" viewBox="0 0 440 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Maskot anime futuristik DX STORE dengan hoodie dan headset biru">
+          <defs>
+            <linearGradient id="hood" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#297dff"/>
+              <stop offset="1" stop-color="#25145f"/>
+            </linearGradient>
+            <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#b9f7ff"/>
+              <stop offset=".45" stop-color="#428eff"/>
+              <stop offset="1" stop-color="#4730a8"/>
+            </linearGradient>
+            <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffe2d6"/>
+              <stop offset="1" stop-color="#dba9aa"/>
+            </linearGradient>
+            <linearGradient id="shirt" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#1a315b"/>
+              <stop offset="1" stop-color="#080d20"/>
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="5" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          <!-- Lingkaran latar -->
+          <circle cx="220" cy="235" r="180" fill="#168cff" opacity=".08"/>
+          <circle cx="220" cy="235" r="155" fill="none" stroke="#51e5ff" stroke-opacity=".35" stroke-width="2" stroke-dasharray="8 13"/>
+
+          <!-- Hoodie belakang -->
+          <path d="M93 470 Q95 345 145 305 L178 286 L263 286 L300 305 Q350 345 354 470Z" fill="url(#hood)" stroke="#51e5ff" stroke-width="3"/>
+
+          <!-- Leher -->
+          <path d="M183 270 L180 330 Q220 365 260 330 L256 270Z" fill="url(#skin)"/>
+
+          <!-- Hood bagian dalam -->
+          <path d="M130 320 Q110 240 151 166 Q180 111 220 110 Q280 110 310 175 Q335 245 305 320 L270 345 L170 345Z" fill="#101a38" stroke="#438fff" stroke-width="8"/>
+
+          <!-- Wajah -->
+          <path d="M151 177 Q155 115 220 115 Q286 115 290 177 L281 245 Q270 290 220 304 Q170 290 159 245Z" fill="url(#skin)"/>
+
+          <!-- Rambut -->
+          <path d="M145 194 Q119 117 169 83 Q206 45 260 78 Q312 99 299 179 L280 211 L269 158 L246 130 Q215 163 167 161 L158 219Z" fill="url(#hair)" stroke="#51e5ff" stroke-width="3"/>
+          <path d="M168 149 Q190 91 213 83 Q194 130 190 163Z" fill="#c6fbff"/>
+          <path d="M215 132 Q240 81 273 101 Q248 121 242 162Z" fill="#72baff"/>
+          <path d="M269 148 Q293 160 289 218 L271 235 L263 177Z" fill="#3474e5"/>
+
+          <!-- Mata -->
+          <path d="M174 210 Q190 190 208 211 Q192 230 174 210Z" fill="#102b55"/>
+          <path d="M232 211 Q250 190 268 210 Q250 230 232 211Z" fill="#102b55"/>
+          <ellipse cx="194" cy="212" rx="5" ry="7" fill="#51e5ff"/>
+          <ellipse cx="250" cy="212" rx="5" ry="7" fill="#51e5ff"/>
+          <path d="M181 196 L207 199 M237 199 L263 196" stroke="#243b70" stroke-width="5" stroke-linecap="round"/>
+
+          <!-- Hidung dan mulut -->
+          <path d="M218 218 L213 239 L222 240" fill="none" stroke="#b77f89" stroke-width="2" stroke-linecap="round"/>
+          <path d="M202 258 Q220 267 238 258" fill="none" stroke="#a85d72" stroke-width="3" stroke-linecap="round"/>
+
+          <!-- Headset -->
+          <path d="M139 208 Q128 115 220 105 Q312 115 301 208" fill="none" stroke="#51e5ff" stroke-width="12" stroke-linecap="round" filter="url(#glow)"/>
+          <rect x="125" y="190" width="31" height="65" rx="13" fill="#142d58" stroke="#51e5ff" stroke-width="4"/>
+          <rect x="284" y="190" width="31" height="65" rx="13" fill="#142d58" stroke="#51e5ff" stroke-width="4"/>
+          <circle cx="140" cy="222" r="7" fill="#51e5ff"/>
+          <circle cx="300" cy="222" r="7" fill="#51e5ff"/>
+          <path d="M300 251 Q306 278 275 280" fill="none" stroke="#51e5ff" stroke-width="4" stroke-linecap="round"/>
+
+          <!-- Hoodie depan -->
+          <path d="M135 327 Q175 300 184 305 L220 344 L257 305 Q280 302 305 327 L340 470 L100 470Z" fill="url(#shirt)" stroke="#438fff" stroke-width="3"/>
+          <path d="M184 305 L220 345 L257 305" fill="none" stroke="#51e5ff" stroke-width="3"/>
+          <path d="M220 345 L220 470" stroke="#51e5ff" stroke-opacity=".45" stroke-width="2"/>
+          <path d="M155 356 L180 390 M285 356 L260 390" stroke="#51e5ff" stroke-width="4" stroke-linecap="round"/>
+
+          <!-- Logo DX -->
+          <rect x="180" y="370" width="80" height="55" rx="12" fill="#102b54" stroke="#51e5ff" stroke-width="2"/>
+          <text x="220" y="406" text-anchor="middle" font-family="Inter,Arial" font-size="28" font-weight="900" fill="#51e5ff">DX</text>
+
+          <!-- Detail cahaya -->
+          <path d="M70 285 L95 285 M82 273 L82 297" stroke="#51e5ff" stroke-width="3" stroke-linecap="round"/>
+          <path d="M345 150 L370 150 M357 138 L357 162" stroke="#a77aff" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="100" cy="130" r="4" fill="#51e5ff"/>
+          <circle cx="340" cy="320" r="5" fill="#a77aff"/>
+        </svg>
 
         <div class="mascot-label">
           <span>✦ DX STORE MASCOT</span>
           <strong>YOUR DIGITAL PARTNER</strong>
         </div>
       </div>
-
     </section>
 
     <!-- PRODUK DIGITAL -->
@@ -187,16 +245,11 @@
           <h2>Produk Digital</h2>
           <p>Berbagai produk digital pilihan.</p>
         </div>
-
-        <a href="#products" class="text-link">
-          Lihat semua ↗
-        </a>
+        <a href="#products" class="text-link">Lihat semua ↗</a>
       </div>
 
       <div class="product-grid" id="productGrid">
-        <div class="loading-card">
-          Memuat produk digital...
-        </div>
+        <div class="loading-card">Memuat produk digital...</div>
       </div>
     </section>
 
@@ -208,30 +261,20 @@
           <h2>Marketplace Akun Game</h2>
           <p>Temukan listing akun game dari penjual.</p>
         </div>
-
-        <a href="#accounts" class="text-link">
-          Lihat semua ↗
-        </a>
+        <a href="#accounts" class="text-link">Lihat semua ↗</a>
       </div>
 
       <div class="product-grid" id="accountGrid">
-        <div class="loading-card">
-          Memuat akun game...
-        </div>
+        <div class="loading-card">Memuat akun game...</div>
       </div>
     </section>
 
     <!-- CTA -->
     <section class="cta-section">
       <span class="eyebrow">JOIN DX STORE</span>
-
       <h2>Mulai Perjalanan Digitalmu.</h2>
-
-      <p>
-        Daftar untuk menjelajahi marketplace DX STORE.
-      </p>
-
-      <button class="btn-primary" id="ctaRegister">
+      <p>Daftar untuk menjelajahi marketplace DX STORE.</p>
+      <button class="btn-primary" id="ctaRegister" type="button">
         Buat Akun Sekarang ↗
       </button>
     </section>
@@ -239,11 +282,10 @@
 
   <!-- FOOTER -->
   <footer class="footer">
-    <a href="#" class="brand">
+    <a href="#home" class="brand">
       <span class="brand-icon">DX</span>
       <span>DX <strong>STORE</strong></span>
     </a>
-
     <p>
       © <span id="currentYear"></span>
       DX STORE. All rights reserved.
@@ -253,42 +295,19 @@
   <!-- LOGIN DAN REGISTER -->
   <div id="authModal" class="modal hidden">
     <div class="modal-content">
-
-      <button
-        id="closeModal"
-        class="modal-close"
-        aria-label="Tutup"
-      >×</button>
+      <button id="closeModal" class="modal-close" type="button" aria-label="Tutup">×</button>
 
       <span class="eyebrow">WELCOME TO DX STORE</span>
-
       <h2 id="authTitle">Masuk Akun</h2>
 
       <form id="authForm">
         <label for="authEmail">Email</label>
-
-        <input
-          id="authEmail"
-          type="email"
-          placeholder="nama@email.com"
-          required
-        >
+        <input id="authEmail" type="email" placeholder="nama@email.com" required>
 
         <label for="authPassword">Password</label>
+        <input id="authPassword" type="password" placeholder="Password" required minlength="6">
 
-        <input
-          id="authPassword"
-          type="password"
-          placeholder="Password"
-          required
-          minlength="6"
-        >
-
-        <button
-          type="submit"
-          id="authSubmit"
-          class="btn-primary full-width"
-        >
+        <button type="submit" id="authSubmit" class="btn-primary full-width">
           Masuk
         </button>
       </form>
@@ -299,7 +318,6 @@
         Belum punya akun?
         <button type="button" id="switchAuth">Daftar</button>
       </p>
-
     </div>
   </div>
 
