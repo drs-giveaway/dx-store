@@ -13,11 +13,17 @@ const productGrid = document.getElementById("productGrid");
 const accountGrid = document.getElementById("accountGrid");
 const authModal = document.getElementById("authModal");
 const authForm = document.getElementById("authForm");
-const authTitle = document.getElementById("authTitle");
-const authSubmit = document.getElementById("authSubmit");
 const authMessage = document.getElementById("authMessage");
 
-/* Teks aman */
+const authTitle =
+  document.getElementById("authTitle") ||
+  authModal?.querySelector("h2");
+
+const authSubmit =
+  document.getElementById("authSubmit") ||
+  authForm?.querySelector('button[type="submit"]');
+
+/* TEKS AMAN */
 function safeText(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
@@ -28,7 +34,7 @@ function safeText(value) {
   })[char]);
 }
 
-/* URL gambar aman */
+/* URL GAMBAR AMAN */
 function safeImageUrl(value) {
   if (!value) return "";
 
@@ -43,7 +49,7 @@ function safeImageUrl(value) {
   }
 }
 
-/* Format Rupiah */
+/* FORMAT RUPIAH */
 function formatPrice(price) {
   const amount = Number(price);
 
@@ -58,7 +64,7 @@ function formatPrice(price) {
   }).format(amount);
 }
 
-/* Membuat kartu produk */
+/* KARTU PRODUK */
 function createCard(item, type) {
   const title = type === "product"
     ? item.name
@@ -81,7 +87,6 @@ function createCard(item, type) {
 
   return `
     <article class="product-card">
-
       ${image}
 
       <span class="eyebrow">
@@ -105,12 +110,11 @@ function createCard(item, type) {
         data-item-id="${safeText(item.id)}">
         Lihat Produk
       </button>
-
     </article>
   `;
 }
 
-/* Memuat produk digital */
+/* MEMUAT PRODUK DIGITAL */
 async function loadProducts() {
   if (!productGrid || !db) return;
 
@@ -140,11 +144,11 @@ async function loadProducts() {
     console.error("Gagal memuat produk:", error);
 
     productGrid.innerHTML =
-      '<div class="loading-card">Produk belum dapat dimuat. Silakan coba lagi nanti.</div>';
+      '<div class="loading-card">Produk belum dapat dimuat. Silakan coba lagi.</div>';
   }
 }
 
-/* Memuat akun game */
+/* MEMUAT AKUN GAME */
 async function loadAccounts() {
   if (!accountGrid || !db) return;
 
@@ -174,20 +178,62 @@ async function loadAccounts() {
     console.error("Gagal memuat akun:", error);
 
     accountGrid.innerHTML =
-      '<div class="loading-card">Akun game belum dapat dimuat. Silakan coba lagi nanti.</div>';
+      '<div class="loading-card">Akun game belum dapat dimuat. Silakan coba lagi.</div>';
   }
 }
 
-/* Modal login dan daftar */
+/* MODAL LOGIN DAN DAFTAR */
 function openAuth(mode = "login") {
   if (!authModal) return;
 
   authMode = mode;
   updateAuthModal();
 
+  authModal.classList.add("active");
   authModal.classList.remove("hidden");
 
   if (authMessage) authMessage.textContent = "";
+}
+
+function closeAuth() {
+  if (!authModal) return;
+
+  authModal.classList.remove("active");
+  authModal.classList.add("hidden");
+}
+
+window.openAuth = openAuth;
+window.closeAuth = closeAuth;
+
+/* TOMBOL GANTI MODE LOGIN */
+function createAuthSwitch() {
+  if (!authForm || document.getElementById("authSwitch")) return;
+
+  const container = document.createElement("p");
+  container.id = "authSwitch";
+  container.style.textAlign = "center";
+  container.style.marginTop = "16px";
+
+  const text = document.createElement("span");
+  const button = document.createElement("button");
+
+  button.id = "switchAuth";
+  button.type = "button";
+  button.style.background = "none";
+  button.style.border = "none";
+  button.style.color = "#60a5fa";
+  button.style.cursor = "pointer";
+  button.style.fontWeight = "bold";
+
+  button.addEventListener("click", () => {
+    authMode = authMode === "login" ? "register" : "login";
+    updateAuthModal();
+
+    if (authMessage) authMessage.textContent = "";
+  });
+
+  container.append(text, button);
+  authForm.insertAdjacentElement("afterend", container);
 }
 
 function updateAuthModal() {
@@ -205,33 +251,35 @@ function updateAuthModal() {
       : "Daftar";
   }
 
-  const switchButton =
-    document.getElementById("switchAuth");
-
   const switchContainer =
     document.getElementById("authSwitch");
 
-  if (switchButton) {
+  const switchButton =
+    document.getElementById("switchAuth");
+
+  if (switchContainer && switchButton) {
+    switchContainer.firstChild.textContent = isLogin
+      ? "Belum punya akun? "
+      : "Sudah punya akun? ";
+
     switchButton.textContent = isLogin
       ? "Daftar"
       : "Masuk";
   }
-
-  if (switchContainer?.firstChild) {
-    switchContainer.firstChild.textContent = isLogin
-      ? "Belum punya akun? "
-      : "Sudah punya akun? ";
-  }
 }
 
-/* Proses login dan pendaftaran */
+/* PROSES LOGIN DAN PENDAFTARAN */
+createAuthSwitch();
+
 if (authForm) {
   authForm.addEventListener("submit", async event => {
     event.preventDefault();
 
     if (!db) {
-      authMessage.textContent =
-        "Koneksi Supabase belum tersedia.";
+      if (authMessage) {
+        authMessage.textContent =
+          "Koneksi Supabase belum tersedia.";
+      }
       return;
     }
 
@@ -242,14 +290,19 @@ if (authForm) {
       document.getElementById("authPassword")?.value;
 
     if (!email || !password) {
-      authMessage.textContent =
-        "Masukkan email dan kata sandi.";
+      if (authMessage) {
+        authMessage.textContent =
+          "Masukkan email dan kata sandi.";
+      }
       return;
     }
 
-    authSubmit.disabled = true;
-    authSubmit.textContent = "Memproses...";
-    authMessage.textContent = "";
+    if (authSubmit) {
+      authSubmit.disabled = true;
+      authSubmit.textContent = "Memproses...";
+    }
+
+    if (authMessage) authMessage.textContent = "";
 
     try {
       const result = authMode === "login"
@@ -265,33 +318,41 @@ if (authForm) {
       if (result.error) throw result.error;
 
       if (authMode === "register" && !result.data.session) {
-        authMessage.textContent =
-          "Pendaftaran berhasil. Periksa email jika verifikasi diminta.";
+        if (authMessage) {
+          authMessage.textContent =
+            "Pendaftaran berhasil. Periksa email jika verifikasi diminta.";
+        }
         return;
       }
 
       currentUser = result.data.user || null;
 
-      authModal.classList.add("hidden");
+      closeAuth();
       updateAccountButton();
 
     } catch (error) {
-      authMessage.textContent =
-        error.message || "Terjadi kesalahan. Silakan coba lagi.";
+      console.error("Autentikasi gagal:", error);
+
+      if (authMessage) {
+        authMessage.textContent =
+          error.message || "Terjadi kesalahan. Silakan coba lagi.";
+      }
 
     } finally {
-      authSubmit.disabled = false;
-
-      authSubmit.textContent =
-        authMode === "login" ? "Masuk" : "Daftar";
+      if (authSubmit) {
+        authSubmit.disabled = false;
+        authSubmit.textContent =
+          authMode === "login" ? "Masuk" : "Daftar";
+      }
     }
   });
 }
 
-/* Status akun */
+/* STATUS AKUN */
 function updateAccountButton() {
   const loginButton =
-    document.getElementById("loginButton");
+    document.getElementById("loginButton") ||
+    document.querySelector(".dx-nav-actions .dx-button");
 
   if (!loginButton) return;
 
@@ -319,7 +380,7 @@ function updateAccountButton() {
   };
 }
 
-/* Pilihan produk */
+/* PILIH PRODUK */
 function selectItem(type, id) {
   if (!currentUser) {
     openAuth("login");
@@ -328,7 +389,7 @@ function selectItem(type, id) {
 
   alert(
     "Produk berhasil dipilih.\n\n" +
-    "Sistem checkout dan pembayaran DX STORE " +
+    "Checkout dan pembayaran DX STORE " +
     "masih dalam tahap pengembangan."
   );
 
@@ -339,7 +400,7 @@ function selectItem(type, id) {
   });
 }
 
-/* Tombol kartu produk */
+/* KLIK KARTU PRODUK */
 document.addEventListener("click", event => {
   const button = event.target.closest(".item-action");
 
@@ -351,51 +412,61 @@ document.addEventListener("click", event => {
   );
 });
 
-/* Tombol navigasi */
+/* TOMBOL DAFTAR */
 document.getElementById("registerButton")
   ?.addEventListener("click", () => openAuth("register"));
 
 document.getElementById("ctaRegister")
   ?.addEventListener("click", () => openAuth("register"));
 
+/* TUTUP MODAL */
 document.getElementById("closeModal")
-  ?.addEventListener("click", () => {
-    authModal?.classList.add("hidden");
-  });
-
-document.getElementById("switchAuth")
-  ?.addEventListener("click", () => {
-    authMode = authMode === "login"
-      ? "register"
-      : "login";
-
-    updateAuthModal();
-
-    if (authMessage) authMessage.textContent = "";
-  });
+  ?.addEventListener("click", closeAuth);
 
 authModal?.addEventListener("click", event => {
-  if (event.target === authModal) {
-    authModal.classList.add("hidden");
-  }
+  if (event.target === authModal) closeAuth();
 });
 
-/* Menu HP */
+/* NAVIGASI */
 const navigation =
+  document.querySelector(".dx-nav-links") ||
   document.querySelector(".navigation");
 
-document.getElementById("menuButton")
-  ?.addEventListener("click", () => {
-    navigation?.classList.toggle("open");
+const navContainer =
+  document.querySelector(".dx-nav");
+
+if (navigation && navContainer) {
+  let menuButton = document.getElementById("menuButton");
+
+  if (!menuButton) {
+    menuButton = document.createElement("button");
+    menuButton.id = "menuButton";
+    menuButton.type = "button";
+    menuButton.textContent = "☰";
+    menuButton.setAttribute("aria-label", "Buka menu");
+
+    menuButton.style.background = "transparent";
+    menuButton.style.color = "white";
+    menuButton.style.border = "1px solid #334155";
+    menuButton.style.borderRadius = "8px";
+    menuButton.style.padding = "8px 12px";
+    menuButton.style.cursor = "pointer";
+
+    navContainer.appendChild(menuButton);
+  }
+
+  menuButton.addEventListener("click", () => {
+    navigation.classList.toggle("open");
   });
 
-navigation?.querySelectorAll("a").forEach(link => {
-  link.addEventListener("click", () => {
-    navigation.classList.remove("open");
+  navigation.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", () => {
+      navigation.classList.remove("open");
+    });
   });
-});
+}
 
-/* Tahun footer */
+/* TAHUN FOOTER */
 const yearElement =
   document.getElementById("currentYear");
 
@@ -403,23 +474,20 @@ if (yearElement) {
   yearElement.textContent = new Date().getFullYear();
 }
 
-/* Inisialisasi Supabase */
+/* INISIALISASI SUPABASE */
 async function initializeDXStore() {
   if (
     !config?.supabaseUrl ||
     !config?.supabaseKey ||
     !window.supabase
   ) {
-    if (productGrid) {
-      productGrid.innerHTML =
-        '<div class="loading-card">Konfigurasi Supabase belum tersedia.</div>';
-    }
+    const message =
+      '<div class="loading-card">Konfigurasi Supabase atau library Supabase belum tersedia.</div>';
 
-    if (accountGrid) {
-      accountGrid.innerHTML =
-        '<div class="loading-card">Konfigurasi Supabase belum tersedia.</div>';
-    }
+    if (productGrid) productGrid.innerHTML = message;
+    if (accountGrid) accountGrid.innerHTML = message;
 
+    console.error("Supabase belum siap.");
     return;
   }
 
@@ -451,15 +519,11 @@ async function initializeDXStore() {
   } catch (error) {
     console.error("Inisialisasi DX STORE gagal:", error);
 
-    if (productGrid) {
-      productGrid.innerHTML =
-        '<div class="loading-card">Koneksi belum berhasil. Muat ulang halaman beberapa saat lagi.</div>';
-    }
+    const message =
+      '<div class="loading-card">Koneksi belum berhasil. Muat ulang halaman beberapa saat lagi.</div>';
 
-    if (accountGrid) {
-      accountGrid.innerHTML =
-        '<div class="loading-card">Koneksi belum berhasil. Muat ulang halaman beberapa saat lagi.</div>';
-    }
+    if (productGrid) productGrid.innerHTML = message;
+    if (accountGrid) accountGrid.innerHTML = message;
   }
 }
 
