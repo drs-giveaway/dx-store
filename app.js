@@ -76,7 +76,7 @@ function getDXError(error) {
   return error?.message || "Terjadi kesalahan. Silakan coba lagi.";
 }
 
-/* Membuka dan menutup modal sesuai HTML */
+/* Membuka dan menutup modal */
 
 function openAuth() {
   const modal = $("authModal");
@@ -106,9 +106,7 @@ async function loadProducts() {
   const container = $("productGrid");
   if (!container) return;
 
-  container.innerHTML = `
-    <div class="dx-empty-card">Memuat produk digital...</div>
-  `;
+  container.innerHTML = "Memuat produk digital...";
 
   const { data, error } = await dxSupabase
     .from("products")
@@ -118,16 +116,12 @@ async function loadProducts() {
 
   if (error) {
     console.error("Gagal memuat produk:", error);
-    container.innerHTML = `
-      <div class="dx-empty-card">Produk belum dapat dimuat.</div>
-    `;
+    container.innerHTML = "Produk belum dapat dimuat.";
     return;
   }
 
   if (!data || data.length === 0) {
-    container.innerHTML = `
-      <div class="dx-empty-card">Belum ada produk digital.</div>
-    `;
+    container.innerHTML = "Belum ada produk digital.";
     return;
   }
 
@@ -145,9 +139,7 @@ async function loadProducts() {
         ` : ""}
 
         <h3>${safeText(product.name)}</h3>
-
         <p>${safeText(product.description || "")}</p>
-
         <strong>${formatPrice(product.price)}</strong>
 
         <button
@@ -168,9 +160,7 @@ async function loadAccountListings() {
   const container = $("accountGrid");
   if (!container) return;
 
-  container.innerHTML = `
-    <div class="dx-empty-card">Memuat akun game...</div>
-  `;
+  container.innerHTML = "Memuat akun game...";
 
   const { data, error } = await dxSupabase
     .from("account_listings")
@@ -180,16 +170,12 @@ async function loadAccountListings() {
 
   if (error) {
     console.error("Gagal memuat akun:", error);
-    container.innerHTML = `
-      <div class="dx-empty-card">Akun game belum dapat dimuat.</div>
-    `;
+    container.innerHTML = "Akun game belum dapat dimuat.";
     return;
   }
 
   if (!data || data.length === 0) {
-    container.innerHTML = `
-      <div class="dx-empty-card">Belum ada akun game.</div>
-    `;
+    container.innerHTML = "Belum ada akun game.";
     return;
   }
 
@@ -207,11 +193,8 @@ async function loadAccountListings() {
         ` : ""}
 
         <span>${safeText(account.game)}</span>
-
         <h3>${safeText(account.title)}</h3>
-
         <p>${safeText(account.description || "")}</p>
-
         <strong>${formatPrice(account.price)}</strong>
 
         <button
@@ -267,7 +250,6 @@ async function loadDXStore() {
    LOGIN, DAFTAR, DAN PROFIL ADMIN
 ========================================= */
 
-// Memuat profil pengguna dari tabel profiles
 async function loadDXProfile(user) {
   if (!dxSupabase || !user) {
     currentProfile = null;
@@ -290,7 +272,6 @@ async function loadDXProfile(user) {
   return currentProfile;
 }
 
-// Memeriksa apakah pengguna adalah admin
 async function checkDXAdmin() {
   if (!currentUser) {
     currentProfile = null;
@@ -298,11 +279,9 @@ async function checkDXAdmin() {
   }
 
   const profile = await loadDXProfile(currentUser);
-
   return profile?.role === "admin";
 }
 
-// Mengubah mode login dan daftar
 function switchAuthMode() {
   const form = $("authForm");
   if (!form) return;
@@ -364,7 +343,6 @@ function switchAuthMode() {
   showDXMessage("");
 }
 
-// Menyiapkan tombol perpindahan login dan daftar
 function setupDXAuthSwitch() {
   const form = $("authForm");
   if (!form || $("dxAuthSwitch")) return;
@@ -383,11 +361,8 @@ function setupDXAuthSwitch() {
   switchButton.style.cursor = "pointer";
 
   switchButton.addEventListener("click", switchAuthMode);
-
   form.appendChild(switchButton);
 }
-
-// Menangani login dan pendaftaran
 
 async function handleAuthSubmit(event) {
   event.preventDefault();
@@ -462,14 +437,15 @@ async function handleAuthSubmit(event) {
       if (panel) {
         panel.style.display = "block";
         await loadDXAdminList();
+        panel.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
       }
     }
 
     closeAuth();
-
     await loadDXStore();
-
-    showDXMessage("Berhasil masuk ke DX STORE.");
 
   } catch (error) {
     console.error("Kesalahan autentikasi:", error);
@@ -483,16 +459,17 @@ async function handleAuthSubmit(event) {
   }
 }
 
-
-// Memperbarui status pengguna
 async function refreshDXUser() {
   if (!dxSupabase) return;
 
-  const {
-    data: { user }
-  } = await dxSupabase.auth.getUser();
+  const { data, error } = await dxSupabase.auth.getUser();
 
-  currentUser = user || null;
+  if (error) {
+    console.error("Gagal mengambil pengguna:", error);
+    return;
+  }
+
+  currentUser = data.user || null;
 
   if (currentUser) {
     await loadDXProfile(currentUser);
@@ -500,15 +477,14 @@ async function refreshDXUser() {
     currentProfile = null;
   }
 
-  const adminPanel = $("dxAdminPanel");
+  const panel = $("dxAdminPanel");
 
-  if (adminPanel) {
-    adminPanel.style.display =
+  if (panel) {
+    panel.style.display =
       currentProfile?.role === "admin" ? "block" : "none";
   }
 }
 
-// Logout pengguna
 async function handleDXLogout() {
   if (!dxSupabase) return;
 
@@ -522,21 +498,18 @@ async function handleDXLogout() {
   currentUser = null;
   currentProfile = null;
 
-  const adminPanel = $("dxAdminPanel");
+  const panel = $("dxAdminPanel");
 
-  if (adminPanel) {
-    adminPanel.remove();
+  if (panel) {
+    panel.remove();
   }
 
   await loadDXStore();
-
   alert("Berhasil keluar dari akun.");
 }
 
-// Menutup menu navigasi setelah memilih menu
 function initDXNavigation() {
   const navigation = $("dxNavLinks");
-
   if (!navigation) return;
 
   navigation.querySelectorAll("a").forEach((link) => {
@@ -548,15 +521,17 @@ function initDXNavigation() {
 
 /* =========================================
    DX STORE - BAGIAN 4 DARI 5
-   PANEL ADMIN DAN FORM PRODUK
+   PANEL ADMINISTRATOR
 ========================================= */
 
-// Membuat panel administrator
 function createDXAdminPanel() {
   if ($("dxAdminPanel")) return;
 
   const main = document.querySelector("main");
-  if (!main) return;
+  if (!main) {
+    console.error("DX STORE: Elemen main tidak ditemukan.");
+    return;
+  }
 
   const panel = document.createElement("section");
   panel.id = "dxAdminPanel";
@@ -656,6 +631,7 @@ function createDXAdminPanel() {
     <hr style="border-color:#263c60;margin:25px 0;">
 
     <h3>Daftar Data</h3>
+
     <div id="dxAdminList">
       Memuat data...
     </div>
@@ -740,7 +716,6 @@ function createDXAdminPanel() {
   updateDXAdminFormLabels();
 }
 
-// Mengubah label form sesuai kategori
 function updateDXAdminFormLabels() {
   const isAccount = dxAdminType === "account_listings";
 
@@ -761,7 +736,6 @@ function updateDXAdminFormLabels() {
       : "Simpan Produk";
 }
 
-// Mengosongkan form admin
 function resetDXAdminForm() {
   const form = $("dxAdminForm");
   if (!form) return;
@@ -775,7 +749,6 @@ function resetDXAdminForm() {
   $("dxAdminMessage").textContent = "";
 }
 
-// Memuat daftar data untuk admin
 async function loadDXAdminList() {
   if (!dxSupabase) return;
 
@@ -841,7 +814,6 @@ async function loadDXAdminList() {
    SIMPAN, EDIT, HAPUS, DAN INISIALISASI
 ========================================= */
 
-// Menyimpan atau memperbarui produk dan akun
 async function saveDXAdminItem(event) {
   event.preventDefault();
 
@@ -922,6 +894,7 @@ async function saveDXAdminItem(event) {
 
     await loadDXAdminList();
     await loadDXStore();
+
   } catch (error) {
     console.error("Gagal menyimpan data:", error);
 
@@ -933,7 +906,6 @@ async function saveDXAdminItem(event) {
   }
 }
 
-// Mengisi form untuk mengedit data
 async function editDXAdminItem(id) {
   if (!dxSupabase || currentProfile?.role !== "admin") {
     alert("Akses ditolak.");
@@ -952,6 +924,7 @@ async function editDXAdminItem(id) {
   }
 
   $("dxEditId").value = data.id;
+
   $("dxName").value = dxAdminType === "products"
     ? data.name
     : data.title;
@@ -977,7 +950,6 @@ async function editDXAdminItem(id) {
   });
 }
 
-// Menghapus data
 async function deleteDXAdminItem(id) {
   if (!dxSupabase || currentProfile?.role !== "admin") {
     alert("Akses ditolak.");
@@ -1009,10 +981,13 @@ async function deleteDXAdminItem(id) {
   await loadDXStore();
 }
 
-// Menyiapkan seluruh DX STORE
+/* =========================================
+   INISIALISASI DX STORE
+========================================= */
+
 async function initializeDXStore() {
   if (!dxSupabase) {
-    console.error("DX STORE tidak dapat dimulai: Supabase tidak tersedia.");
+    console.error("Supabase tidak tersedia.");
     return;
   }
 
@@ -1039,44 +1014,52 @@ async function initializeDXStore() {
     }
   }
 
-  
-dxSupabase.auth.onAuthStateChange((event, session) => {
-  currentUser = session?.user || null;
+  dxSupabase.auth.onAuthStateChange((event, session) => {
+    currentUser = session?.user || null;
 
-  if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
-    setTimeout(async () => {
-      await refreshDXUser();
+    if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+      setTimeout(async () => {
+        await refreshDXUser();
 
-      if (currentProfile?.role === "admin") {
-        const panel = $("dxAdminPanel");
+        if (currentProfile?.role === "admin") {
+          createDXAdminPanel();
 
-        if (panel) {
-          panel.style.display = "block";
-          await loadDXAdminList();
+          const panel = $("dxAdminPanel");
+
+          if (panel) {
+            panel.style.display = "block";
+            await loadDXAdminList();
+
+            panel.scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+            });
+          }
         }
-      }
 
-      await loadDXStore();
-    }, 0);
-  }
-
-  if (event === "SIGNED_OUT") {
-    currentUser = null;
-    currentProfile = null;
-
-    const panel = $("dxAdminPanel");
-
-    if (panel) {
-      panel.style.display = "none";
+        await loadDXStore();
+      }, 0);
     }
 
-    loadDXStore();
-  }
-});
+    if (event === "SIGNED_OUT") {
+      currentUser = null;
+      currentProfile = null;
 
+      const panel = $("dxAdminPanel");
+
+      if (panel) {
+        panel.style.display = "none";
+      }
+
+      loadDXStore();
+    }
+  });
 }
 
-// Menjalankan DX STORE setelah HTML selesai dimuat
+/* =========================================
+   JALANKAN APLIKASI
+========================================= */
+
 if (document.readyState === "loading") {
   document.addEventListener(
     "DOMContentLoaded",
