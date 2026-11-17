@@ -1040,10 +1040,12 @@ async function initializeDXStore() {
     }
   }
 
-  dxSupabase.auth.onAuthStateChange(async (event, session) => {
-    currentUser = session?.user || null;
+  
+dxSupabase.auth.onAuthStateChange((event, session) => {
+  currentUser = session?.user || null;
 
-    if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+  if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+    setTimeout(async () => {
       await refreshDXUser();
 
       if (currentProfile?.role === "admin") {
@@ -1054,21 +1056,25 @@ async function initializeDXStore() {
           await loadDXAdminList();
         }
       }
+
+      await loadDXStore();
+    }, 0);
+  }
+
+  if (event === "SIGNED_OUT") {
+    currentUser = null;
+    currentProfile = null;
+
+    const panel = $("dxAdminPanel");
+
+    if (panel) {
+      panel.style.display = "none";
     }
 
-    if (event === "SIGNED_OUT") {
-      currentUser = null;
-      currentProfile = null;
+    loadDXStore();
+  }
+});
 
-      const panel = $("dxAdminPanel");
-
-      if (panel) {
-        panel.style.display = "none";
-      }
-    }
-
-    await loadDXStore();
-  });
 }
 
 // Menjalankan DX STORE setelah HTML selesai dimuat
