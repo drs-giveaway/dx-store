@@ -608,3 +608,332 @@ async function initializeDXStore() {
 }
 
 initializeDXStore();
+
+/* =====================================
+   DX STORE - PANEL ADMINISTRATOR
+===================================== */
+
+async function initDXAdminPanel() {
+  if (!db) return;
+
+  const { data: sessionData } = await db.auth.getSession();
+  const user = sessionData.session?.user;
+
+  if (!user) return;
+
+  const { data: profile, error: profileError } = await db
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError || profile?.role !== "admin") return;
+
+  if (document.getElementById("dxAdminPanel")) return;
+
+  const panel = document.createElement("section");
+  panel.id = "dxAdminPanel";
+  panel.style.cssText = `
+    margin:40px auto;
+    padding:24px;
+    max-width:1100px;
+    background:#101b35;
+    border:1px solid #287dff;
+    border-radius:18px;
+    color:white;
+  `;
+
+  panel.innerHTML = `
+    <h2 style="color:#51e5ff">DX STORE ADMIN</h2>
+    <p>Panel Administrator</p>
+
+    <form id="dxAdminForm">
+      <input type="hidden" id="dxEditId">
+
+      <label>Jenis Produk</label>
+      <select id="dxType" required>
+        <option value="products">Produk Digital</option>
+        <option value="account_listings">Akun Game</option>
+      </select>
+
+      <label>Nama Produk / Judul Akun</label>
+      <input id="dxName" required placeholder="Nama produk atau judul akun">
+
+      <div id="dxGameWrap" style="display:none">
+        <label>Nama Game</label>
+        <input id="dxGame" placeholder="Nama game">
+      </div>
+
+      <label>Deskripsi</label>
+      <textarea id="dxDescription" rows="4"
+        placeholder="Deskripsi produk"></textarea>
+
+      <label>Harga (Rupiah)</label>
+      <input id="dxPrice" type="number" min="0" required>
+
+      <label>URL Gambar</label>
+      <input id="dxImage" type="url"
+        placeholder="https://...">
+
+      <label>Status</label>
+      <select id="dxStatus">
+        <option value="active">Aktif / Tampilkan</option>
+        <option value="pending">Menunggu</option>
+      </select>
+
+      <button type="submit" id="dxSave">
+        Simpan Produk
+      </button>
+      <button type="button" id="dxCancel">
+        Batal Edit
+      </button>
+      <p id="dxAdminMessage"></p>
+    </form>
+
+    <hr style="margin:25px 0;border-color:#33476d">
+
+    <h3>Daftar Produk Digital</h3>
+    <div id="dxAdminProducts">Memuat...</div>
+
+    <h3 style="margin-top:30px">Daftar Akun Game</h3>
+    <div id="dxAdminAccounts">Memuat...</div>
+  `;
+
+  const main = document.querySelector("main") || document.body;
+  main.appendChild(panel);
+
+  const style = document.createElement("style");
+  style.textContent = `
+    #dxAdminPanel label {
+      display:block;
+      margin-top:14px;
+      color:#a9c8ff;
+    }
+    #dxAdminPanel input,
+    #dxAdminPanel textarea,
+    #dxAdminPanel select {
+      display:block;
+      box-sizing:border-box;
+      width:100%;
+      padding:12px;
+      margin-top:6px;
+      border:1px solid #34517e;
+      border-radius:8px;
+      background:#091329;
+      color:white;
+    }
+    #dxAdminPanel button {
+      margin:14px 8px 0 0;
+      padding:11px 16px;
+      border:0;
+      border-radius:8px;
+      background:#087cff;
+      color:white;
+      cursor:pointer;
+    }
+    #dxAdminPanel .dx-admin-item {
+      padding:14px;
+      margin:10px 0;
+      border:1px solid #34517e;
+      border-radius:10px;
+      overflow-wrap:anywhere;
+    }
+    #dxAdminPanel .dx-delete {
+      background:#b52d48;
+    }
+  `;
+  document.head.appendChild(style);
+
+  const $ = id => document.getElementById(id);
+
+  $("dxType").addEventListener("change", () => {
+    $("dxGameWrap").style.display =
+      $("dxType").value === "account_listings" ? "block" : "none";
+  });
+
+  async function loadAdminItems() {
+    for (const table of ["products", "account_listings"]) {
+      const target = table === "products"
+        ? $("dxAdminProducts")
+        : $("dxAdminAccounts");
+
+      target.textContent = "Memuat...";
+
+      const { data, error } = await db
+        .from(table)
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        target.textContent = "Gagal memuat: " + error.message;
+        continue;
+      }
+
+      if (!data?.length) {
+        target.textContent = "Belum ada data.";
+        continue;
+      }
+
+      target.innerHTML = data.map(item => {
+        const name = table === "products"
+          ? item.name
+          : item.title;
+
+        return `
+          <div class="dx-admin-item">
+            <strong>${safeText(name)}</strong>
+            <p>Harga: ${formatPrice(item.price)}</p>
+            <p>Status: ${safeText(item.status)}</p>
+            <button type="button"
+              data-edit="${safeText(item.id)}"
+              data-table="${table}">Edit</button>
+            <button type="button" class="dx-delete"
+              data-delete="${safeText(item.id)}"
+              data-table="${table}">Hapus</button>
+          </div>
+        `;
+      }).join("");
+    }
+  }
+
+  $("dxAdminForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const table = $("dxType").value;
+    const id = $("dxEditId").value;
+
+    const name = $("dxName").value.trim();
+    const price = Number($("dxPrice").value);
+
+    if (!name || !Number.isFinite(price) || price < 0) {
+      $("dxAdminMessage").textContent = "Periksa nama dan harga.";
+      return;
+    }
+
+    const payload = {
+      description: $("dxDescription").value.trim(),
+      price,
+      image_url: $("dxImage").value.trim() || null,
+      status: $("dxStatus").value,
+      updated_at: new Date().toISOString()
+    };
+
+    if (table === "products") {
+      payload.name = name;
+    } else {
+      payload.title = name;
+      payload.game = $("dxGame").value.trim();
+      if (!payload.game) {
+        $("dxAdminMessage").textContent = "Isi nama game.";
+        return;
+      }
+    }
+
+    $("dxSave").disabled = true;
+    $("dxAdminMessage").textContent = "Menyimpan...";
+
+    try {
+      let result;
+
+      if (id) {
+        result = await db
+          .from(table)
+          .update(payload)
+          .eq("id", id);
+      } else {
+        payload.seller_id = user.id;
+        result = await db
+          .from(table)
+          .insert(payload);
+      }
+
+      if (result.error) throw result.error;
+
+      $("dxAdminMessage").textContent = "Berhasil disimpan!";
+      $("dxAdminForm").reset();
+      $("dxEditId").value = "";
+      $("dxGameWrap").style.display = "none";
+
+      await loadAdminItems();
+      await Promise.all([loadProducts(), loadAccounts()]);
+
+    } catch (error) {
+      $("dxAdminMessage").textContent =
+        "Gagal: " + error.message;
+    } finally {
+      $("dxSave").disabled = false;
+    }
+  });
+
+  panel.addEventListener("click", async event => {
+    const editButton = event.target.closest("[data-edit]");
+    const deleteButton = event.target.closest("[data-delete]");
+
+    if (editButton) {
+      const table = editButton.dataset.table;
+      const id = editButton.dataset.edit;
+
+      const { data, error } = await db
+        .from(table)
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error || !data) {
+        alert("Data tidak dapat dibuka.");
+        return;
+      }
+
+      $("dxType").value = table;
+      $("dxType").dispatchEvent(new Event("change"));
+      $("dxEditId").value = data.id;
+      $("dxName").value = table === "products"
+        ? data.name
+        : data.title;
+      $("dxGame").value = data.game || "";
+      $("dxDescription").value = data.description || "";
+      $("dxPrice").value = data.price;
+      $("dxImage").value = data.image_url || "";
+      $("dxStatus").value = data.status;
+
+      $("dxAdminForm").scrollIntoView({ behavior: "smooth" });
+      $("dxSave").textContent = "Simpan Perubahan";
+    }
+
+    if (deleteButton) {
+      if (!confirm("Yakin ingin menghapus produk ini?")) return;
+
+      const { error } = await db
+        .from(deleteButton.dataset.table)
+        .delete()
+        .eq("id", deleteButton.dataset.delete);
+
+      if (error) {
+        alert("Gagal menghapus: " + error.message);
+        return;
+      }
+
+      alert("Produk berhasil dihapus.");
+      await loadAdminItems();
+      await Promise.all([loadProducts(), loadAccounts()]);
+    }
+  });
+
+  $("dxCancel").addEventListener("click", () => {
+    $("dxAdminForm").reset();
+    $("dxEditId").value = "";
+    $("dxGameWrap").style.display = "none";
+    $("dxSave").textContent = "Simpan Produk";
+    $("dxAdminMessage").textContent = "";
+  });
+
+  await loadAdminItems();
+}
+
+const dxAdminWait = setInterval(() => {
+  if (db) {
+    clearInterval(dxAdminWait);
+    initDXAdminPanel();
+  }
+}, 300);
+
