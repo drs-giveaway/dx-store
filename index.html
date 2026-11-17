@@ -6,58 +6,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#070b18">
   <meta name="description" content="DX STORE - Marketplace produk digital dan akun game.">
+
   <title>DX STORE | Digital Marketplace</title>
+
+  <link rel="stylesheet" href="style.css">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&displ noay=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="style.css?v=6">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root {
       --dx-bg: #070b18;
-      --dx-blue: #28a8ff;
+      --dx-card: #101a31;
       --dx-cyan: #51e5ff;
+      --dx-blue: #278fff;
       --dx-purple: #8b5cf6;
       --dx-white: #f4f8ff;
+      --dx-muted: #9aa9c4;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
-      margin: 0;
+      font-family: 'Inter', sans-serif;
       background: var(--dx-bg);
       color: var(--dx-white);
-      font-family: Inter, sans-serif;
+      overflow-x: hidden;
     }
 
-    button, input { font: inherit; }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button, input {
+      font: inherit;
+    }
 
     .background-glow {
       position: fixed;
       inset: 0;
-      pointer-events: none;
       z-index: -1;
+      pointer-events: none;
       background:
-        radial-gradient(circle at 15% 15%, rgba(40,168,255,.12), transparent 32%),
+        radial-gradient(circle at 15% 15%, rgba(39,143,255,.12), transparent 35%),
         radial-gradient(circle at 85% 45%, rgba(139,92,246,.10), transparent 35%);
     }
-  </style>
-</head>
 
-<body>
-  <div class="background-glow"></div>
-
-  <style>
     .dx-container {
       width: min(1150px, 92%);
       margin: auto;
     }
 
     /* NAVBAR */
+
     .dx-header {
       position: sticky;
       top: 0;
@@ -76,14 +87,16 @@
     }
 
     .dx-brand {
-      color: #fff;
-      text-decoration: none;
       font-size: 25px;
       font-weight: 900;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
+      color: var(--dx-white);
     }
 
-    .dx-brand span { color: var(--dx-cyan); }
+    .dx-brand span {
+      color: var(--dx-cyan);
+      text-shadow: 0 0 18px rgba(81,229,255,.5);
+    }
 
     .dx-nav-links {
       display: flex;
@@ -92,14 +105,15 @@
     }
 
     .dx-nav-links a {
-      color: #c5d1e5;
-      text-decoration: none;
+      color: var(--dx-muted);
       font-size: 13px;
       font-weight: 700;
-      transition: .2s;
+      transition: .25s;
     }
 
-    .dx-nav-links a:hover { color: var(--dx-cyan); }
+    .dx-nav-links a:hover {
+      color: var(--dx-cyan);
+    }
 
     .dx-nav-actions {
       display: flex;
@@ -107,33 +121,39 @@
       gap: 10px;
     }
 
+    /* BUTTONS */
+
     .dx-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(81,229,255,.35);
+      min-height: 45px;
+      padding: 0 22px;
+      border: 1px solid transparent;
       border-radius: 10px;
-      padding: 12px 18px;
-      background: linear-gradient(135deg,#168be8,#5145d9);
+      background: linear-gradient(110deg, #168fff, #6955e9);
       color: white;
-      text-decoration: none;
       font-size: 13px;
       font-weight: 800;
       cursor: pointer;
-      transition: .2s;
+      transition: .25s;
+      box-shadow: 0 0 22px rgba(39,143,255,.2);
     }
 
     .dx-button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(40,168,255,.25);
+      box-shadow: 0 0 30px rgba(39,143,255,.4);
     }
 
     .dx-button-outline {
       background: transparent;
+      border-color: rgba(81,229,255,.45);
       color: var(--dx-cyan);
+      box-shadow: none;
     }
 
     /* HERO */
+
     .dx-hero {
       min-height: 570px;
       display: grid;
@@ -146,32 +166,33 @@
 
     .dx-eyebrow {
       display: inline-block;
-      color: var(--dx-cyan);
-      background: rgba(40,168,255,.10);
+      margin-bottom: 20px;
+      padding: 9px 14px;
       border: 1px solid rgba(81,229,255,.25);
       border-radius: 30px;
-      padding: 9px 14px;
+      background: rgba(40,168,255,.08);
+      color: var(--dx-cyan);
       font-size: 11px;
       font-weight: 800;
-      letter-spacing: 1.5px;
+      letter-spacing: 2px;
     }
 
     .dx-hero h1 {
-      margin: 22px 0 16px;
-      font-size: clamp(38px,5.5vw,66px);
-      line-height: 1.06;
+      font-size: clamp(38px, 5vw, 65px);
+      line-height: 1.08;
       font-weight: 900;
       letter-spacing: -2px;
     }
 
     .dx-hero h1 span {
       color: var(--dx-cyan);
-      text-shadow: 0 0 28px rgba(81,229,255,.25);
+      text-shadow: 0 0 25px rgba(81,229,255,.25);
     }
 
     .dx-hero-copy {
-      max-width: 510px;
-      color: #aab8d0;
+      max-width: 490px;
+      margin-top: 22px;
+      color: var(--dx-muted);
       font-size: 15px;
       line-height: 1.8;
     }
@@ -180,10 +201,11 @@
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: 28px;
+      margin-top: 30px;
     }
 
-    /* MASCOT AREA */
+    /* MASCOT PNG */
+
     .dx-mascot-widget {
       position: relative;
       min-height: 430px;
@@ -194,8 +216,8 @@
       border: 1px solid rgba(81,229,255,.18);
       border-radius: 28px;
       background:
-        radial-gradient(circle at 50% 45%,rgba(40,168,255,.20),transparent 55%),
-        linear-gradient(145deg,rgba(20,35,68,.85),rgba(8,12,29,.95));
+        radial-gradient(circle at 50% 45%, rgba(40,168,255,.20), transparent 55%),
+        linear-gradient(145deg, rgba(20,35,68,.85), rgba(8,12,29,.95));
       box-shadow: 0 0 55px rgba(40,168,255,.08);
     }
 
@@ -216,13 +238,28 @@
       border-color: rgba(139,92,246,.15);
     }
 
-    #dxMascotCanvas {
+    .dx-neon-aura {
+      position: absolute;
+      width: 75%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,195,255,.4), rgba(139,92,246,.25) 50%, transparent 75%);
+      filter: blur(35px);
+      animation: dxPulseGlow 4s ease-in-out infinite alternate;
+    }
+
+    .dx-mascot-img {
       position: relative;
       z-index: 2;
       display: block;
       width: 100%;
       max-width: 480px;
       height: auto;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 0 18px rgba(0,210,255,.5))
+        drop-shadow(0 0 22px rgba(139,92,246,.4));
+      animation: dxMascotFloat 4.5s ease-in-out infinite;
     }
 
     .dx-mascot-label {
@@ -236,172 +273,29 @@
       letter-spacing: 2px;
     }
 
-    /* SECTION */
-    .dx-section {
-      padding: 75px 0;
+    @keyframes dxMascotFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
     }
 
-    .dx-section-heading {
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
-    .dx-section-heading small {
-      color: var(--dx-cyan);
-      font-weight: 800;
-      letter-spacing: 2px;
-    }
-
-    .dx-section-heading h2 {
-      margin: 12px 0;
-      font-size: clamp(28px,4vw,42px);
-      font-weight: 900;
-    }
-
-    .dx-section-heading p {
-      color: #9eacc4;
-      line-height: 1.7;
-    }
-
-    .dx-catalog {
-      display: grid;
-      grid-template-columns: repeat(3,minmax(0,1fr));
-      gap: 18px;
-    }
-
-    .dx-empty-card {
-      grid-column: 1 / -1;
-      padding: 35px 20px;
-      text-align: center;
-      color: #9eacc4;
-      border: 1px dashed rgba(81,229,255,.22);
-      border-radius: 16px;
-      background: rgba(16,26,48,.55);
-    }
-
-    /* CTA */
-    .dx-cta {
-      margin: 40px auto 80px;
-      padding: 45px 25px;
-      text-align: center;
-      border: 1px solid rgba(81,229,255,.2);
-      border-radius: 24px;
-      background: linear-gradient(120deg,rgba(20,91,151,.25),rgba(91,55,160,.2));
-    }
-
-    .dx-cta h2 {
-      font-size: clamp(25px,4vw,38px);
-      margin: 0 0 12px;
-    }
-
-    .dx-cta p {
-      color: #b1bfd5;
-      line-height: 1.7;
-    }
-
-    /* FOOTER */
-    .dx-footer {
-      border-top: 1px solid rgba(81,229,255,.12);
-      padding: 30px 0;
-      color: #8796af;
-      font-size: 12px;
-      text-align: center;
-    }
-
-    /* AUTH MODAL */
-    .dx-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 500;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: rgba(0,0,0,.78);
-      backdrop-filter: blur(8px);
-    }
-
-    .dx-modal.active { display: flex; }
-
-    .dx-modal-box {
-      width: min(420px,100%);
-      padding: 28px;
-      border: 1px solid rgba(81,229,255,.25);
-      border-radius: 20px;
-      background: #101a30;
-      box-shadow: 0 20px 70px rgba(0,0,0,.45);
-    }
-
-    .dx-modal-box h2 { margin-top: 0; }
-
-    .dx-modal-box input {
-      width: 100%;
-      margin: 8px 0;
-      padding: 14px;
-      color: white;
-      background: #080f20;
-      border: 1px solid #263957;
-      border-radius: 9px;
-      outline: none;
-    }
-
-    .dx-modal-box input:focus {
-      border-color: var(--dx-cyan);
-    }
-
-    .dx-modal-box .dx-button {
-      width: 100%;
-      margin-top: 12px;
-    }
-
-    .dx-close {
-      float: right;
-      border: 0;
-      background: transparent;
-      color: white;
-      font-size: 25px;
-      cursor: pointer;
-    }
-
-    .auth-message {
-      color: var(--dx-cyan);
-      font-size: 12px;
-      line-height: 1.6;
-    }
-
-    /* MOBILE */
-    @media (max-width: 760px) {
-      .dx-nav { min-height: 66px; }
-      .dx-nav-links { display: none; }
-      .dx-brand { font-size: 21px; }
-      .dx-nav-actions .dx-button {
-        padding: 10px 12px;
-        font-size: 11px;
-      }
-
-      .dx-hero {
-        grid-template-columns: 1fr;
-        padding-top: 45px;
-        gap: 28px;
-      }
-
-      .dx-hero-content { text-align: center; }
-      .dx-hero-copy { margin: auto; }
-      .dx-hero-buttons { justify-content: center; }
-      .dx-mascot-widget { min-height: 350px; }
-      .dx-catalog { grid-template-columns: 1fr; }
-      .dx-section { padding: 55px 0; }
-    }
-
-    @media (min-width: 761px) and (max-width: 950px) {
-      .dx-catalog { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    @keyframes dxPulseGlow {
+      from { opacity: .65; transform: scale(.95); }
+      to { opacity: 1; transform: scale(1.08); }
     }
   </style>
+</head>
 
-  <!-- NAVBAR -->
+<body>
+
+  <div class="background-glow"></div>
+
+  <!-- HEADER -->
   <header class="dx-header">
     <div class="dx-container dx-nav">
-      <a href="#" class="dx-brand">DX <span>STORE</span></a>
+
+      <a href="#home" class="dx-brand">
+        DX<span>STORE</span>
+      </a>
 
       <nav class="dx-nav-links">
         <a href="#home">Beranda</a>
@@ -410,15 +304,19 @@
       </nav>
 
       <div class="dx-nav-actions">
-        <button class="dx-button dx-button-outline" onclick="openAuth()">Masuk</button>
-        <button class="dx-button" onclick="openAuth()">Daftar</button>
+        <button class="dx-button" onclick="openAuth()">
+          Masuk / Daftar
+        </button>
       </div>
+
     </div>
   </header>
 
   <main>
+
     <!-- HERO -->
     <section class="dx-container dx-hero" id="home">
+
       <div class="dx-hero-content">
         <span class="dx-eyebrow">WELCOME TO DX STORE</span>
 
@@ -439,18 +337,29 @@
       </div>
 
       <div class="dx-mascot-widget">
-        <canvas id="dxMascotCanvas" width="800" height="900"></canvas>
-        <div class="dx-mascot-label">DX-01 // OFFICIAL MASCOT</div>
+        <div class="dx-neon-aura"></div>
+
+        <img
+          src="e651fb64e97f7b671d2c4da0e029090b795d756c101820bc5a1b6589cd195d21.png"
+          alt="Maskot Resmi DX STORE"
+          class="dx-mascot-img"
+        >
+
+        <div class="dx-mascot-label">
+          DX-01 // OFFICIAL MASCOT
+        </div>
       </div>
+
     </section>
 
     <!-- PRODUK DIGITAL -->
     <section class="dx-section" id="products">
       <div class="dx-container">
+
         <div class="dx-section-heading">
-          <small>DX DIGITAL MARKET</small>
+          <small>DX DIGITAL MARKETPLACE</small>
           <h2>Produk Digital</h2>
-          <p>Temukan produk digital yang tersedia di DX STORE.</p>
+          <p>Jelajahi berbagai produk digital pilihan dari DX STORE.</p>
         </div>
 
         <div class="dx-catalog" id="productGrid">
@@ -458,12 +367,14 @@
             Produk digital akan ditampilkan di sini.
           </div>
         </div>
+
       </div>
     </section>
 
     <!-- AKUN GAME -->
     <section class="dx-section" id="accounts">
       <div class="dx-container">
+
         <div class="dx-section-heading">
           <small>DX GAME MARKETPLACE</small>
           <h2>Marketplace Akun Game</h2>
@@ -475,6 +386,7 @@
             Akun game akan ditampilkan di sini.
           </div>
         </div>
+
       </div>
     </section>
 
@@ -482,15 +394,18 @@
     <section class="dx-container dx-cta">
       <h2>READY TO LEVEL UP?</h2>
       <p>Temukan produk digital dan akun game pilihanmu di DX STORE.</p>
-      <button class="dx-button" onclick="openAuth()">Mulai Sekarang</button>
+      <button class="dx-button" onclick="openAuth()">
+        Mulai Sekarang
+      </button>
     </section>
+
   </main>
 
   <!-- FOOTER -->
   <footer class="dx-footer">
     <div class="dx-container">
       <strong>DX STORE</strong>
-      <p>Digital Products & Game Account Marketplace</p>
+      <p>Digital Products &amp; Game Account Marketplace</p>
       <p>© 2026 DX STORE. All rights reserved.</p>
     </div>
   </footer>
@@ -498,12 +413,20 @@
   <!-- LOGIN MODAL -->
   <div class="dx-modal" id="authModal">
     <div class="dx-modal-box">
-      <button class="dx-close" onclick="closeAuth()" aria-label="Tutup">&times;</button>
+
+      <button
+        class="dx-close"
+        onclick="closeAuth()"
+        aria-label="Tutup"
+      >
+        &times;
+      </button>
 
       <h2>Welcome to DX STORE</h2>
       <p>Masuk atau daftar untuk melanjutkan.</p>
 
       <form id="authForm">
+
         <input
           type="email"
           id="authEmail"
@@ -520,347 +443,246 @@
           required
         >
 
-        <button type="submit" class="dx-button">Masuk / Daftar</button>
+        <button type="submit" class="dx-button">
+          Masuk / Daftar
+        </button>
+
       </form>
 
       <p id="authMessage" class="auth-message"></p>
+
     </div>
   </div>
 
-  <!-- DX STORE OFFICIAL MASCOT -->
-  <script>
-    (function () {
-      const canvas = document.getElementById("dxMascotCanvas");
-      if (!canvas) return;
-
-      const ctx = canvas.getContext("2d");
-      const W = 800;
-      const H = 900;
-
-      let frame = 0;
-
-      function roundedRect(x, y, w, h, r) {
-        ctx.beginPath();
-        ctx.roundRect(x, y, w, h, r);
-      }
-
-      function drawMascot() {
-        ctx.clearRect(0, 0, W, H);
-
-        const pulse = Math.sin(frame * 0.035) * 8;
-
-        // ENERGY AURA
-        const aura = ctx.createRadialGradient(
-          400, 420, 60,
-          400, 420, 390
-        );
-
-        aura.addColorStop(0, "rgba(40,168,255,0.24)");
-        aura.addColorStop(0.55, "rgba(80,60,220,0.10)");
-        aura.addColorStop(1, "rgba(5,10,25,0)");
-
-        ctx.fillStyle = aura;
-        ctx.fillRect(0, 0, W, H);
-
-        // ENERGY RINGS
-        ctx.save();
-        ctx.translate(400, 455);
-        ctx.rotate(frame * 0.002);
-
-        ctx.strokeStyle = "rgba(81,229,255,0.25)";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 270 + pulse, 350 + pulse, 0, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.strokeStyle = "rgba(139,92,246,0.28)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 310 - pulse, 390 - pulse, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-
-        // HOODIE BODY
-        const hoodie = ctx.createLinearGradient(220, 480, 590, 850);
-        hoodie.addColorStop(0, "#183d70");
-        hoodie.addColorStop(0.5, "#101d3d");
-        hoodie.addColorStop(1, "#080e22");
-
-        ctx.fillStyle = hoodie;
-        ctx.beginPath();
-        ctx.moveTo(300, 500);
-        ctx.lineTo(230, 590);
-        ctx.lineTo(170, 850);
-        ctx.lineTo(630, 850);
-        ctx.lineTo(570, 590);
-        ctx.lineTo(500, 500);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.strokeStyle = "#278fff";
-        ctx.lineWidth = 5;
-        ctx.stroke();
-
-        // HOOD
-        ctx.fillStyle = "#101b38";
-        ctx.beginPath();
-        ctx.moveTo(300, 500);
-        ctx.quadraticCurveTo(270, 390, 400, 370);
-        ctx.quadraticCurveTo(530, 390, 500, 500);
-        ctx.lineTo(465, 580);
-        ctx.lineTo(335, 580);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.strokeStyle = "rgba(81,229,255,0.8)";
-        ctx.lineWidth = 4;
-        ctx.stroke();
-
-        // NECK
-        ctx.fillStyle = "#d99b83";
-        roundedRect(355, 455, 90, 100, 25);
-        ctx.fill();
-
-        // FACE
-        const skin = ctx.createLinearGradient(310, 220, 490, 480);
-        skin.addColorStop(0, "#ffd2b9");
-        skin.addColorStop(1, "#bd786d");
-
-        ctx.fillStyle = skin;
-        ctx.beginPath();
-        ctx.moveTo(300, 270);
-        ctx.quadraticCurveTo(300, 190, 400, 185);
-        ctx.quadraticCurveTo(500, 190, 500, 280);
-        ctx.lineTo(480, 405);
-        ctx.quadraticCurveTo(450, 480, 400, 490);
-        ctx.quadraticCurveTo(350, 480, 320, 405);
-        ctx.closePath();
-        ctx.fill();
-
-        // FACE SHADOW
-        ctx.fillStyle = "rgba(100,45,65,0.12)";
-        ctx.beginPath();
-        ctx.ellipse(400, 430, 75, 30, 0, 0, Math.PI);
-        ctx.fill();
-
-        // EYES
-        function drawEye(x, y) {
-          ctx.fillStyle = "#ffffff";
-          ctx.beginPath();
-          ctx.ellipse(x, y, 34, 25, 0, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = "#20bfff";
-          ctx.beginPath();
-          ctx.ellipse(x, y + 2, 16, 21, 0, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = "#07152b";
-          ctx.beginPath();
-          ctx.ellipse(x, y + 3, 8, 16, 0, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = "#ffffff";
-          ctx.beginPath();
-          ctx.arc(x - 5, y - 6, 5, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        drawEye(350, 350);
-        drawEye(450, 350);
-
-        // EYEBROWS
-        ctx.strokeStyle = "#27324d";
-        ctx.lineWidth = 9;
-        ctx.lineCap = "round";
-
-        ctx.beginPath();
-        ctx.moveTo(320, 312);
-        ctx.lineTo(372, 305);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(428, 305);
-        ctx.lineTo(480, 312);
-        ctx.stroke();
-
-        // NOSE
-        ctx.strokeStyle = "rgba(120,65,70,0.45)";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(400, 365);
-        ctx.lineTo(393, 388);
-        ctx.stroke();
-
-        // SMILE
-        ctx.strokeStyle = "#8e4e59";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.arc(400, 400, 22, 0.2, Math.PI - 0.2);
-        ctx.stroke();
-
-        // HAIR BACK
-        const hair = ctx.createLinearGradient(280, 130, 510, 390);
-        hair.addColorStop(0, "#e8f4ff");
-        hair.addColorStop(0.5, "#8bbce9");
-        hair.addColorStop(1, "#7256b9");
-
-        ctx.fillStyle = hair;
-        ctx.beginPath();
-        ctx.moveTo(285, 320);
-        ctx.quadraticCurveTo(260, 130, 400, 125);
-        ctx.quadraticCurveTo(550, 125, 520, 330);
-        ctx.lineTo(490, 250);
-        ctx.lineTo(460, 320);
-        ctx.lineTo(425, 245);
-        ctx.lineTo(390, 320);
-        ctx.lineTo(350, 250);
-        ctx.lineTo(320, 330);
-        ctx.closePath();
-        ctx.fill();
-
-        // HAIR FRONT
-        ctx.fillStyle = "#d7eaff";
-        ctx.beginPath();
-        ctx.moveTo(290, 285);
-        ctx.quadraticCurveTo(280, 150, 405, 145);
-        ctx.quadraticCurveTo(520, 145, 515, 275);
-        ctx.lineTo(480, 240);
-        ctx.lineTo(450, 300);
-        ctx.lineTo(420, 225);
-        ctx.lineTo(385, 305);
-        ctx.lineTo(355, 230);
-        ctx.lineTo(320, 300);
-        ctx.closePath();
-        ctx.fill();
-
-        // PURPLE HAIR ACCENTS
-        ctx.strokeStyle = "#9c72ff";
-        ctx.lineWidth = 12;
-        ctx.lineCap = "round";
-
-        ctx.beginPath();
-        ctx.moveTo(470, 190);
-        ctx.quadraticCurveTo(520, 235, 495, 290);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(330, 195);
-        ctx.quadraticCurveTo(300, 240, 325, 280);
-        ctx.stroke();
-
-        // HEADSET
-        ctx.strokeStyle = "#31caff";
-        ctx.lineWidth = 12;
-        ctx.beginPath();
-        ctx.arc(400, 285, 135, Math.PI, Math.PI * 2);
-        ctx.stroke();
-
-        // HEADSET EAR PADS
-        const headset = ctx.createLinearGradient(250, 300, 550, 390);
-        headset.addColorStop(0, "#137ce0");
-        headset.addColorStop(1, "#753fff");
-
-        ctx.fillStyle = headset;
-        roundedRect(258, 275, 45, 105, 15);
-        ctx.fill();
-
-        roundedRect(497, 275, 45, 105, 15);
-        ctx.fill();
-
-        ctx.strokeStyle = "#65eaff";
-        ctx.lineWidth = 4;
-        roundedRect(258, 275, 45, 105, 15);
-        ctx.stroke();
-
-        roundedRect(497, 275, 45, 105, 15);
-        ctx.stroke();
-
-        // HEADSET MICROPHONE
-        ctx.strokeStyle = "#51e5ff";
-        ctx.lineWidth = 7;
-        ctx.beginPath();
-        ctx.moveTo(520, 355);
-        ctx.quadraticCurveTo(565, 430, 485, 445);
-        ctx.stroke();
-
-        ctx.fillStyle = "#51e5ff";
-        ctx.beginPath();
-        ctx.arc(485, 445, 10, 0, Math.PI * 2);
-        ctx.fill();
-
-        // DX LOGO ON HOODIE
-        ctx.save();
-        ctx.shadowColor = "#28a8ff";
-        ctx.shadowBlur = 18;
-        ctx.fillStyle = "#51e5ff";
-        ctx.font = "900 58px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText("DX", 400, 690);
-        ctx.restore();
-
-        // HOODIE DETAILS
-        ctx.strokeStyle = "rgba(81,229,255,0.7)";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(365, 540);
-        ctx.lineTo(350, 625);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(435, 540);
-        ctx.lineTo(450, 625);
-        ctx.stroke();
-
-        // ENERGY PARTICLES
-        for (let i = 0; i < 22; i++) {
-          const x = 100 + ((i * 137 + frame * 0.8) % 600);
-          const y = 120 + ((i * 83 + frame * 0.5) % 650);
-
-          ctx.fillStyle = i % 2 === 0
-            ? "rgba(81,229,255,0.8)"
-            : "rgba(166,116,255,0.8)";
-
-          ctx.beginPath();
-          ctx.arc(x, y, 2 + (i % 3), 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      function animate() {
-        frame++;
-        drawMascot();
-        requestAnimationFrame(animate);
-      }
-
-      animate();
-    })();
-  </script>
-
-  <!-- DX STORE FUNCTIONS -->
-  <script>
-    // BUKA DAN TUTUP LOGIN MODAL
-    function openAuth() {
-      const modal = document.getElementById("authModal");
-      if (modal) modal.classList.add("active");
+  <!-- RESPONSIVE & SECTION STYLES -->
+  <style>
+    .dx-section {
+      padding: 85px 0;
     }
 
-    function closeAuth() {
-      const modal = document.getElementById("authModal");
-      if (modal) modal.classList.remove("active");
+    .dx-section-heading {
+      text-align: center;
+      margin-bottom: 38px;
     }
 
-    // TUTUP MODAL SAAT AREA LUAR DIKLIK
-    document.addEventListener("click", function (event) {
-      const modal = document.getElementById("authModal");
+    .dx-section-heading small {
+      color: var(--dx-cyan);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
 
-      if (modal && event.target === modal) {
-        closeAuth();
+    .dx-section-heading h2 {
+      margin: 12px 0;
+      font-size: clamp(27px, 4vw, 40px);
+      font-weight: 900;
+    }
+
+    .dx-section-heading p {
+      color: var(--dx-muted);
+      font-size: 14px;
+    }
+
+    .dx-catalog {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 20px;
+    }
+
+    .dx-empty-card {
+      grid-column: 1 / -1;
+      padding: 35px 20px;
+      text-align: center;
+      color: var(--dx-muted);
+      background: rgba(16,26,49,.7);
+      border: 1px dashed rgba(81,229,255,.2);
+      border-radius: 16px;
+    }
+
+    .dx-cta {
+      margin-top: 35px;
+      margin-bottom: 85px;
+      padding: 55px 25px;
+      text-align: center;
+      border: 1px solid rgba(81,229,255,.18);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(39,143,255,.2), transparent 65%),
+        #101a31;
+    }
+
+    .dx-cta h2 {
+      font-size: clamp(25px, 4vw, 38px);
+      font-weight: 900;
+    }
+
+    .dx-cta p {
+      margin: 15px 0 25px;
+      color: var(--dx-muted);
+      font-size: 14px;
+    }
+
+    .dx-footer {
+      padding: 35px 0;
+      text-align: center;
+      border-top: 1px solid rgba(81,229,255,.12);
+      background: rgba(5,9,20,.8);
+    }
+
+    .dx-footer strong {
+      color: var(--dx-cyan);
+      font-size: 23px;
+      letter-spacing: 2px;
+    }
+
+    .dx-footer p {
+      margin-top: 10px;
+      color: var(--dx-muted);
+      font-size: 12px;
+    }
+
+    /* LOGIN MODAL */
+
+    .dx-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,.75);
+      backdrop-filter: blur(8px);
+    }
+
+    .dx-modal.active {
+      display: flex;
+    }
+
+    .dx-modal-box {
+      position: relative;
+      width: min(420px, 100%);
+      padding: 35px 25px;
+      border: 1px solid rgba(81,229,255,.25);
+      border-radius: 20px;
+      background: #101a31;
+      box-shadow: 0 0 45px rgba(39,143,255,.15);
+    }
+
+    .dx-modal-box h2 {
+      font-size: 23px;
+      margin-bottom: 10px;
+    }
+
+    .dx-modal-box > p {
+      color: var(--dx-muted);
+      font-size: 13px;
+      margin-bottom: 22px;
+    }
+
+    .dx-close {
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      border: none;
+      background: none;
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+    }
+
+    #authForm {
+      display: grid;
+      gap: 13px;
+    }
+
+    #authForm input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid rgba(81,229,255,.2);
+      border-radius: 9px;
+      outline: none;
+      background: #080f20;
+      color: white;
+    }
+
+    #authForm input:focus {
+      border-color: var(--dx-cyan);
+    }
+
+    #authForm button {
+      width: 100%;
+    }
+
+    .auth-message {
+      margin-top: 15px;
+      color: var(--dx-cyan);
+      font-size: 12px;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 760px) {
+      .dx-nav {
+        min-height: 68px;
+        flex-wrap: wrap;
+        padding: 12px 0;
       }
-    });
-  </script>
 
-    <!-- SUPABASE LIBRARY -->
+      .dx-brand {
+        font-size: 21px;
+      }
+
+      .dx-nav-links {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        gap: 17px;
+      }
+
+      .dx-nav-links a {
+        font-size: 11px;
+      }
+
+      .dx-nav-actions .dx-button {
+        min-height: 38px;
+        padding: 0 12px;
+        font-size: 11px;
+      }
+
+      .dx-hero {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding-top: 45px;
+      }
+
+      .dx-hero h1 {
+        font-size: 42px;
+      }
+
+      .dx-hero-copy {
+        font-size: 14px;
+      }
+
+      .dx-mascot-widget {
+        min-height: 350px;
+      }
+
+      .dx-mascot-img {
+        max-width: 340px;
+      }
+
+      .dx-section {
+        padding: 60px 0;
+      }
+
+      .dx-catalog {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <!-- SUPABASE LIBRARY -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SUPABASE CONFIGURATION -->
