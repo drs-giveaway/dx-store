@@ -388,6 +388,7 @@ function setupDXAuthSwitch() {
 }
 
 // Menangani login dan pendaftaran
+
 async function handleAuthSubmit(event) {
   event.preventDefault();
 
@@ -411,22 +412,19 @@ async function handleAuthSubmit(event) {
   }
 
   const submitButton = $("authForm")?.querySelector(
-    'button[type="submit"], input[type="submit"]'
+    'button[type="submit"]'
   );
 
   if (submitButton) {
     submitButton.disabled = true;
-
-    if (submitButton.tagName === "INPUT") {
-      submitButton.value = "Memproses...";
-    } else {
-      submitButton.textContent = "Memproses...";
-    }
+    submitButton.textContent = "Memproses...";
   }
 
   try {
+    let result;
+
     if (dxAuthMode === "register") {
-      const { data, error } = await dxSupabase.auth.signUp({
+      result = await dxSupabase.auth.signUp({
         email,
         password,
         options: {
@@ -436,54 +434,55 @@ async function handleAuthSubmit(event) {
         }
       });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
-      if (data.session) {
-        currentUser = data.user;
-        await loadDXProfile(currentUser);
-        closeAuth();
-        await refreshDXUser();
-        showDXMessage("Pendaftaran berhasil.");
-      } else {
+      if (!result.data.session) {
         showDXMessage(
-          "Pendaftaran berhasil. Silakan periksa email untuk verifikasi jika diminta."
+          "Pendaftaran berhasil. Periksa email jika verifikasi diminta."
         );
+        return;
       }
     } else {
-      const { data, error } = await dxSupabase.auth.signInWithPassword({
+      result = await dxSupabase.auth.signInWithPassword({
         email,
         password
       });
 
-      if (error) throw error;
-
-      currentUser = data.user;
-      await loadDXProfile(currentUser);
-
-      closeAuth();
-      await refreshDXUser();
-
-      showDXMessage("Berhasil masuk ke DX STORE.");
+      if (result.error) throw result.error;
     }
+
+    currentUser = result.data.user;
+    await loadDXProfile(currentUser);
+
+    if (currentProfile?.role === "admin") {
+      createDXAdminPanel();
+
+      const panel = $("dxAdminPanel");
+
+      if (panel) {
+        panel.style.display = "block";
+        await loadDXAdminList();
+      }
+    }
+
+    closeAuth();
+
+    await loadDXStore();
+
+    showDXMessage("Berhasil masuk ke DX STORE.");
+
   } catch (error) {
     console.error("Kesalahan autentikasi:", error);
     showDXMessage(getDXError(error));
   } finally {
     if (submitButton) {
       submitButton.disabled = false;
-
-      if (submitButton.tagName === "INPUT") {
-        submitButton.value = dxAuthMode === "login"
-          ? "Masuk"
-          : "Daftar";
-      } else {
-        submitButton.textContent = dxAuthMode === "login"
-          ? "Masuk"
-          : "Daftar";
-      }
+      submitButton.textContent =
+        dxAuthMode === "login" ? "Masuk" : "Daftar";
     }
   }
 }
+
 
 // Memperbarui status pengguna
 async function refreshDXUser() {
