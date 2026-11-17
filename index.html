@@ -12,74 +12,38 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 
   <style>
-    .mascot-visual {
-      position: relative;
-      min-height: 480px;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      isolation: isolate;
-      background: radial-gradient(circle, rgba(40,168,255,.17), transparent 68%);
+    :root {
+      --dx-bg: #070b18;
+      --dx-blue: #28a8ff;
+      --dx-cyan: #51e5ff;
+      --dx-purple: #8b5cf6;
+      --dx-white: #f4f8ff;
     }
 
-    .mascot-visual::before {
-      content: "";
-      position: absolute;
-      width: 300px;
-      height: 300px;
-      border-radius: 50%;
-      background: #168cff;
-      filter: blur(100px);
-      opacity: .35;
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--dx-bg);
+      color: var(--dx-white);
+      font-family: Inter, sans-serif;
+    }
+
+    button, input { font: inherit; }
+
+    .background-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
       z-index: -1;
-    }
-
-    .mascot-art {
-      width: min(100%, 450px);
-      height: auto;
-      overflow: visible;
-      filter: drop-shadow(0 15px 35px rgba(40,168,255,.25));
-      animation: mascotFloat 4s ease-in-out infinite;
-    }
-
-    .mascot-label {
-      position: absolute;
-      right: 5px;
-      bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      padding: 13px 17px;
-      border: 1px solid rgba(81,229,255,.5);
-      border-radius: 13px;
-      background: rgba(10,20,43,.92);
-      box-shadow: 0 0 25px rgba(40,168,255,.2);
-    }
-
-    .mascot-label span {
-      color: #51e5ff;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 2px;
-    }
-
-    .mascot-label strong {
-      color: white;
-      font-size: 12px;
-    }
-
-    @keyframes mascotFloat {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-12px); }
-    }
-
-    @media (max-width: 760px) {
-      .mascot-visual { min-height: 350px; }
-      .mascot-art { max-width: 340px; }
-      .mascot-label { right: 0; bottom: 5px; }
+      background:
+        radial-gradient(circle at 15% 15%, rgba(40,168,255,.12), transparent 32%),
+        radial-gradient(circle at 85% 45%, rgba(139,92,246,.10), transparent 35%);
     }
   </style>
 </head>
@@ -87,242 +51,821 @@
 <body>
   <div class="background-glow"></div>
 
-  <header class="header">
-    <a href="#home" class="brand">
-      <span class="brand-icon">DX</span>
-      <span>DX <strong>STORE</strong></span>
-    </a>
+  <style>
+    .dx-container {
+      width: min(1150px, 92%);
+      margin: auto;
+    }
 
-    <nav class="navigation">
-      <a href="#home">Beranda</a>
-      <a href="#products">Produk Digital</a>
-      <a href="#accounts">Akun Game</a>
-    </nav>
+    /* NAVBAR */
+    .dx-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,11,24,.88);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(81,229,255,.12);
+    }
 
-    <div class="header-actions">
-      <button id="loginButton" class="btn-outline" type="button">Masuk</button>
-      <button id="registerButton" class="btn-primary" type="button">Daftar</button>
-      <button id="menuButton" class="menu-button" type="button" aria-label="Buka menu">☰</button>
+    .dx-nav {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .dx-brand {
+      color: #fff;
+      text-decoration: none;
+      font-size: 25px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .dx-brand span { color: var(--dx-cyan); }
+
+    .dx-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .dx-nav-links a {
+      color: #c5d1e5;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      transition: .2s;
+    }
+
+    .dx-nav-links a:hover { color: var(--dx-cyan); }
+
+    .dx-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dx-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(81,229,255,.35);
+      border-radius: 10px;
+      padding: 12px 18px;
+      background: linear-gradient(135deg,#168be8,#5145d9);
+      color: white;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .dx-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(40,168,255,.25);
+    }
+
+    .dx-button-outline {
+      background: transparent;
+      color: var(--dx-cyan);
+    }
+
+    /* HERO */
+    .dx-hero {
+      min-height: 570px;
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      align-items: center;
+      gap: 35px;
+      padding-top: 55px;
+      padding-bottom: 65px;
+    }
+
+    .dx-eyebrow {
+      display: inline-block;
+      color: var(--dx-cyan);
+      background: rgba(40,168,255,.10);
+      border: 1px solid rgba(81,229,255,.25);
+      border-radius: 30px;
+      padding: 9px 14px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+    }
+
+    .dx-hero h1 {
+      margin: 22px 0 16px;
+      font-size: clamp(38px,5.5vw,66px);
+      line-height: 1.06;
+      font-weight: 900;
+      letter-spacing: -2px;
+    }
+
+    .dx-hero h1 span {
+      color: var(--dx-cyan);
+      text-shadow: 0 0 28px rgba(81,229,255,.25);
+    }
+
+    .dx-hero-copy {
+      max-width: 510px;
+      color: #aab8d0;
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .dx-hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    /* MASCOT AREA */
+    .dx-mascot-widget {
+      position: relative;
+      min-height: 430px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid rgba(81,229,255,.18);
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 50% 45%,rgba(40,168,255,.20),transparent 55%),
+        linear-gradient(145deg,rgba(20,35,68,.85),rgba(8,12,29,.95));
+      box-shadow: 0 0 55px rgba(40,168,255,.08);
+    }
+
+    .dx-mascot-widget::before,
+    .dx-mascot-widget::after {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      border: 1px solid rgba(81,229,255,.16);
+      border-radius: 50%;
+      box-shadow: 0 0 35px rgba(40,168,255,.12);
+    }
+
+    .dx-mascot-widget::after {
+      width: 330px;
+      height: 330px;
+      border-color: rgba(139,92,246,.15);
+    }
+
+    #dxMascotCanvas {
+      position: relative;
+      z-index: 2;
+      display: block;
+      width: 100%;
+      max-width: 480px;
+      height: auto;
+    }
+
+    .dx-mascot-label {
+      position: absolute;
+      z-index: 3;
+      bottom: 18px;
+      left: 20px;
+      color: var(--dx-cyan);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    /* SECTION */
+    .dx-section {
+      padding: 75px 0;
+    }
+
+    .dx-section-heading {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .dx-section-heading small {
+      color: var(--dx-cyan);
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .dx-section-heading h2 {
+      margin: 12px 0;
+      font-size: clamp(28px,4vw,42px);
+      font-weight: 900;
+    }
+
+    .dx-section-heading p {
+      color: #9eacc4;
+      line-height: 1.7;
+    }
+
+    .dx-catalog {
+      display: grid;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+      gap: 18px;
+    }
+
+    .dx-empty-card {
+      grid-column: 1 / -1;
+      padding: 35px 20px;
+      text-align: center;
+      color: #9eacc4;
+      border: 1px dashed rgba(81,229,255,.22);
+      border-radius: 16px;
+      background: rgba(16,26,48,.55);
+    }
+
+    /* CTA */
+    .dx-cta {
+      margin: 40px auto 80px;
+      padding: 45px 25px;
+      text-align: center;
+      border: 1px solid rgba(81,229,255,.2);
+      border-radius: 24px;
+      background: linear-gradient(120deg,rgba(20,91,151,.25),rgba(91,55,160,.2));
+    }
+
+    .dx-cta h2 {
+      font-size: clamp(25px,4vw,38px);
+      margin: 0 0 12px;
+    }
+
+    .dx-cta p {
+      color: #b1bfd5;
+      line-height: 1.7;
+    }
+
+    /* FOOTER */
+    .dx-footer {
+      border-top: 1px solid rgba(81,229,255,.12);
+      padding: 30px 0;
+      color: #8796af;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    /* AUTH MODAL */
+    .dx-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,.78);
+      backdrop-filter: blur(8px);
+    }
+
+    .dx-modal.active { display: flex; }
+
+    .dx-modal-box {
+      width: min(420px,100%);
+      padding: 28px;
+      border: 1px solid rgba(81,229,255,.25);
+      border-radius: 20px;
+      background: #101a30;
+      box-shadow: 0 20px 70px rgba(0,0,0,.45);
+    }
+
+    .dx-modal-box h2 { margin-top: 0; }
+
+    .dx-modal-box input {
+      width: 100%;
+      margin: 8px 0;
+      padding: 14px;
+      color: white;
+      background: #080f20;
+      border: 1px solid #263957;
+      border-radius: 9px;
+      outline: none;
+    }
+
+    .dx-modal-box input:focus {
+      border-color: var(--dx-cyan);
+    }
+
+    .dx-modal-box .dx-button {
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .dx-close {
+      float: right;
+      border: 0;
+      background: transparent;
+      color: white;
+      font-size: 25px;
+      cursor: pointer;
+    }
+
+    .auth-message {
+      color: var(--dx-cyan);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    /* MOBILE */
+    @media (max-width: 760px) {
+      .dx-nav { min-height: 66px; }
+      .dx-nav-links { display: none; }
+      .dx-brand { font-size: 21px; }
+      .dx-nav-actions .dx-button {
+        padding: 10px 12px;
+        font-size: 11px;
+      }
+
+      .dx-hero {
+        grid-template-columns: 1fr;
+        padding-top: 45px;
+        gap: 28px;
+      }
+
+      .dx-hero-content { text-align: center; }
+      .dx-hero-copy { margin: auto; }
+      .dx-hero-buttons { justify-content: center; }
+      .dx-mascot-widget { min-height: 350px; }
+      .dx-catalog { grid-template-columns: 1fr; }
+      .dx-section { padding: 55px 0; }
+    }
+
+    @media (min-width: 761px) and (max-width: 950px) {
+      .dx-catalog { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+  </style>
+</body>
+
+  <!-- NAVBAR -->
+  <header class="dx-header">
+    <div class="dx-container dx-nav">
+      <a href="#" class="dx-brand">DX <span>STORE</span></a>
+
+      <nav class="dx-nav-links">
+        <a href="#home">Beranda</a>
+        <a href="#products">Produk Digital</a>
+        <a href="#accounts">Akun Game</a>
+      </nav>
+
+      <div class="dx-nav-actions">
+        <button class="dx-button dx-button-outline" onclick="openAuth()">Masuk</button>
+        <button class="dx-button" onclick="openAuth()">Daftar</button>
+      </div>
     </div>
   </header>
 
   <main>
-    <section class="hero" id="home">
-      <div class="hero-content">
-        <span class="eyebrow">✦ DIGITAL MARKETPLACE</span>
+    <!-- HERO -->
+    <section class="dx-container dx-hero" id="home">
+      <div class="dx-hero-content">
+        <span class="dx-eyebrow">WELCOME TO DX STORE</span>
 
         <h1>
-          LEVEL UP YOUR
+          LEVEL UP YOUR<br>
           <span>DIGITAL WORLD.</span>
         </h1>
 
-        <p>
-          Temukan produk digital dan akun game pilihan
-          dalam satu marketplace modern.
+        <p class="dx-hero-copy">
+          Temukan berbagai produk digital dan akun game pilihan
+          dengan pengalaman marketplace yang mudah dan nyaman.
         </p>
 
-        <div class="hero-actions">
-          <a href="#products" class="btn-primary">Jelajahi Produk ↗</a>
-          <a href="#accounts" class="btn-outline">Lihat Akun Game</a>
-        </div>
-
-        <div class="hero-stats">
-          <div>
-            <strong>DX</strong>
-            <span>STORE</span>
-          </div>
-          <div>
-            <strong>24/7</strong>
-            <span>Marketplace</span>
-          </div>
-          <div>
-            <strong>100%</strong>
-            <span>Digital</span>
-          </div>
+        <div class="dx-hero-buttons">
+          <a href="#products" class="dx-button">Jelajahi Produk</a>
+          <a href="#accounts" class="dx-button dx-button-outline">Lihat Akun Game</a>
         </div>
       </div>
 
-      <!-- MASKOT SVG DX STORE -->
-      <div class="hero-visual mascot-visual">
-        <svg class="mascot-art" viewBox="0 0 440 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Maskot anime futuristik DX STORE dengan hoodie dan headset biru">
-          <defs>
-            <linearGradient id="hood" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#297dff"/>
-              <stop offset="1" stop-color="#25145f"/>
-            </linearGradient>
-            <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#b9f7ff"/>
-              <stop offset=".45" stop-color="#428eff"/>
-              <stop offset="1" stop-color="#4730a8"/>
-            </linearGradient>
-            <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#ffe2d6"/>
-              <stop offset="1" stop-color="#dba9aa"/>
-            </linearGradient>
-            <linearGradient id="shirt" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#1a315b"/>
-              <stop offset="1" stop-color="#080d20"/>
-            </linearGradient>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="5" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-
-          <!-- Lingkaran latar -->
-          <circle cx="220" cy="235" r="180" fill="#168cff" opacity=".08"/>
-          <circle cx="220" cy="235" r="155" fill="none" stroke="#51e5ff" stroke-opacity=".35" stroke-width="2" stroke-dasharray="8 13"/>
-
-          <!-- Hoodie belakang -->
-          <path d="M93 470 Q95 345 145 305 L178 286 L263 286 L300 305 Q350 345 354 470Z" fill="url(#hood)" stroke="#51e5ff" stroke-width="3"/>
-
-          <!-- Leher -->
-          <path d="M183 270 L180 330 Q220 365 260 330 L256 270Z" fill="url(#skin)"/>
-
-          <!-- Hood bagian dalam -->
-          <path d="M130 320 Q110 240 151 166 Q180 111 220 110 Q280 110 310 175 Q335 245 305 320 L270 345 L170 345Z" fill="#101a38" stroke="#438fff" stroke-width="8"/>
-
-          <!-- Wajah -->
-          <path d="M151 177 Q155 115 220 115 Q286 115 290 177 L281 245 Q270 290 220 304 Q170 290 159 245Z" fill="url(#skin)"/>
-
-          <!-- Rambut -->
-          <path d="M145 194 Q119 117 169 83 Q206 45 260 78 Q312 99 299 179 L280 211 L269 158 L246 130 Q215 163 167 161 L158 219Z" fill="url(#hair)" stroke="#51e5ff" stroke-width="3"/>
-          <path d="M168 149 Q190 91 213 83 Q194 130 190 163Z" fill="#c6fbff"/>
-          <path d="M215 132 Q240 81 273 101 Q248 121 242 162Z" fill="#72baff"/>
-          <path d="M269 148 Q293 160 289 218 L271 235 L263 177Z" fill="#3474e5"/>
-
-          <!-- Mata -->
-          <path d="M174 210 Q190 190 208 211 Q192 230 174 210Z" fill="#102b55"/>
-          <path d="M232 211 Q250 190 268 210 Q250 230 232 211Z" fill="#102b55"/>
-          <ellipse cx="194" cy="212" rx="5" ry="7" fill="#51e5ff"/>
-          <ellipse cx="250" cy="212" rx="5" ry="7" fill="#51e5ff"/>
-          <path d="M181 196 L207 199 M237 199 L263 196" stroke="#243b70" stroke-width="5" stroke-linecap="round"/>
-
-          <!-- Hidung dan mulut -->
-          <path d="M218 218 L213 239 L222 240" fill="none" stroke="#b77f89" stroke-width="2" stroke-linecap="round"/>
-          <path d="M202 258 Q220 267 238 258" fill="none" stroke="#a85d72" stroke-width="3" stroke-linecap="round"/>
-
-          <!-- Headset -->
-          <path d="M139 208 Q128 115 220 105 Q312 115 301 208" fill="none" stroke="#51e5ff" stroke-width="12" stroke-linecap="round" filter="url(#glow)"/>
-          <rect x="125" y="190" width="31" height="65" rx="13" fill="#142d58" stroke="#51e5ff" stroke-width="4"/>
-          <rect x="284" y="190" width="31" height="65" rx="13" fill="#142d58" stroke="#51e5ff" stroke-width="4"/>
-          <circle cx="140" cy="222" r="7" fill="#51e5ff"/>
-          <circle cx="300" cy="222" r="7" fill="#51e5ff"/>
-          <path d="M300 251 Q306 278 275 280" fill="none" stroke="#51e5ff" stroke-width="4" stroke-linecap="round"/>
-
-          <!-- Hoodie depan -->
-          <path d="M135 327 Q175 300 184 305 L220 344 L257 305 Q280 302 305 327 L340 470 L100 470Z" fill="url(#shirt)" stroke="#438fff" stroke-width="3"/>
-          <path d="M184 305 L220 345 L257 305" fill="none" stroke="#51e5ff" stroke-width="3"/>
-          <path d="M220 345 L220 470" stroke="#51e5ff" stroke-opacity=".45" stroke-width="2"/>
-          <path d="M155 356 L180 390 M285 356 L260 390" stroke="#51e5ff" stroke-width="4" stroke-linecap="round"/>
-
-          <!-- Logo DX -->
-          <rect x="180" y="370" width="80" height="55" rx="12" fill="#102b54" stroke="#51e5ff" stroke-width="2"/>
-          <text x="220" y="406" text-anchor="middle" font-family="Inter,Arial" font-size="28" font-weight="900" fill="#51e5ff">DX</text>
-
-          <!-- Detail cahaya -->
-          <path d="M70 285 L95 285 M82 273 L82 297" stroke="#51e5ff" stroke-width="3" stroke-linecap="round"/>
-          <path d="M345 150 L370 150 M357 138 L357 162" stroke="#a77aff" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="100" cy="130" r="4" fill="#51e5ff"/>
-          <circle cx="340" cy="320" r="5" fill="#a77aff"/>
-        </svg>
-
-        <div class="mascot-label">
-          <span>✦ DX STORE MASCOT</span>
-          <strong>YOUR DIGITAL PARTNER</strong>
-        </div>
+      <div class="dx-mascot-widget">
+        <canvas id="dxMascotCanvas" width="800" height="900"></canvas>
+        <div class="dx-mascot-label">DX-01 // OFFICIAL MASCOT</div>
       </div>
     </section>
 
     <!-- PRODUK DIGITAL -->
-    <section class="section" id="products">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">EXPLORE COLLECTION</span>
+    <section class="dx-section" id="products">
+      <div class="dx-container">
+        <div class="dx-section-heading">
+          <small>DX DIGITAL MARKET</small>
           <h2>Produk Digital</h2>
-          <p>Berbagai produk digital pilihan.</p>
+          <p>Temukan produk digital yang tersedia di DX STORE.</p>
         </div>
-        <a href="#products" class="text-link">Lihat semua ↗</a>
-      </div>
 
-      <div class="product-grid" id="productGrid">
-        <div class="loading-card">Memuat produk digital...</div>
+        <div class="dx-catalog" id="productGrid">
+          <div class="dx-empty-card">
+            Produk digital akan ditampilkan di sini.
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- MARKETPLACE AKUN GAME -->
-    <section class="section" id="accounts">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">GAMING MARKETPLACE</span>
+    <!-- AKUN GAME -->
+    <section class="dx-section" id="accounts">
+      <div class="dx-container">
+        <div class="dx-section-heading">
+          <small>DX GAME MARKETPLACE</small>
           <h2>Marketplace Akun Game</h2>
-          <p>Temukan listing akun game dari penjual.</p>
+          <p>Jelajahi pilihan akun game yang tersedia.</p>
         </div>
-        <a href="#accounts" class="text-link">Lihat semua ↗</a>
-      </div>
 
-      <div class="product-grid" id="accountGrid">
-        <div class="loading-card">Memuat akun game...</div>
+        <div class="dx-catalog" id="accountGrid">
+          <div class="dx-empty-card">
+            Akun game akan ditampilkan di sini.
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- CTA -->
-    <section class="cta-section">
-      <span class="eyebrow">JOIN DX STORE</span>
-      <h2>Mulai Perjalanan Digitalmu.</h2>
-      <p>Daftar untuk menjelajahi marketplace DX STORE.</p>
-      <button class="btn-primary" id="ctaRegister" type="button">
-        Buat Akun Sekarang ↗
-      </button>
+    <section class="dx-container dx-cta">
+      <h2>READY TO LEVEL UP?</h2>
+      <p>Temukan produk digital dan akun game pilihanmu di DX STORE.</p>
+      <button class="dx-button" onclick="openAuth()">Mulai Sekarang</button>
     </section>
   </main>
 
   <!-- FOOTER -->
-  <footer class="footer">
-    <a href="#home" class="brand">
-      <span class="brand-icon">DX</span>
-      <span>DX <strong>STORE</strong></span>
-    </a>
-    <p>
-      © <span id="currentYear"></span>
-      DX STORE. All rights reserved.
-    </p>
+  <footer class="dx-footer">
+    <div class="dx-container">
+      <strong>DX STORE</strong>
+      <p>Digital Products & Game Account Marketplace</p>
+      <p>© 2026 DX STORE. All rights reserved.</p>
+    </div>
   </footer>
 
-  <!-- LOGIN DAN REGISTER -->
-  <div id="authModal" class="modal hidden">
-    <div class="modal-content">
-      <button id="closeModal" class="modal-close" type="button" aria-label="Tutup">×</button>
+  <!-- LOGIN MODAL -->
+  <div class="dx-modal" id="authModal">
+    <div class="dx-modal-box">
+      <button class="dx-close" onclick="closeAuth()" aria-label="Tutup">&times;</button>
 
-      <span class="eyebrow">WELCOME TO DX STORE</span>
-      <h2 id="authTitle">Masuk Akun</h2>
+      <h2>Welcome to DX STORE</h2>
+      <p>Masuk atau daftar untuk melanjutkan.</p>
 
       <form id="authForm">
-        <label for="authEmail">Email</label>
-        <input id="authEmail" type="email" placeholder="nama@email.com" required>
+        <input
+          type="email"
+          id="authEmail"
+          placeholder="Alamat email"
+          autocomplete="email"
+          required
+        >
 
-        <label for="authPassword">Password</label>
-        <input id="authPassword" type="password" placeholder="Password" required minlength="6">
+        <input
+          type="password"
+          id="authPassword"
+          placeholder="Password"
+          autocomplete="current-password"
+          required
+        >
 
-        <button type="submit" id="authSubmit" class="btn-primary full-width">
-          Masuk
-        </button>
+        <button type="submit" class="dx-button">Masuk / Daftar</button>
       </form>
 
       <p id="authMessage" class="auth-message"></p>
-
-      <p class="auth-switch" id="authSwitch">
-        Belum punya akun?
-        <button type="button" id="switchAuth">Daftar</button>
-      </p>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- DX STORE OFFICIAL MASCOT -->
+  <script>
+    (function () {
+      const canvas = document.getElementById("dxMascotCanvas");
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      const W = 800;
+      const H = 900;
+
+      let frame = 0;
+
+      function roundedRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, r);
+      }
+
+      function drawMascot() {
+        ctx.clearRect(0, 0, W, H);
+
+        const pulse = Math.sin(frame * 0.035) * 8;
+
+        // ENERGY AURA
+        const aura = ctx.createRadialGradient(
+          400, 420, 60,
+          400, 420, 390
+        );
+
+        aura.addColorStop(0, "rgba(40,168,255,0.24)");
+        aura.addColorStop(0.55, "rgba(80,60,220,0.10)");
+        aura.addColorStop(1, "rgba(5,10,25,0)");
+
+        ctx.fillStyle = aura;
+        ctx.fillRect(0, 0, W, H);
+
+        // ENERGY RINGS
+        ctx.save();
+        ctx.translate(400, 455);
+        ctx.rotate(frame * 0.002);
+
+        ctx.strokeStyle = "rgba(81,229,255,0.25)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 270 + pulse, 350 + pulse, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = "rgba(139,92,246,0.28)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 310 - pulse, 390 - pulse, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // HOODIE BODY
+        const hoodie = ctx.createLinearGradient(220, 480, 590, 850);
+        hoodie.addColorStop(0, "#183d70");
+        hoodie.addColorStop(0.5, "#101d3d");
+        hoodie.addColorStop(1, "#080e22");
+
+        ctx.fillStyle = hoodie;
+        ctx.beginPath();
+        ctx.moveTo(300, 500);
+        ctx.lineTo(230, 590);
+        ctx.lineTo(170, 850);
+        ctx.lineTo(630, 850);
+        ctx.lineTo(570, 590);
+        ctx.lineTo(500, 500);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = "#278fff";
+        ctx.lineWidth = 5;
+        ctx.stroke();
+
+        // HOOD
+        ctx.fillStyle = "#101b38";
+        ctx.beginPath();
+        ctx.moveTo(300, 500);
+        ctx.quadraticCurveTo(270, 390, 400, 370);
+        ctx.quadraticCurveTo(530, 390, 500, 500);
+        ctx.lineTo(465, 580);
+        ctx.lineTo(335, 580);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(81,229,255,0.8)";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // NECK
+        ctx.fillStyle = "#d99b83";
+        roundedRect(355, 455, 90, 100, 25);
+        ctx.fill();
+
+        // FACE
+        const skin = ctx.createLinearGradient(310, 220, 490, 480);
+        skin.addColorStop(0, "#ffd2b9");
+        skin.addColorStop(1, "#bd786d");
+
+        ctx.fillStyle = skin;
+        ctx.beginPath();
+        ctx.moveTo(300, 270);
+        ctx.quadraticCurveTo(300, 190, 400, 185);
+        ctx.quadraticCurveTo(500, 190, 500, 280);
+        ctx.lineTo(480, 405);
+        ctx.quadraticCurveTo(450, 480, 400, 490);
+        ctx.quadraticCurveTo(350, 480, 320, 405);
+        ctx.closePath();
+        ctx.fill();
+
+        // FACE SHADOW
+        ctx.fillStyle = "rgba(100,45,65,0.12)";
+        ctx.beginPath();
+        ctx.ellipse(400, 430, 75, 30, 0, 0, Math.PI);
+        ctx.fill();
+
+        // EYES
+        function drawEye(x, y) {
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.ellipse(x, y, 34, 25, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#20bfff";
+          ctx.beginPath();
+          ctx.ellipse(x, y + 2, 16, 21, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#07152b";
+          ctx.beginPath();
+          ctx.ellipse(x, y + 3, 8, 16, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(x - 5, y - 6, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        drawEye(350, 350);
+        drawEye(450, 350);
+
+        // EYEBROWS
+        ctx.strokeStyle = "#27324d";
+        ctx.lineWidth = 9;
+        ctx.lineCap = "round";
+
+        ctx.beginPath();
+        ctx.moveTo(320, 312);
+        ctx.lineTo(372, 305);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(428, 305);
+        ctx.lineTo(480, 312);
+        ctx.stroke();
+
+        // NOSE
+        ctx.strokeStyle = "rgba(120,65,70,0.45)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(400, 365);
+        ctx.lineTo(393, 388);
+        ctx.stroke();
+
+        // SMILE
+        ctx.strokeStyle = "#8e4e59";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(400, 400, 22, 0.2, Math.PI - 0.2);
+        ctx.stroke();
+
+        // HAIR BACK
+        const hair = ctx.createLinearGradient(280, 130, 510, 390);
+        hair.addColorStop(0, "#e8f4ff");
+        hair.addColorStop(0.5, "#8bbce9");
+        hair.addColorStop(1, "#7256b9");
+
+        ctx.fillStyle = hair;
+        ctx.beginPath();
+        ctx.moveTo(285, 320);
+        ctx.quadraticCurveTo(260, 130, 400, 125);
+        ctx.quadraticCurveTo(550, 125, 520, 330);
+        ctx.lineTo(490, 250);
+        ctx.lineTo(460, 320);
+        ctx.lineTo(425, 245);
+        ctx.lineTo(390, 320);
+        ctx.lineTo(350, 250);
+        ctx.lineTo(320, 330);
+        ctx.closePath();
+        ctx.fill();
+
+        // HAIR FRONT
+        ctx.fillStyle = "#d7eaff";
+        ctx.beginPath();
+        ctx.moveTo(290, 285);
+        ctx.quadraticCurveTo(280, 150, 405, 145);
+        ctx.quadraticCurveTo(520, 145, 515, 275);
+        ctx.lineTo(480, 240);
+        ctx.lineTo(450, 300);
+        ctx.lineTo(420, 225);
+        ctx.lineTo(385, 305);
+        ctx.lineTo(355, 230);
+        ctx.lineTo(320, 300);
+        ctx.closePath();
+        ctx.fill();
+
+        // PURPLE HAIR ACCENTS
+        ctx.strokeStyle = "#9c72ff";
+        ctx.lineWidth = 12;
+        ctx.lineCap = "round";
+
+        ctx.beginPath();
+        ctx.moveTo(470, 190);
+        ctx.quadraticCurveTo(520, 235, 495, 290);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(330, 195);
+        ctx.quadraticCurveTo(300, 240, 325, 280);
+        ctx.stroke();
+
+        // HEADSET
+        ctx.strokeStyle = "#31caff";
+        ctx.lineWidth = 12;
+        ctx.beginPath();
+        ctx.arc(400, 285, 135, Math.PI, Math.PI * 2);
+        ctx.stroke();
+
+        // HEADSET EAR PADS
+        const headset = ctx.createLinearGradient(250, 300, 550, 390);
+        headset.addColorStop(0, "#137ce0");
+        headset.addColorStop(1, "#753fff");
+
+        ctx.fillStyle = headset;
+        roundedRect(258, 275, 45, 105, 15);
+        ctx.fill();
+
+        roundedRect(497, 275, 45, 105, 15);
+        ctx.fill();
+
+        ctx.strokeStyle = "#65eaff";
+        ctx.lineWidth = 4;
+        roundedRect(258, 275, 45, 105, 15);
+        ctx.stroke();
+
+        roundedRect(497, 275, 45, 105, 15);
+        ctx.stroke();
+
+        // HEADSET MICROPHONE
+        ctx.strokeStyle = "#51e5ff";
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.moveTo(520, 355);
+        ctx.quadraticCurveTo(565, 430, 485, 445);
+        ctx.stroke();
+
+        ctx.fillStyle = "#51e5ff";
+        ctx.beginPath();
+        ctx.arc(485, 445, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // DX LOGO ON HOODIE
+        ctx.save();
+        ctx.shadowColor = "#28a8ff";
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = "#51e5ff";
+        ctx.font = "900 58px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("DX", 400, 690);
+        ctx.restore();
+
+        // HOODIE DETAILS
+        ctx.strokeStyle = "rgba(81,229,255,0.7)";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(365, 540);
+        ctx.lineTo(350, 625);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(435, 540);
+        ctx.lineTo(450, 625);
+        ctx.stroke();
+
+        // ENERGY PARTICLES
+        for (let i = 0; i < 22; i++) {
+          const x = 100 + ((i * 137 + frame * 0.8) % 600);
+          const y = 120 + ((i * 83 + frame * 0.5) % 650);
+
+          ctx.fillStyle = i % 2 === 0
+            ? "rgba(81,229,255,0.8)"
+            : "rgba(166,116,255,0.8)";
+
+          ctx.beginPath();
+          ctx.arc(x, y, 2 + (i % 3), 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function animate() {
+        frame++;
+        drawMascot();
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    })();
+  </script>
+
+  <!-- DX STORE FUNCTIONS -->
+  <script>
+    // BUKA DAN TUTUP LOGIN MODAL
+    function openAuth() {
+      const modal = document.getElementById("authModal");
+      if (modal) modal.classList.add("active");
+    }
+
+    function closeAuth() {
+      const modal = document.getElementById("authModal");
+      if (modal) modal.classList.remove("active");
+    }
+
+    // TUTUP MODAL SAAT AREA LUAR DIKLIK
+    document.addEventListener("click", function (event) {
+      const modal = document.getElementById("authModal");
+
+      if (modal && event.target === modal) {
+        closeAuth();
+      }
+    });
+  </script>
+
+  <!-- SUPABASE CONFIGURATION -->
   <script src="config.js"></script>
+
+  <!-- DX STORE APPLICATION -->
   <script src="app.js"></script>
+
 </body>
 </html>
