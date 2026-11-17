@@ -873,3 +873,64 @@ section {
     font-size: 14px;
   }
 }
+/* =====================================
+   DX STORE - CSS COMPATIBILITY
+   Menghubungkan desain baru dengan CSS lama
+===================================== */
+
+/* NAVBAR */
+.dx-container {
+  width: min(1150px, 92%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dx-header {
+  width: 100%;
+}
+
+.dx-nav {
+  width: min(1150px, 92%);
+  margin: auto;
+}
+
+.dx-nav-links a {
+  text-decoration: none;
+}
+
+/* TOMBOL */
+.dx-button {
+  font-family: inherit;
+}
+
+/* HERO */
+.dx-hero {
+  width: min(1150px, 92%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* MODAL */
+.dx-modal {
+  display: none;
+}
+
+.dx-modal.active {
+  display: flex;
+}
+
+/* RESPONSIVE */
+@media (max-width: 760px) {
+  .dx-nav {
+    flex-wrap: wrap;
+  }
+
+  .dx-nav-links {
+    gap: 14px;
+  }
+
+  .dx-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+}
