@@ -543,7 +543,14 @@
         id="menuButton"
         type="button"
         aria-label="Buka menu"
-        aria-expanded="false">
+        aria-expanded="false"
+        onclick="
+          const nav = document.getElementById('dxNavLinks');
+          const opened = nav.classList.toggle('open');
+          this.textContent = opened ? '✕' : '☰';
+          this.setAttribute('aria-expanded', String(opened));
+          this.setAttribute('aria-label', opened ? 'Tutup menu' : 'Buka menu');
+        ">
         ☰
       </button>
 
