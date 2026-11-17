@@ -513,86 +513,28 @@ authModal?.addEventListener("click", event => {
 ===================================== */
 
 function setupNavigation() {
-  const navigation = document.querySelector(".dx-nav-links");
-  const navContainer = document.querySelector(".dx-nav");
+  const navigation = document.getElementById("dxNavLinks");
+  const menuButton = document.getElementById("menuButton");
 
-  if (!navigation || !navContainer) return;
+  if (!navigation || !menuButton) return;
 
-  const style = document.createElement("style");
-
-  style.textContent = `
-    .dx-menu-button {
-      display: none;
-    }
-
-    @media (max-width: 760px) {
-      .dx-nav {
-        position: relative;
-        flex-wrap: wrap;
-      }
-
-      .dx-menu-button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 9px 13px;
-        border: 1px solid rgba(81,229,255,.3);
-        border-radius: 9px;
-        background: transparent;
-        color: white;
-        font-size: 20px;
-        cursor: pointer;
-      }
-
-      .dx-nav-links.open {
-        display: flex !important;
-        flex-direction: column;
-        align-items: flex-start;
-        width: 100%;
-        padding: 15px 0;
-        gap: 18px;
-      }
-    }
-  `;
-
-  document.head.appendChild(style);
-
-  let menuButton = document.getElementById("menuButton");
-
-  if (!menuButton) {
-    menuButton = document.createElement("button");
-
-    menuButton.id = "menuButton";
-    menuButton.className = "dx-menu-button";
-    menuButton.type = "button";
-    menuButton.textContent = "☰";
-    menuButton.setAttribute("aria-label", "Buka menu");
-
-    const actions = navContainer.querySelector(".dx-nav-actions");
-
-    if (actions) {
-      navContainer.insertBefore(menuButton, actions);
-    } else {
-      navContainer.appendChild(menuButton);
-    }
-  }
-
-  menuButton.addEventListener("click", () => {
+  menuButton.onclick = function () {
     const isOpen = navigation.classList.toggle("open");
 
     menuButton.textContent = isOpen ? "✕" : "☰";
+    menuButton.setAttribute("aria-expanded", String(isOpen));
     menuButton.setAttribute(
       "aria-label",
       isOpen ? "Tutup menu" : "Buka menu"
     );
-  });
+  };
 
-  navigation.querySelectorAll("a").forEach(link => {
-    link.addEventListener("click", () => {
+  navigation.querySelectorAll("a").forEach(function (link) {
+    link.onclick = function () {
       navigation.classList.remove("open");
       menuButton.textContent = "☰";
-      menuButton.setAttribute("aria-label", "Buka menu");
-    });
+      menuButton.setAttribute("aria-expanded", "false");
+    };
   });
 }
 
