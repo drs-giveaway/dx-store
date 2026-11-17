@@ -1,6 +1,7 @@
 
 /* =====================================
    DX STORE - APP.JS
+   Versi kompatibel dengan index.html
    ===================================== */
 
 const config = window.DX_CONFIG;
@@ -9,21 +10,26 @@ let db = null;
 let currentUser = null;
 let authMode = "login";
 
+/* =====================================
+   ELEMENTS
+===================================== */
+
 const productGrid = document.getElementById("productGrid");
 const accountGrid = document.getElementById("accountGrid");
 const authModal = document.getElementById("authModal");
 const authForm = document.getElementById("authForm");
 const authMessage = document.getElementById("authMessage");
 
-const authTitle =
-  document.getElementById("authTitle") ||
-  authModal?.querySelector("h2");
+const authTitle = authModal?.querySelector("h2");
+const authSubmit = authForm?.querySelector('button[type="submit"]');
 
-const authSubmit =
-  document.getElementById("authSubmit") ||
-  authForm?.querySelector('button[type="submit"]');
+const authEmail = document.getElementById("authEmail");
+const authPassword = document.getElementById("authPassword");
 
-/* TEKS AMAN */
+/* =====================================
+   HELPER
+===================================== */
+
 function safeText(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
@@ -34,7 +40,6 @@ function safeText(value) {
   })[char]);
 }
 
-/* URL GAMBAR AMAN */
 function safeImageUrl(value) {
   if (!value) return "";
 
@@ -49,7 +54,6 @@ function safeImageUrl(value) {
   }
 }
 
-/* FORMAT RUPIAH */
 function formatPrice(price) {
   const amount = Number(price);
 
@@ -64,7 +68,10 @@ function formatPrice(price) {
   }).format(amount);
 }
 
-/* KARTU PRODUK */
+/* =====================================
+   PRODUCT CARD
+===================================== */
+
 function createCard(item, type) {
   const title = type === "product"
     ? item.name
@@ -76,50 +83,64 @@ function createCard(item, type) {
     ? "PRODUK DIGITAL"
     : (item.game || "AKUN GAME");
 
+  const cardClass = type === "product"
+    ? "product-card"
+    : "account-card";
+
   const image = imageUrl
-    ? `<img class="listing-image"
+    ? `
+      <img
+        class="listing-image"
         src="${safeText(imageUrl)}"
         alt="${safeText(title || "Gambar produk")}"
-        loading="lazy">`
-    : `<div class="listing-image listing-image-placeholder">
+        loading="lazy">
+    `
+    : `
+      <div class="listing-image listing-image-placeholder">
         <span>DX STORE</span>
-      </div>`;
+      </div>
+    `;
 
   return `
-    <article class="product-card">
+    <article class="${cardClass}">
       ${image}
 
-      <span class="eyebrow">
-        ${safeText(label)}
-      </span>
+      <div class="product-card-content">
+        <span class="eyebrow">
+          ${safeText(label)}
+        </span>
 
-      <h3>${safeText(title || "Tanpa judul")}</h3>
+        <h3>${safeText(title || "Tanpa judul")}</h3>
 
-      <p>
-        ${safeText(item.description || "Informasi produk tersedia.")}
-      </p>
+        <p>
+          ${safeText(item.description || "Informasi produk tersedia.")}
+        </p>
 
-      <strong class="product-price">
-        ${formatPrice(item.price)}
-      </strong>
+        <strong class="product-price">
+          ${formatPrice(item.price)}
+        </strong>
 
-      <button
-        class="btn-primary item-action"
-        type="button"
-        data-item-type="${type}"
-        data-item-id="${safeText(item.id)}">
-        Lihat Produk
-      </button>
+        <button
+          class="btn-primary item-action"
+          type="button"
+          data-item-type="${type}"
+          data-item-id="${safeText(item.id)}">
+          Lihat Produk
+        </button>
+      </div>
     </article>
   `;
 }
 
-/* MEMUAT PRODUK DIGITAL */
+/* =====================================
+   LOAD PRODUCTS
+===================================== */
+
 async function loadProducts() {
   if (!productGrid || !db) return;
 
   productGrid.innerHTML =
-    '<div class="loading-card">Memuat produk...</div>';
+    '<div class="dx-empty-card">Memuat produk digital...</div>';
 
   try {
     const { data, error } = await db
@@ -132,7 +153,7 @@ async function loadProducts() {
 
     if (!data?.length) {
       productGrid.innerHTML =
-        '<div class="loading-card">Belum ada produk digital yang tersedia.</div>';
+        '<div class="dx-empty-card">Belum ada produk digital yang tersedia.</div>';
       return;
     }
 
@@ -144,16 +165,19 @@ async function loadProducts() {
     console.error("Gagal memuat produk:", error);
 
     productGrid.innerHTML =
-      '<div class="loading-card">Produk belum dapat dimuat. Silakan coba lagi.</div>';
+      '<div class="dx-empty-card">Produk belum dapat dimuat. Silakan coba lagi.</div>';
   }
 }
 
-/* MEMUAT AKUN GAME */
+/* =====================================
+   LOAD GAME ACCOUNTS
+===================================== */
+
 async function loadAccounts() {
   if (!accountGrid || !db) return;
 
   accountGrid.innerHTML =
-    '<div class="loading-card">Memuat akun game...</div>';
+    '<div class="dx-empty-card">Memuat akun game...</div>';
 
   try {
     const { data, error } = await db
@@ -166,7 +190,7 @@ async function loadAccounts() {
 
     if (!data?.length) {
       accountGrid.innerHTML =
-        '<div class="loading-card">Belum ada akun game yang tersedia.</div>';
+        '<div class="dx-empty-card">Belum ada akun game yang tersedia.</div>';
       return;
     }
 
@@ -178,11 +202,14 @@ async function loadAccounts() {
     console.error("Gagal memuat akun:", error);
 
     accountGrid.innerHTML =
-      '<div class="loading-card">Akun game belum dapat dimuat. Silakan coba lagi.</div>';
+      '<div class="dx-empty-card">Akun game belum dapat dimuat. Silakan coba lagi.</div>';
   }
 }
 
-/* MODAL LOGIN DAN DAFTAR */
+/* =====================================
+   AUTH MODAL
+===================================== */
+
 function openAuth(mode = "login") {
   if (!authModal) return;
 
@@ -190,46 +217,59 @@ function openAuth(mode = "login") {
   updateAuthModal();
 
   authModal.classList.add("active");
-  authModal.classList.remove("hidden");
 
-  if (authMessage) authMessage.textContent = "";
+  if (authMessage) {
+    authMessage.textContent = "";
+  }
 }
 
 function closeAuth() {
   if (!authModal) return;
 
   authModal.classList.remove("active");
-  authModal.classList.add("hidden");
 }
 
 window.openAuth = openAuth;
 window.closeAuth = closeAuth;
 
-/* TOMBOL GANTI MODE LOGIN */
+/* =====================================
+   SWITCH LOGIN / REGISTER
+===================================== */
+
 function createAuthSwitch() {
-  if (!authForm || document.getElementById("authSwitch")) return;
+  if (!authForm || document.getElementById("authSwitch")) {
+    return;
+  }
 
   const container = document.createElement("p");
   container.id = "authSwitch";
   container.style.textAlign = "center";
-  container.style.marginTop = "16px";
+  container.style.marginTop = "18px";
+  container.style.fontSize = "13px";
+  container.style.color = "#aab8d0";
 
   const text = document.createElement("span");
-  const button = document.createElement("button");
 
+  const button = document.createElement("button");
   button.id = "switchAuth";
   button.type = "button";
   button.style.background = "none";
   button.style.border = "none";
-  button.style.color = "#60a5fa";
+  button.style.color = "#51e5ff";
   button.style.cursor = "pointer";
   button.style.fontWeight = "bold";
+  button.style.marginLeft = "5px";
 
   button.addEventListener("click", () => {
-    authMode = authMode === "login" ? "register" : "login";
+    authMode = authMode === "login"
+      ? "register"
+      : "login";
+
     updateAuthModal();
 
-    if (authMessage) authMessage.textContent = "";
+    if (authMessage) {
+      authMessage.textContent = "";
+    }
   });
 
   container.append(text, button);
@@ -251,16 +291,22 @@ function updateAuthModal() {
       : "Daftar";
   }
 
-  const switchContainer =
-    document.getElementById("authSwitch");
+  if (authPassword) {
+    authPassword.autocomplete = isLogin
+      ? "current-password"
+      : "new-password";
+  }
 
-  const switchButton =
-    document.getElementById("switchAuth");
+  const switchText = document.querySelector(
+    "#authSwitch span"
+  );
 
-  if (switchContainer && switchButton) {
-    switchContainer.firstChild.textContent = isLogin
-      ? "Belum punya akun? "
-      : "Sudah punya akun? ";
+  const switchButton = document.getElementById("switchAuth");
+
+  if (switchText && switchButton) {
+    switchText.textContent = isLogin
+      ? "Belum punya akun?"
+      : "Sudah punya akun?";
 
     switchButton.textContent = isLogin
       ? "Daftar"
@@ -268,8 +314,11 @@ function updateAuthModal() {
   }
 }
 
-/* PROSES LOGIN DAN PENDAFTARAN */
 createAuthSwitch();
+
+/* =====================================
+   LOGIN & REGISTER PROCESS
+===================================== */
 
 if (authForm) {
   authForm.addEventListener("submit", async event => {
@@ -283,11 +332,8 @@ if (authForm) {
       return;
     }
 
-    const email =
-      document.getElementById("authEmail")?.value.trim();
-
-    const password =
-      document.getElementById("authPassword")?.value;
+    const email = authEmail?.value.trim();
+    const password = authPassword?.value;
 
     if (!email || !password) {
       if (authMessage) {
@@ -302,25 +348,33 @@ if (authForm) {
       authSubmit.textContent = "Memproses...";
     }
 
-    if (authMessage) authMessage.textContent = "";
+    if (authMessage) {
+      authMessage.textContent = "";
+    }
 
     try {
-      const result = authMode === "login"
-        ? await db.auth.signInWithPassword({
-            email,
-            password
-          })
-        : await db.auth.signUp({
-            email,
-            password
-          });
+      let result;
 
-      if (result.error) throw result.error;
+      if (authMode === "login") {
+        result = await db.auth.signInWithPassword({
+          email,
+          password
+        });
+      } else {
+        result = await db.auth.signUp({
+          email,
+          password
+        });
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
 
       if (authMode === "register" && !result.data.session) {
         if (authMessage) {
           authMessage.textContent =
-            "Pendaftaran berhasil. Periksa email jika verifikasi diminta.";
+            "Pendaftaran berhasil. Silakan periksa email untuk verifikasi jika diminta.";
         }
         return;
       }
@@ -348,16 +402,42 @@ if (authForm) {
   });
 }
 
-/* STATUS AKUN */
+/* =====================================
+   NAVBAR LOGIN & REGISTER BUTTONS
+===================================== */
+
+function setupAuthButtons() {
+  const buttons = document.querySelectorAll(
+    ".dx-nav-actions .dx-button"
+  );
+
+  if (buttons[0]) {
+    buttons[0].onclick = () => openAuth("login");
+  }
+
+  if (buttons[1]) {
+    buttons[1].onclick = () => openAuth("register");
+  }
+}
+
+setupAuthButtons();
+
+/* =====================================
+   ACCOUNT BUTTON
+===================================== */
+
 function updateAccountButton() {
-  const loginButton =
-    document.getElementById("loginButton") ||
-    document.querySelector(".dx-nav-actions .dx-button");
+  const buttons = document.querySelectorAll(
+    ".dx-nav-actions .dx-button"
+  );
+
+  const loginButton = buttons[0];
 
   if (!loginButton) return;
 
-  loginButton.textContent =
-    currentUser ? "Keluar" : "Masuk";
+  loginButton.textContent = currentUser
+    ? "Keluar"
+    : "Masuk";
 
   loginButton.onclick = async () => {
     if (!currentUser) {
@@ -375,12 +455,19 @@ function updateAccountButton() {
 
     } catch (error) {
       console.error("Gagal keluar:", error);
-      alert("Belum berhasil keluar. Coba lagi.");
+      alert("Belum berhasil keluar. Silakan coba lagi.");
     }
   };
+
+  if (buttons[1]) {
+    buttons[1].onclick = () => openAuth("register");
+  }
 }
 
-/* PILIH PRODUK */
+/* =====================================
+   SELECT PRODUCT
+===================================== */
+
 function selectItem(type, id) {
   if (!currentUser) {
     openAuth("login");
@@ -393,14 +480,13 @@ function selectItem(type, id) {
     "masih dalam tahap pengembangan."
   );
 
-  console.info("Item dipilih:", {
+  console.info("Produk dipilih:", {
     type,
     id,
     userId: currentUser.id
   });
 }
 
-/* KLIK KARTU PRODUK */
 document.addEventListener("click", event => {
   const button = event.target.closest(".item-action");
 
@@ -412,69 +498,120 @@ document.addEventListener("click", event => {
   );
 });
 
-/* TOMBOL DAFTAR */
-document.getElementById("registerButton")
-  ?.addEventListener("click", () => openAuth("register"));
-
-document.getElementById("ctaRegister")
-  ?.addEventListener("click", () => openAuth("register"));
-
-/* TUTUP MODAL */
-document.getElementById("closeModal")
-  ?.addEventListener("click", closeAuth);
+/* =====================================
+   CLOSE MODAL
+===================================== */
 
 authModal?.addEventListener("click", event => {
-  if (event.target === authModal) closeAuth();
+  if (event.target === authModal) {
+    closeAuth();
+  }
 });
 
-/* NAVIGASI */
-const navigation =
-  document.querySelector(".dx-nav-links") ||
-  document.querySelector(".navigation");
+/* =====================================
+   MOBILE NAVIGATION
+===================================== */
 
-const navContainer =
-  document.querySelector(".dx-nav");
+function setupNavigation() {
+  const navigation = document.querySelector(".dx-nav-links");
+  const navContainer = document.querySelector(".dx-nav");
 
-if (navigation && navContainer) {
+  if (!navigation || !navContainer) return;
+
+  const style = document.createElement("style");
+
+  style.textContent = `
+    .dx-menu-button {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      .dx-nav {
+        position: relative;
+        flex-wrap: wrap;
+      }
+
+      .dx-menu-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 9px 13px;
+        border: 1px solid rgba(81,229,255,.3);
+        border-radius: 9px;
+        background: transparent;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+      }
+
+      .dx-nav-links.open {
+        display: flex !important;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        padding: 15px 0;
+        gap: 18px;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+
   let menuButton = document.getElementById("menuButton");
 
   if (!menuButton) {
     menuButton = document.createElement("button");
+
     menuButton.id = "menuButton";
+    menuButton.className = "dx-menu-button";
     menuButton.type = "button";
     menuButton.textContent = "☰";
     menuButton.setAttribute("aria-label", "Buka menu");
 
-    menuButton.style.background = "transparent";
-    menuButton.style.color = "white";
-    menuButton.style.border = "1px solid #334155";
-    menuButton.style.borderRadius = "8px";
-    menuButton.style.padding = "8px 12px";
-    menuButton.style.cursor = "pointer";
+    const actions = navContainer.querySelector(".dx-nav-actions");
 
-    navContainer.appendChild(menuButton);
+    if (actions) {
+      navContainer.insertBefore(menuButton, actions);
+    } else {
+      navContainer.appendChild(menuButton);
+    }
   }
 
   menuButton.addEventListener("click", () => {
-    navigation.classList.toggle("open");
+    const isOpen = navigation.classList.toggle("open");
+
+    menuButton.textContent = isOpen ? "✕" : "☰";
+    menuButton.setAttribute(
+      "aria-label",
+      isOpen ? "Tutup menu" : "Buka menu"
+    );
   });
 
   navigation.querySelectorAll("a").forEach(link => {
     link.addEventListener("click", () => {
       navigation.classList.remove("open");
+      menuButton.textContent = "☰";
+      menuButton.setAttribute("aria-label", "Buka menu");
     });
   });
 }
 
-/* TAHUN FOOTER */
-const yearElement =
-  document.getElementById("currentYear");
+setupNavigation();
+
+/* =====================================
+   FOOTER YEAR
+===================================== */
+
+const yearElement = document.getElementById("currentYear");
 
 if (yearElement) {
   yearElement.textContent = new Date().getFullYear();
 }
 
-/* INISIALISASI SUPABASE */
+/* =====================================
+   INITIALIZE SUPABASE
+===================================== */
+
 async function initializeDXStore() {
   if (
     !config?.supabaseUrl ||
@@ -482,7 +619,7 @@ async function initializeDXStore() {
     !window.supabase
   ) {
     const message =
-      '<div class="loading-card">Konfigurasi Supabase atau library Supabase belum tersedia.</div>';
+      '<div class="dx-empty-card">Konfigurasi Supabase belum tersedia.</div>';
 
     if (productGrid) productGrid.innerHTML = message;
     if (accountGrid) accountGrid.innerHTML = message;
@@ -497,8 +634,7 @@ async function initializeDXStore() {
       config.supabaseKey
     );
 
-    const { data, error } =
-      await db.auth.getSession();
+    const { data, error } = await db.auth.getSession();
 
     if (error) throw error;
 
@@ -516,11 +652,13 @@ async function initializeDXStore() {
       loadAccounts()
     ]);
 
+    console.info("DX STORE berhasil diinisialisasi.");
+
   } catch (error) {
     console.error("Inisialisasi DX STORE gagal:", error);
 
     const message =
-      '<div class="loading-card">Koneksi belum berhasil. Muat ulang halaman beberapa saat lagi.</div>';
+      '<div class="dx-empty-card">Koneksi belum berhasil. Silakan muat ulang halaman.</div>';
 
     if (productGrid) productGrid.innerHTML = message;
     if (accountGrid) accountGrid.innerHTML = message;
