@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#070b18">
   <meta name="description" content="DX STORE - Marketplace produk digital dan akun game.">
   <title>DX STORE | Digital Marketplace</title>
+
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,15 +24,26 @@
       --dx-muted:#9aa9c4;
     }
 
-    * { box-sizing:border-box; margin:0; padding:0; }
+    * {
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
     html { scroll-behavior:smooth; }
+
     body {
       font-family:'Inter',sans-serif;
       background:var(--dx-bg);
       color:var(--dx-white);
       overflow-x:hidden;
     }
-    a { color:inherit; text-decoration:none; }
+
+    a {
+      color:inherit;
+      text-decoration:none;
+    }
+
     button,input { font:inherit; }
 
     .background-glow {
@@ -44,13 +56,16 @@
         radial-gradient(circle at 85% 45%,rgba(139,92,246,.10),transparent 35%);
     }
 
-    .dx-container { width:min(1150px,92%); margin:auto; }
+    .dx-container {
+      width:min(1150px,92%);
+      margin:auto;
+    }
 
     .dx-header {
       position:sticky;
       top:0;
       z-index:100;
-      background:rgba(7,11,24,.88);
+      background:rgba(7,11,24,.94);
       backdrop-filter:blur(18px);
       border-bottom:1px solid rgba(81,229,255,.12);
     }
@@ -124,7 +139,7 @@
       box-shadow:none;
     }
 
-    /* MENU GARIS TIGA */
+    /* MENU MOBILE */
     .dx-menu-button {
       display:none;
       align-items:center;
@@ -140,6 +155,7 @@
       flex-shrink:0;
     }
 
+    /* HERO */
     .dx-hero {
       min-height:570px;
       display:grid;
@@ -190,7 +206,7 @@
       margin-top:30px;
     }
 
-    /* MASCOT ANIMATION */
+    /* MASKOT */
     .dx-mascot-widget {
       position:relative;
       min-height:430px;
@@ -245,7 +261,6 @@
       height:auto;
       object-fit:contain;
       background:transparent;
-      transform-origin:center;
       filter:
         drop-shadow(0 0 18px rgba(0,210,255,.5))
         drop-shadow(0 0 22px rgba(139,92,246,.4));
@@ -265,18 +280,10 @@
     }
 
     @keyframes dxMascotFloat {
-      0%,100% {
-        transform:translate(0,0) rotate(0deg) scale(1);
-      }
-      25% {
-        transform:translate(8px,-12px) rotate(1deg) scale(1.02);
-      }
-      50% {
-        transform:translate(0,-22px) rotate(0deg) scale(1.04);
-      }
-      75% {
-        transform:translate(-8px,-12px) rotate(-1deg) scale(1.02);
-      }
+      0%,100% { transform:translate(0,0) rotate(0deg) scale(1); }
+      25% { transform:translate(8px,-12px) rotate(1deg) scale(1.02); }
+      50% { transform:translate(0,-22px) rotate(0deg) scale(1.04); }
+      75% { transform:translate(-8px,-12px) rotate(-1deg) scale(1.02); }
     }
 
     @keyframes dxPulseGlow {
@@ -289,6 +296,7 @@
       to { transform:rotate(360deg); }
     }
 
+    /* SECTION */
     .dx-section { padding:85px 0; }
 
     .dx-section-heading {
@@ -330,6 +338,7 @@
       border-radius:16px;
     }
 
+    /* CTA */
     .dx-cta {
       margin-top:35px;
       margin-bottom:85px;
@@ -353,6 +362,7 @@
       font-size:14px;
     }
 
+    /* FOOTER */
     .dx-footer {
       padding:35px 0;
       text-align:center;
@@ -372,6 +382,7 @@
       font-size:12px;
     }
 
+    /* LOGIN */
     .dx-modal {
       position:fixed;
       inset:0;
@@ -439,6 +450,7 @@
       font-size:12px;
     }
 
+    /* MOBILE */
     @media (max-width:760px) {
       .dx-nav {
         min-height:68px;
@@ -449,9 +461,7 @@
 
       .dx-brand { font-size:21px; }
 
-      .dx-nav-actions {
-        margin-left:auto;
-      }
+      .dx-nav-actions { margin-left:auto; }
 
       .dx-menu-button {
         display:inline-flex;
@@ -460,7 +470,7 @@
       }
 
       .dx-nav-links {
-        display:none;
+        display:none !important;
         order:5;
         width:100%;
         flex-direction:column;
@@ -474,7 +484,7 @@
       }
 
       .dx-nav-links.open {
-        display:flex;
+        display:flex !important;
       }
 
       .dx-nav-links a { font-size:13px; }
@@ -528,7 +538,6 @@
         <button class="dx-button" onclick="openAuth()">Masuk / Daftar</button>
       </div>
 
-      <!-- Tombol menu berada di kanan atas -->
       <button
         class="dx-menu-button"
         id="menuButton"
@@ -542,6 +551,7 @@
   </header>
 
   <main>
+    <!-- BERANDA -->
     <section class="dx-container dx-hero" id="home">
 
       <div class="dx-hero-content">
@@ -618,7 +628,6 @@
       <p>Temukan produk digital dan akun game pilihanmu di DX STORE.</p>
       <button class="dx-button" onclick="openAuth()">Mulai Sekarang</button>
     </section>
-
   </main>
 
   <!-- FOOTER -->
@@ -674,7 +683,7 @@
   <!-- JAVASCRIPT -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=3"></script>
 
 </body>
 </html>
