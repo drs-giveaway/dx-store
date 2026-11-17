@@ -54,6 +54,7 @@
       backdrop-filter:blur(18px);
       border-bottom:1px solid rgba(81,229,255,.12);
     }
+
     .dx-nav {
       min-height:76px;
       display:flex;
@@ -61,24 +62,38 @@
       justify-content:space-between;
       gap:20px;
     }
+
     .dx-brand {
       font-size:25px;
       font-weight:900;
       letter-spacing:2px;
     }
+
     .dx-brand span {
       color:var(--dx-cyan);
       text-shadow:0 0 18px rgba(81,229,255,.5);
     }
-    .dx-nav-links { display:flex; align-items:center; gap:28px; }
+
+    .dx-nav-links {
+      display:flex;
+      align-items:center;
+      gap:28px;
+    }
+
     .dx-nav-links a {
       color:var(--dx-muted);
       font-size:13px;
       font-weight:700;
       transition:.25s;
     }
+
     .dx-nav-links a:hover { color:var(--dx-cyan); }
-    .dx-nav-actions { display:flex; align-items:center; gap:10px; }
+
+    .dx-nav-actions {
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
 
     .dx-button {
       display:inline-flex;
@@ -96,15 +111,33 @@
       transition:.25s;
       box-shadow:0 0 22px rgba(39,143,255,.2);
     }
+
     .dx-button:hover {
       transform:translateY(-2px);
       box-shadow:0 0 30px rgba(39,143,255,.4);
     }
+
     .dx-button-outline {
       background:transparent;
       border-color:rgba(81,229,255,.45);
       color:var(--dx-cyan);
       box-shadow:none;
+    }
+
+    /* MENU GARIS TIGA */
+    .dx-menu-button {
+      display:none;
+      align-items:center;
+      justify-content:center;
+      width:42px;
+      height:42px;
+      border:1px solid rgba(81,229,255,.35);
+      border-radius:10px;
+      background:rgba(16,26,49,.8);
+      color:var(--dx-cyan);
+      font-size:22px;
+      cursor:pointer;
+      flex-shrink:0;
     }
 
     .dx-hero {
@@ -116,6 +149,7 @@
       padding-top:55px;
       padding-bottom:65px;
     }
+
     .dx-eyebrow {
       display:inline-block;
       margin-bottom:20px;
@@ -128,16 +162,19 @@
       font-weight:800;
       letter-spacing:2px;
     }
+
     .dx-hero h1 {
       font-size:clamp(38px,5vw,65px);
       line-height:1.08;
       font-weight:900;
       letter-spacing:-2px;
     }
+
     .dx-hero h1 span {
       color:var(--dx-cyan);
       text-shadow:0 0 25px rgba(81,229,255,.25);
     }
+
     .dx-hero-copy {
       max-width:490px;
       margin-top:22px;
@@ -145,6 +182,7 @@
       font-size:15px;
       line-height:1.8;
     }
+
     .dx-hero-buttons {
       display:flex;
       flex-wrap:wrap;
@@ -167,6 +205,7 @@
         linear-gradient(145deg,rgba(20,35,68,.85),rgba(8,12,29,.95));
       box-shadow:0 0 55px rgba(40,168,255,.08);
     }
+
     .dx-mascot-widget::before,
     .dx-mascot-widget::after {
       content:"";
@@ -178,6 +217,7 @@
       box-shadow:0 0 35px rgba(40,168,255,.12);
       animation:dxRingRotate 18s linear infinite;
     }
+
     .dx-mascot-widget::after {
       width:330px;
       height:330px;
@@ -185,6 +225,7 @@
       animation-direction:reverse;
       animation-duration:24s;
     }
+
     .dx-neon-aura {
       position:absolute;
       width:75%;
@@ -194,6 +235,7 @@
       filter:blur(35px);
       animation:dxPulseGlow 3s ease-in-out infinite alternate;
     }
+
     .dx-mascot-img {
       position:relative;
       z-index:2;
@@ -210,6 +252,7 @@
       animation:dxMascotFloat 4s ease-in-out infinite;
       will-change:transform;
     }
+
     .dx-mascot-label {
       position:absolute;
       z-index:3;
@@ -235,40 +278,48 @@
         transform:translate(-8px,-12px) rotate(-1deg) scale(1.02);
       }
     }
+
     @keyframes dxPulseGlow {
       from { opacity:.55; transform:scale(.92); }
       to { opacity:1; transform:scale(1.08); }
     }
+
     @keyframes dxRingRotate {
       from { transform:rotate(0deg); }
       to { transform:rotate(360deg); }
     }
 
     .dx-section { padding:85px 0; }
+
     .dx-section-heading {
       text-align:center;
       margin-bottom:38px;
     }
+
     .dx-section-heading small {
       color:var(--dx-cyan);
       font-size:11px;
       font-weight:800;
       letter-spacing:2px;
     }
+
     .dx-section-heading h2 {
       margin:12px 0;
       font-size:clamp(27px,4vw,40px);
       font-weight:900;
     }
+
     .dx-section-heading p {
       color:var(--dx-muted);
       font-size:14px;
     }
+
     .dx-catalog {
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
       gap:20px;
     }
+
     .dx-empty-card {
       grid-column:1/-1;
       padding:35px 20px;
@@ -290,26 +341,31 @@
         radial-gradient(circle at 50% 0%,rgba(39,143,255,.2),transparent 65%),
         #101a31;
     }
+
     .dx-cta h2 {
       font-size:clamp(25px,4vw,38px);
       font-weight:900;
     }
+
     .dx-cta p {
       margin:15px 0 25px;
       color:var(--dx-muted);
       font-size:14px;
     }
+
     .dx-footer {
       padding:35px 0;
       text-align:center;
       border-top:1px solid rgba(81,229,255,.12);
       background:rgba(5,9,20,.8);
     }
+
     .dx-footer strong {
       color:var(--dx-cyan);
       font-size:23px;
       letter-spacing:2px;
     }
+
     .dx-footer p {
       margin-top:10px;
       color:var(--dx-muted);
@@ -327,7 +383,9 @@
       background:rgba(0,0,0,.75);
       backdrop-filter:blur(8px);
     }
+
     .dx-modal.active { display:flex; }
+
     .dx-modal-box {
       position:relative;
       width:min(420px,100%);
@@ -337,15 +395,18 @@
       background:#101a31;
       box-shadow:0 0 45px rgba(39,143,255,.15);
     }
+
     .dx-modal-box h2 {
       font-size:23px;
       margin-bottom:10px;
     }
+
     .dx-modal-box > p {
       color:var(--dx-muted);
       font-size:13px;
       margin-bottom:22px;
     }
+
     .dx-close {
       position:absolute;
       top:12px;
@@ -356,7 +417,9 @@
       font-size:28px;
       cursor:pointer;
     }
+
     #authForm { display:grid; gap:13px; }
+
     #authForm input {
       width:100%;
       padding:14px;
@@ -366,8 +429,10 @@
       background:#080f20;
       color:white;
     }
+
     #authForm input:focus { border-color:var(--dx-cyan); }
     #authForm button { width:100%; }
+
     .auth-message {
       margin-top:15px;
       color:var(--dx-cyan);
@@ -378,26 +443,54 @@
       .dx-nav {
         min-height:68px;
         flex-wrap:wrap;
+        justify-content:space-between;
         padding:12px 0;
       }
+
       .dx-brand { font-size:21px; }
-      .dx-nav-links {
-        order:3;
-        width:100%;
-        justify-content:center;
-        gap:17px;
+
+      .dx-nav-actions {
+        margin-left:auto;
       }
-      .dx-nav-links a { font-size:11px; }
+
+      .dx-menu-button {
+        display:inline-flex;
+        order:4;
+        margin-left:0;
+      }
+
+      .dx-nav-links {
+        display:none;
+        order:5;
+        width:100%;
+        flex-direction:column;
+        align-items:flex-start;
+        padding:15px;
+        margin-top:10px;
+        gap:18px;
+        border:1px solid rgba(81,229,255,.15);
+        border-radius:12px;
+        background:#101a31;
+      }
+
+      .dx-nav-links.open {
+        display:flex;
+      }
+
+      .dx-nav-links a { font-size:13px; }
+
       .dx-nav-actions .dx-button {
         min-height:38px;
         padding:0 12px;
         font-size:11px;
       }
+
       .dx-hero {
         grid-template-columns:1fr;
         gap:30px;
         padding-top:45px;
       }
+
       .dx-hero h1 { font-size:42px; }
       .dx-hero-copy { font-size:14px; }
       .dx-mascot-widget { min-height:350px; }
@@ -422,9 +515,10 @@
 
   <header class="dx-header">
     <div class="dx-container dx-nav">
+
       <a href="#home" class="dx-brand">DX<span>STORE</span></a>
 
-      <nav class="dx-nav-links">
+      <nav class="dx-nav-links" id="dxNavLinks">
         <a href="#home">Beranda</a>
         <a href="#products">Produk Digital</a>
         <a href="#accounts">Akun Game</a>
@@ -433,18 +527,33 @@
       <div class="dx-nav-actions">
         <button class="dx-button" onclick="openAuth()">Masuk / Daftar</button>
       </div>
+
+      <!-- Tombol menu berada di kanan atas -->
+      <button
+        class="dx-menu-button"
+        id="menuButton"
+        type="button"
+        aria-label="Buka menu"
+        aria-expanded="false">
+        ☰
+      </button>
+
     </div>
   </header>
 
   <main>
     <section class="dx-container dx-hero" id="home">
+
       <div class="dx-hero-content">
         <span class="dx-eyebrow">WELCOME TO DX STORE</span>
+
         <h1>LEVEL UP YOUR<br><span>DIGITAL WORLD.</span></h1>
+
         <p class="dx-hero-copy">
           Temukan berbagai produk digital dan akun game pilihan
           dengan pengalaman marketplace yang mudah dan nyaman.
         </p>
+
         <div class="dx-hero-buttons">
           <a href="#products" class="dx-button">Jelajahi Produk</a>
           <a href="#accounts" class="dx-button dx-button-outline">Lihat Akun Game</a>
@@ -453,48 +562,66 @@
 
       <div class="dx-mascot-widget">
         <div class="dx-neon-aura"></div>
+
         <img
           src="39976-removebg-preview.png"
           alt="Maskot Resmi DX STORE"
           class="dx-mascot-img"
         >
+
         <div class="dx-mascot-label">DX-01 // OFFICIAL MASCOT</div>
       </div>
+
     </section>
 
+    <!-- PRODUK DIGITAL -->
     <section class="dx-section" id="products">
       <div class="dx-container">
+
         <div class="dx-section-heading">
           <small>DX DIGITAL MARKETPLACE</small>
           <h2>Produk Digital</h2>
           <p>Jelajahi berbagai produk digital pilihan dari DX STORE.</p>
         </div>
+
         <div class="dx-catalog" id="productGrid">
-          <div class="dx-empty-card">Produk digital akan ditampilkan di sini.</div>
+          <div class="dx-empty-card">
+            Produk digital akan ditampilkan di sini.
+          </div>
         </div>
+
       </div>
     </section>
 
+    <!-- AKUN GAME -->
     <section class="dx-section" id="accounts">
       <div class="dx-container">
+
         <div class="dx-section-heading">
           <small>DX GAME MARKETPLACE</small>
           <h2>Marketplace Akun Game</h2>
           <p>Jelajahi pilihan akun game yang tersedia.</p>
         </div>
+
         <div class="dx-catalog" id="accountGrid">
-          <div class="dx-empty-card">Akun game akan ditampilkan di sini.</div>
+          <div class="dx-empty-card">
+            Akun game akan ditampilkan di sini.
+          </div>
         </div>
+
       </div>
     </section>
 
+    <!-- CTA -->
     <section class="dx-container dx-cta">
       <h2>READY TO LEVEL UP?</h2>
       <p>Temukan produk digital dan akun game pilihanmu di DX STORE.</p>
       <button class="dx-button" onclick="openAuth()">Mulai Sekarang</button>
     </section>
+
   </main>
 
+  <!-- FOOTER -->
   <footer class="dx-footer">
     <div class="dx-container">
       <strong>DX STORE</strong>
@@ -503,24 +630,81 @@
     </div>
   </footer>
 
+  <!-- LOGIN MODAL -->
   <div class="dx-modal" id="authModal">
     <div class="dx-modal-box">
-      <button class="dx-close" onclick="closeAuth()" aria-label="Tutup">&times;</button>
+
+      <button
+        class="dx-close"
+        onclick="closeAuth()"
+        aria-label="Tutup">
+        &times;
+      </button>
+
       <h2>Welcome to DX STORE</h2>
       <p>Masuk atau daftar untuk melanjutkan.</p>
 
       <form id="authForm">
-        <input type="email" id="authEmail" placeholder="Alamat email" autocomplete="email" required>
-        <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password" required>
-        <button type="submit" class="dx-button">Masuk / Daftar</button>
+        <input
+          type="email"
+          id="authEmail"
+          placeholder="Alamat email"
+          autocomplete="email"
+          required
+        >
+
+        <input
+          type="password"
+          id="authPassword"
+          placeholder="Password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button type="submit" class="dx-button">
+          Masuk / Daftar
+        </button>
       </form>
 
       <p id="authMessage" class="auth-message"></p>
+
     </div>
   </div>
 
+  <!-- JAVASCRIPT -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
+
+  <!-- MENU MOBILE -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const menuButton = document.getElementById("menuButton");
+      const navigation = document.getElementById("dxNavLinks");
+
+      if (!menuButton || !navigation) return;
+
+      menuButton.addEventListener("click", function () {
+        const isOpen = navigation.classList.toggle("open");
+
+        menuButton.textContent = isOpen ? "✕" : "☰";
+        menuButton.setAttribute("aria-expanded", String(isOpen));
+        menuButton.setAttribute(
+          "aria-label",
+          isOpen ? "Tutup menu" : "Buka menu"
+        );
+      });
+
+      navigation.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function () {
+          navigation.classList.remove("open");
+          menuButton.textContent = "☰";
+          menuButton.setAttribute("aria-expanded", "false");
+          menuButton.setAttribute("aria-label", "Buka menu");
+        });
+      });
+    });
+  </script>
+
 </body>
 </html>
