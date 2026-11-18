@@ -1562,9 +1562,14 @@ async function refreshDXUser() {
   if (error || !data?.user) {
     currentUser = null;
     currentProfile = null;
+    window.dxAdminPanelExpanded = false;
 
     const panel = $("dxAdminPanel");
     if (panel) panel.style.display = "none";
+    const adminButton = $("dxOpenAdmin");
+    if (adminButton) adminButton.hidden = true;
+    const adminCard = $("dxAdminAccessCard");
+    if (adminCard) adminCard.hidden = true;
 
     updateDXHeaderAuth();
     return;
@@ -2613,20 +2618,22 @@ async function handleAuthSubmit(event) {
 
     updateDXHeaderAuth();
 
+    const adminPanel = $("dxAdminPanel");
+    const adminButton = $("dxOpenAdmin");
+    const adminCard = $("dxAdminAccessCard");
+
     if (isAdmin) {
       createDXAdminPanel();
-
-      const panel = $("dxAdminPanel");
-
-      if (panel) {
-        panel.style.display = "block";
-        await loadDXAdminList();
-        await loadDXPaymentOrders();
-        panel.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-      }
+      window.dxAdminPanelExpanded = false;
+      if (adminPanel) adminPanel.style.display = "none";
+      if (adminButton) adminButton.hidden = false;
+      if (adminCard) adminCard.hidden = false;
+      await loadDXAdminList();
+    } else {
+      window.dxAdminPanelExpanded = false;
+      if (adminPanel) adminPanel.style.display = "none";
+      if (adminButton) adminButton.hidden = true;
+      if (adminCard) adminCard.hidden = true;
     }
 
     if ($("authPassword")) $("authPassword").value = "";
