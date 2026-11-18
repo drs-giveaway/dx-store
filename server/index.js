@@ -21,7 +21,7 @@ const supabaseAuth = createClient(process.env.SUPABASE_URL, process.env.SUPABASE
 const supabaseAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false }
 });
-const snap = new midtransClient.Snap({
+const coreApi = new midtransClient.CoreApi({
   isProduction,
   serverKey: process.env.MIDTRANS_SERVER_KEY,
   clientKey: process.env.MIDTRANS_CLIENT_KEY || ""
@@ -96,11 +96,11 @@ app.post("/api/payments/create", requireUser, async (req, res) => {
     if (insertError) throw insertError;
 
     try {
-      const transaction = await snap.createTransaction({
+      const transaction = await coreApi.charge({
+        payment_type: "qris",
         transaction_details: { order_id: orderId, gross_amount: amount },
         item_details: [{ id: String(item.id), price: amount, quantity: 1, name: itemName }],
         customer_details: { email: req.user.email || undefined },
-        payment_type: "qris",
         qris: { acquirer: "gopay" }
       });
 
