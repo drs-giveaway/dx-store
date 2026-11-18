@@ -66,6 +66,8 @@
       event.preventDefault();
       const message = $("dxSellerMessage");
       if (!currentUser) { message.textContent = "Silakan masuk atau daftar terlebih dahulu."; openAuth(); return; }
+      const price = typeof parseDXRupiahInput === "function" ? parseDXRupiahInput($("dxSellerPrice").value) : Number($("dxSellerPrice").value.replace(/\\./g, ""));
+      if (!Number.isFinite(price) || price < 1) { message.textContent = "Masukkan harga lebih dari Rp0."; return; }
       const button = event.submitter;
       button.disabled = true;
       message.textContent = "Mengunggah foto dan menyimpan listing...";
@@ -76,7 +78,7 @@
           game: $("dxSellerGame").value.trim(),
           title: $("dxSellerTitle").value.trim(),
           description: $("dxSellerDescription").value.trim() || null,
-          price: typeof parseDXRupiahInput === "function" ? parseDXRupiahInput($("dxSellerPrice").value) : Number($("dxSellerPrice").value.replace(/\\./g, "")),
+          price,
           image_url: imageUrl,
           status: "pending"
         });
