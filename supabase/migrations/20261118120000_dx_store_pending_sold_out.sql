@@ -59,7 +59,7 @@ begin
   end if;
 
   insert into public.orders (buyer_id, total_amount, item_type, item_id, item_name, status)
-  values (p_user_id, v_price, p_item_type, p_item_id, v_name, v_price, 'pending')
+  values (p_user_id, v_price, p_item_type, p_item_id, v_name, 'pending')
   returning id into v_id;
 
   return jsonb_build_object('id', v_id, 'amount', v_price, 'status', 'pending');
