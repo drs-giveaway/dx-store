@@ -1374,7 +1374,8 @@ async function checkDXAdmin() {
 
   if (error) {
     console.error("Pengecekan admin gagal:", error);
-    return currentProfile?.role === "admin";
+    if (currentProfile) currentProfile.role = "user";
+    return false;
   }
 
   if (data === true) {
