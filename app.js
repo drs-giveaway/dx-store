@@ -532,6 +532,7 @@ function updateDXDashboardVisibility() {
     `;
     main.insertBefore(dashboard, hero);
   }
+  mountDXMascotVoice();
   const visible = !!currentUser;
   dashboard.hidden = !visible;
   hero.hidden = visible;
@@ -967,6 +968,7 @@ async function createDXPayment() {
     $("dxCheckPayment").disabled = false;
     button.disabled = true;
     button.textContent = "Pesanan Dibuat";
+    window.dispatchEvent(new CustomEvent("dx:order-update", { detail: { status: "pending" } }));
   } catch (error) {
     $("dxCheckoutMessage").textContent = getDXError(error);
     button.disabled = false;
@@ -1002,6 +1004,7 @@ async function submitDXPaymentProof() {
     $("dxCheckoutStatus").textContent = "Menunggu pemeriksaan admin";
     $("dxCheckoutMessage").textContent = "Bukti diterima. Pesanan belum lunas sampai admin memeriksa dana masuk.";
     $("dxPaymentProof").disabled = true;
+    window.dispatchEvent(new CustomEvent("dx:order-update", { detail: { status: "proof" } }));
   } catch (error) {
     $("dxCheckoutMessage").textContent = getDXError(error);
     button.disabled = false;
@@ -1025,6 +1028,7 @@ async function checkDXPaymentStatus() {
     if (!response.ok) throw new Error(result.message || "Status pesanan gagal diperiksa.");
     const labels = { pending: "Menunggu pembayaran", review: "Menunggu pemeriksaan admin", paid: "LUNAS", rejected: "Bukti ditolak" };
     $("dxCheckoutStatus").textContent = labels[result.status] || result.status;
+    window.dispatchEvent(new CustomEvent("dx:order-update", { detail: { status: result.status } }));
     $("dxCheckoutMessage").textContent = result.status === "paid"
       ? "Pembayaran telah diverifikasi oleh admin."
       : result.status === "rejected"
@@ -1300,66 +1304,181 @@ async function refreshDXUser() {
   }
 }
 
+
+
+/* DX-01 VOICE ASSISTANT */
+const DX_MASCOT_VOICE = {
+  enabled: localStorage.getItem("dx-mascot-voice") !== "off",
+  welcomed: false,
+  speaking: false
+};
+const DX_MASCOT_LINES = {
+  ID: {welcome:"Halo! Aku DX-01, maskot resmi DX STORE. Selamat datang! Aku siap membantu kamu menjelajahi produk dan akun game.",help:"Kamu bisa menjelajahi Produk Digital atau Akun Game dari navigasi. Buka menu Akun untuk pengaturan akun. Jika perlu bantuan, hubungi pusat bantuan DX STORE.",order:"Pesananmu berhasil dibuat. Silakan lanjutkan pembayaran dan kirim bukti pembayaran. Pesanan menunggu pemeriksaan admin.",proof:"Bukti pembayaran berhasil dikirim dan sedang menunggu pemeriksaan admin.",paid:"Pembayaranmu telah diverifikasi. Terima kasih telah menggunakan DX STORE.",rejected:"Bukti pembayaran belum dapat diterima. Silakan periksa keterangan pada pesanan atau hubungi admin.",unknown:"Aku belum memahami pertanyaan itu. Coba tanyakan tentang cara mencari produk, membuat pesanan, pembayaran, atau pengaturan akun."},
+  MY: {welcome:"Helo! Saya DX-01, maskot rasmi DX STORE. Selamat datang! Saya sedia membantu anda meneroka produk dan akaun permainan.",help:"Anda boleh meneroka Produk Digital atau Akaun Permainan melalui navigasi. Buka menu Akaun untuk tetapan akaun. Untuk bantuan, hubungi pusat bantuan DX STORE.",order:"Tempahan anda berjaya dibuat. Sila teruskan pembayaran dan hantar bukti pembayaran. Tempahan sedang menunggu semakan admin.",proof:"Bukti pembayaran berjaya dihantar dan sedang menunggu semakan admin.",paid:"Pembayaran anda telah disahkan. Terima kasih kerana menggunakan DX STORE.",rejected:"Bukti pembayaran belum dapat diterima. Sila semak maklumat tempahan atau hubungi admin.",unknown:"Saya belum memahami soalan itu. Cuba tanya tentang produk, tempahan, pembayaran atau tetapan akaun."},
+  JP: {welcome:"こんにちは！DX STOREの公式マスコット、DX-01です。ご来店ありがとうございます。商品やゲームアカウント探しをお手伝いします。",help:"ナビゲーションからデジタル商品またはゲームアカウントをご覧ください。アカウントメニューから設定を開けます。",order:"注文が作成されました。お支払いのうえ、支払い証明を送信してください。管理者の確認待ちです。",proof:"支払い証明が送信されました。管理者による確認をお待ちください。",paid:"お支払いが確認されました。DX STOREをご利用いただきありがとうございます。",rejected:"支払い証明を確認できませんでした。注文情報をご確認ください。",unknown:"商品、注文、支払い、アカウント設定について質問してください。"},
+  TH: {welcome:"สวัสดี! ฉันคือ DX-01 มาสคอตของ DX STORE ยินดีต้อนรับ ฉันพร้อมช่วยคุณค้นหาสินค้าและบัญชีเกม",help:"เลือกสินค้าดิจิทัลหรือบัญชีเกมจากเมนู และเปิดเมนูบัญชีเพื่อดูการตั้งค่า",order:"สร้างคำสั่งซื้อแล้ว กรุณาชำระเงินและส่งหลักฐานการชำระเงินเพื่อรอผู้ดูแลตรวจสอบ",proof:"ส่งหลักฐานการชำระเงินแล้ว กำลังรอผู้ดูแลตรวจสอบ",paid:"ยืนยันการชำระเงินแล้ว ขอบคุณที่ใช้ DX STORE",rejected:"ยังไม่สามารถยืนยันหลักฐานการชำระเงินได้ กรุณาตรวจสอบคำสั่งซื้อ",unknown:"ลองถามเกี่ยวกับสินค้า คำสั่งซื้อ การชำระเงิน หรือการตั้งค่าบัญชี"},
+  CN: {welcome:"你好！我是DX STORE的官方吉祥物DX-01。欢迎来到DX STORE，我可以帮助你浏览商品和游戏账号。",help:"请从导航中选择数字商品或游戏账号。打开账户菜单可以查看账户设置。",order:"订单已创建。请完成付款并提交付款凭证，订单正在等待管理员审核。",proof:"付款凭证已提交，正在等待管理员审核。",paid:"付款已确认。感谢使用DX STORE。",rejected:"付款凭证暂未通过，请检查订单信息。",unknown:"你可以询问商品、订单、付款或账户设置。"}
+};
+const DX_MASCOT_LANG = {ID:"id-ID",MY:"ms-MY",SG:"en-SG",US:"en-US",JP:"ja-JP",TH:"th-TH",PH:"en-PH",AU:"en-AU",GB:"en-GB",DE:"de-DE",FR:"fr-FR",IN:"hi-IN",KR:"ko-KR",BR:"pt-BR",CA:"en-CA",CN:"zh-CN"};
+function getDXMascotLine(type) {
+  const code = getDXCountry().code;
+  const fallback = {
+    welcome:"Hello! I'm DX-01, the official DX STORE mascot. Welcome! I can help you explore digital products and game accounts.",
+    help:"Browse Digital Products or Game Accounts from the navigation. Open Account for account settings. Contact DX STORE support if you need help.",
+    order:"Your order has been created. Please complete payment and submit your payment proof. The order is waiting for admin review.",
+    proof:"Your payment proof was submitted and is waiting for admin review.",
+    paid:"Your payment has been verified. Thank you for using DX STORE.",
+    rejected:"Your payment proof could not be accepted. Please review your order details or contact the admin.",
+    unknown:"I didn't understand that question. Ask me about products, orders, payments, or account settings."
+  };
+  const translated = DX_MASCOT_LINES[code] || {};
+  return translated[type] || fallback[type] || fallback.unknown;
+}
+function speakDXMascot(message, options = {}) {
+  if (!message || !DX_MASCOT_VOICE.enabled || !("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return false;
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(String(message));
+    utterance.lang = DX_MASCOT_LANG[getDXCountry().code] || "id-ID";
+    utterance.rate = options.rate || 1;
+    utterance.pitch = 1.04;
+    const voices = window.speechSynthesis.getVoices();
+    const prefix = utterance.lang.split("-")[0].toLowerCase();
+    const voice = voices.find(item => item.lang?.toLowerCase() === utterance.lang.toLowerCase()) || voices.find(item => item.lang?.toLowerCase().startsWith(prefix));
+    if (voice) utterance.voice = voice;
+    utterance.onstart = () => { DX_MASCOT_VOICE.speaking = true; };
+    utterance.onend = utterance.onerror = () => { DX_MASCOT_VOICE.speaking = false; };
+    window.speechSynthesis.speak(utterance);
+    return true;
+  } catch (error) {
+    console.warn("DX-01 voice unavailable:", error);
+    return false;
+  }
+}
+function showDXMascotMessage(type, customMessage) {
+  const message = customMessage || getDXMascotLine(type);
+  let bubble = document.getElementById("dxMascotSpeechBubble");
+  if (!bubble) {
+    bubble = document.createElement("div");
+    bubble.id = "dxMascotSpeechBubble";
+    bubble.setAttribute("role", "status");
+    bubble.setAttribute("aria-live", "polite");
+    bubble.style.cssText = "position:fixed;z-index:700;right:16px;bottom:112px;width:min(330px,calc(100vw - 32px));padding:13px 15px;border:1px solid #51e5ff66;border-radius:14px;background:rgba(10,20,42,.94);backdrop-filter:blur(12px);box-shadow:0 8px 28px #0007;color:#f4f8ff;font:500 13px/1.55 Inter,sans-serif";
+    document.body.appendChild(bubble);
+  }
+  bubble.textContent = "DX-01 · " + message;
+  bubble.hidden = false;
+  clearTimeout(window.dxMascotBubbleTimer);
+  window.dxMascotBubbleTimer = setTimeout(() => { bubble.hidden = true; }, 7000);
+  speakDXMascot(message);
+}
+function answerDXMascotQuestion(question) {
+  const q = String(question || "").toLocaleLowerCase();
+  let answer = getDXMascotLine("unknown");
+  if (/produk|barang|digital|game|akun|cari|lihat|browse|product|account/.test(q)) answer = getDXMascotLine("help");
+  else if (/pesan|order|beli|buat|checkout|reserv/.test(q)) answer = getDXMascotLine("order");
+  else if (/bayar|pembayaran|qris|transfer|payment/.test(q)) answer = getDXMascotLine("proof");
+  else if (/lunas|verifikasi|verified|paid/.test(q)) answer = getDXMascotLine("paid");
+  else if (/akun|profil|negara|mata uang|bahasa|setting|pengaturan/.test(q)) answer = getDXMascotLine("help");
+  showDXMascotMessage("answer", answer);
+}
+function mountDXMascotVoice() {
+  const hosts = [document.querySelector(".dx-mascot-widget"), $("dxDashboard")].filter(Boolean);
+  hosts.forEach((host, index) => {
+    const id = index === 0 ? "dxMascotVoiceHome" : "dxMascotVoiceDashboard";
+    if (document.getElementById(id)) return;
+    const panel = document.createElement("div");
+    panel.id = id;
+    panel.style.cssText = "position:relative;z-index:2;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin:12px auto 4px;max-width:420px";
+    panel.innerHTML = '<button type="button" data-dx-mascot-action="speak" style="border:1px solid #51e5ff88;border-radius:10px;background:#102b50;color:#eaf8ff;padding:9px 12px;font-weight:800;font-size:12px">🔊 Dengarkan DX-01</button><button type="button" data-dx-mascot-action="ask" style="border:1px solid #8b78ff88;border-radius:10px;background:#211c4b;color:#f1edff;padding:9px 12px;font-weight:800;font-size:12px">💬 Tanya DX-01</button><button type="button" data-dx-mascot-action="toggle" style="border:1px solid #ffffff30;border-radius:10px;background:#101a31;color:#d8e7ff;padding:9px 12px;font-weight:800;font-size:12px"></button>';
+    const toggle = panel.querySelector('[data-dx-mascot-action="toggle"]');
+    toggle.textContent = DX_MASCOT_VOICE.enabled ? "Suara: Aktif" : "Suara: Mati";
+    host.appendChild(panel);
+  });
+  if (!document.documentElement.dataset.dxMascotVoiceBound) {
+    document.addEventListener("click", event => {
+      const button = event.target.closest("[data-dx-mascot-action]");
+      if (!button) return;
+      const action = button.dataset.dxMascotAction;
+      if (action === "toggle") {
+        DX_MASCOT_VOICE.enabled = !DX_MASCOT_VOICE.enabled;
+        localStorage.setItem("dx-mascot-voice", DX_MASCOT_VOICE.enabled ? "on" : "off");
+        if (!DX_MASCOT_VOICE.enabled && "speechSynthesis" in window) window.speechSynthesis.cancel();
+        document.querySelectorAll('[data-dx-mascot-action="toggle"]').forEach(el => el.textContent = DX_MASCOT_VOICE.enabled ? "Suara: Aktif" : "Suara: Mati");
+        if (DX_MASCOT_VOICE.enabled) showDXMascotMessage("welcome");
+      } else if (action === "speak") {
+        showDXMascotMessage(DX_MASCOT_VOICE.welcomed ? "help" : "welcome");
+        DX_MASCOT_VOICE.welcomed = true;
+      } else if (action === "ask") {
+        const question = window.prompt("Apa yang ingin kamu tanyakan kepada DX-01?");
+        if (question?.trim()) answerDXMascotQuestion(question.trim());
+      }
+    });
+    document.documentElement.dataset.dxMascotVoiceBound = "1";
+  }
+  if (!window.dxMascotOrderEventsBound) {
+    window.addEventListener("dx:order-update", event => {
+      const status = event.detail?.status;
+      const type = status === "paid" || status === "completed" ? "paid" : status === "rejected" ? "rejected" : status === "proof" ? "proof" : "order";
+      showDXMascotMessage(type);
+    });
+    window.dxMascotOrderEventsBound = true;
+  }
+}
+window.dxMascotSpeak = (message) => showDXMascotMessage("answer", String(message || ""));
+
 /* SALAM PERPISAHAN MASKOT DX-01 */
 function showDXMascotFarewell() {
   const country = getDXCountry();
   const messages = {
-    ID: ["Sampai jumpa! Terima kasih sudah berkunjung ke DX STORE. Semoga harimu menyenangkan!", "id-ID"],
-    MY: ["Jumpa lagi! Terima kasih kerana mengunjungi DX STORE. Semoga hari anda menyenangkan!", "ms-MY"],
-    SG: ["See you again! Thanks for visiting DX STORE. Have a great day!", "en-SG"],
-    US: ["See you next time! Thanks for visiting DX STORE. Have a wonderful day!", "en-US"],
-    JP: ["またお会いしましょう！DX STOREをご利用いただき、ありがとうございます。良い一日を！", "ja-JP"],
-    TH: ["แล้วพบกันใหม่นะ! ขอบคุณที่แวะมา DX STORE ขอให้เป็นวันที่ดี!", "th-TH"],
-    PH: ["See you again! Thank you for visiting DX STORE. Have a great day!", "en-PH"],
-    AU: ["See you next time! Thanks for visiting DX STORE. Have a great day!", "en-AU"],
-    GB: ["Goodbye for now! Thanks for visiting DX STORE. Have a lovely day!", "en-GB"],
-    DE: ["Bis zum nächsten Mal! Danke für deinen Besuch bei DX STORE. Hab einen schönen Tag!", "de-DE"],
-    FR: ["À bientôt ! Merci de votre visite sur DX STORE. Passez une excellente journée !", "fr-FR"],
-    IN: ["फिर मिलेंगे! DX STORE पर आने के लिए धन्यवाद। आपका दिन शुभ हो!", "hi-IN"],
-    KR: ["다음에 또 만나요! DX STORE를 방문해 주셔서 감사합니다. 좋은 하루 보내세요!", "ko-KR"],
-    BR: ["Até a próxima! Obrigado por visitar a DX STORE. Tenha um ótimo dia!", "pt-BR"],
-    CA: ["See you next time! Thanks for visiting DX STORE. Have a great day!", "en-CA"],
-    CN: ["再见！感谢您访问 DX STORE，祝您今天愉快！", "zh-CN"]
+    ID:["Sampai jumpa! Terima kasih sudah berkunjung ke DX STORE. Semoga harimu menyenangkan!","id-ID"],
+    MY:["Jumpa lagi! Terima kasih kerana mengunjungi DX STORE. Semoga hari anda menyenangkan!","ms-MY"],
+    SG:["See you again! Thanks for visiting DX STORE. Have a great day!","en-SG"],
+    US:["See you next time! Thanks for visiting DX STORE. Have a wonderful day!","en-US"],
+    JP:["またお会いしましょう！DX STOREをご利用いただき、ありがとうございます。良い一日を！","ja-JP"],
+    TH:["แล้วพบกันใหม่นะ! ขอบคุณที่แวะมา DX STORE ขอให้เป็นวันที่ดี!","th-TH"],
+    PH:["See you again! Thank you for visiting DX STORE. Have a great day!","en-PH"],
+    AU:["See you next time! Thanks for visiting DX STORE. Have a great day!","en-AU"],
+    GB:["Goodbye for now! Thanks for your visit to DX STORE. Have a lovely day!","en-GB"],
+    DE:["Bis zum nächsten Mal! Danke für deinen Besuch bei DX STORE. Hab einen schönen Tag!","de-DE"],
+    FR:["À bientôt ! Merci de votre visite sur DX STORE. Passez une excellente journée !","fr-FR"],
+    IN:["फिर मिलेंगे! DX STORE पर आने के लिए धन्यवाद। आपका दिन शुभ हो!","hi-IN"],
+    KR:["다음에 또 만나요! DX STORE를 방문해 주셔서 감사합니다. 좋은 하루 보내세요!","ko-KR"],
+    BR:["Até a próxima! Obrigado por visitar a DX STORE. Tenha um ótimo dia!","pt-BR"],
+    CA:["See you next time! Thanks for visiting DX STORE. Have a great day!","en-CA"],
+    CN:["再见！感谢您访问 DX STORE，祝您今天愉快！","zh-CN"]
   };
-  const [message, lang] = messages[country.code] || messages.ID;
+  const [message,lang] = messages[country.code] || messages.ID;
   let bubble = document.getElementById("dxMascotFarewell");
   if (!bubble) {
     bubble = document.createElement("div");
     bubble.id = "dxMascotFarewell";
-    bubble.setAttribute("role", "status");
-    bubble.setAttribute("aria-live", "polite");
+    bubble.setAttribute("role","status");
     bubble.style.cssText = "position:fixed;z-index:99999;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px));padding:22px 24px;border:1px solid #51e5ff99;border-radius:18px;background:linear-gradient(145deg,#13284a,#171333);box-shadow:0 18px 70px #000b,0 0 28px #278fff55;color:#f4f8ff;text-align:center;font:600 15px/1.65 Inter,sans-serif";
     document.body.appendChild(bubble);
   }
-  bubble.innerHTML = '<div style="color:#51e5ff;font-size:11px;letter-spacing:2px;font-weight:900;margin-bottom:8px">DX-01 · SEE YOU AGAIN</div><div></div>';
-  bubble.lastElementChild.textContent = message;
-  if ("speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
+  bubble.textContent = "DX-01 · " + message;
+  if (DX_MASCOT_VOICE.enabled && "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(message);
     utterance.lang = lang;
     utterance.rate = 1;
     window.speechSynthesis.speak(utterance);
   }
-  return new Promise(function(resolve) {
-    let finished = false;
+  return new Promise(resolve => {
+    const fallback = setTimeout(finish, 9000);
     function finish() {
-      if (finished) return;
-      finished = true;
+      clearTimeout(fallback);
       if ("speechSynthesis" in window) window.speechSynthesis.cancel();
       bubble.remove();
       resolve();
     }
-    const fallback = window.setTimeout(finish, 9000);
-    if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.lang = lang;
-      utterance.rate = 1;
-      utterance.onend = function() { window.clearTimeout(fallback); finish(); };
-      utterance.onerror = function() { window.clearTimeout(fallback); finish(); };
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utterance);
+    if (!DX_MASCOT_VOICE.enabled || !("speechSynthesis" in window)) {
+      setTimeout(finish, 1800);
     } else {
-      window.setTimeout(function() { window.clearTimeout(fallback); finish(); }, 2200);
+      const utterance = window.speechSynthesis;
+      // Speech is queued once above; keep the farewell visible for its expected duration.
+      setTimeout(finish, Math.min(8000, Math.max(2500, message.length * 65)));
     }
   });
 }
@@ -2254,6 +2373,7 @@ async function initializeDXStore() {
   }
 
   setupDXAuthSwitch();
+  mountDXMascotVoice();
   const countrySelect = $("dxCountry");
   if (countrySelect) {
     countrySelect.value = getDXCountry().code;
