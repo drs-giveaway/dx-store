@@ -406,7 +406,7 @@ async function createDXPayment() {
   try {
     const session = (await dxSupabase.auth.getSession()).data.session;
     if (!session?.access_token) throw new Error("Silakan masuk terlebih dahulu.");
-    const response = await fetch(new URL("/api/payments/create", base), {
+    const response = await fetch(new URL("api/payments/create", base + "/"), {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
       body: JSON.stringify({ itemType: modal.dataset.itemType, itemId: modal.dataset.itemId })
@@ -450,7 +450,7 @@ async function submitDXPaymentProof() {
     const path = currentUser.id + "/" + orderId + "." + ext;
     const upload = await dxSupabase.storage.from("payment-proofs").upload(path, file, { upsert: true, contentType: file.type });
     if (upload.error) throw upload.error;
-    const response = await fetch(new URL("/api/payments/submit-proof", DX_CONFIG.paymentApiUrl), {
+    const response = await fetch(new URL("api/payments/submit-proof", DX_CONFIG.paymentApiUrl + "/"), {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
       body: JSON.stringify({ orderId, proofPath: path })
@@ -476,7 +476,7 @@ async function checkDXPaymentStatus() {
   button.disabled = true; button.textContent = "Memeriksa...";
   try {
     const session = (await dxSupabase.auth.getSession()).data.session;
-    const response = await fetch(new URL("/api/payments/status?orderId=" + encodeURIComponent(modal.dataset.orderId), base), {
+    const response = await fetch(new URL("api/payments/status?orderId=" + encodeURIComponent(modal.dataset.orderId), base + "/"), {
       headers: { "Authorization": "Bearer " + session?.access_token }
     });
     const result = await response.json();
