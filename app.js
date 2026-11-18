@@ -518,13 +518,23 @@ function updateDXDashboardVisibility() {
         <button type="button" data-dx-action="sell-account"><span>＋</span><strong>Jual Akun</strong></button>
       </div>
       <section id="dxProfilePanel" class="dx-profile-page" hidden>
-        <div class="dx-profile-heading"><div><small>DX STORE · ACCOUNT CENTER</small><h2>Profil Saya</h2><p>Kelola informasi dan bantuan akunmu.</p></div><span class="dx-profile-mark">DX</span></div>
-        <article class="dx-profile-identity">
+        <div class="dx-wallet-profile-head">
+          <div><small>DX STORE · AKUN SAYA</small><h2>Profil</h2><p>Kelola akun dan aktivitas digitalmu.</p></div>
           <div class="dx-profile-avatar" id="dxProfileAvatar">DX</div>
-          <div class="dx-profile-identity-text"><strong id="dxProfileName">Pengguna</strong><span id="dxAccountEmail">Akun Anda</span><small id="dxProfileMember">Anggota DX STORE</small></div>
-          <span class="dx-profile-verified">AKUN</span>
+        </div>
+        <article class="dx-wallet-member">
+          <div class="dx-wallet-member-top"><span>MEMBER DX STORE</span><span class="dx-profile-verified">AKUN</span></div>
+          <strong id="dxProfileName">Pengguna</strong>
+          <span id="dxAccountEmail">Akun Anda</span>
+          <small id="dxProfileMember">Anggota DX STORE</small>
         </article>
-        <article class="dx-profile-card">
+        <div class="dx-wallet-shortcuts">
+          <button type="button" data-dx-profile-action="orders"><span>▤</span><strong>Pesanan</strong></button>
+          <button type="button" data-dx-profile-action="help"><span>♧</span><strong>Bantuan</strong></button>
+          <button type="button" data-dx-profile-action="country"><span>◎</span><strong>Wilayah</strong></button>
+          <button type="button" data-dx-profile-action="edit"><span>✎</span><strong>Edit profil</strong></button>
+        </div>
+        <article class="dx-profile-card dx-wallet-settings" id="dxProfileEdit">
           <div class="dx-profile-card-head"><div><small>INFORMASI PRIBADI</small><h3>Data Profil</h3></div><span>✦</span></div>
           <label for="dxProfileNameInput">Nama tampilan</label>
           <input id="dxProfileNameInput" type="text" maxlength="40" autocomplete="nickname" placeholder="Masukkan nama tampilan">
@@ -536,8 +546,6 @@ function updateDXDashboardVisibility() {
         <article class="dx-profile-card dx-profile-menu">
           <div class="dx-profile-card-head"><div><small>PREFERENSI</small><h3>Pengaturan Akun</h3></div><span>⚙</span></div>
           <button type="button" data-dx-profile-action="country"><span class="dx-profile-menu-icon">◎</span><span><strong>Negara, Mata Uang & Bahasa</strong><small id="dxProfileCountry">Sesuaikan preferensi wilayah</small></span><b>›</b></button>
-          <button type="button" data-dx-profile-action="orders"><span class="dx-profile-menu-icon">▤</span><span><strong>Riwayat Pesanan</strong><small>Lihat status pesananmu</small></span><b>›</b></button>
-          <button type="button" data-dx-profile-action="help"><span class="dx-profile-menu-icon">?</span><span><strong>Pusat Bantuan</strong><small>Laporkan masalah atau cari bantuan</small></span><b>›</b></button>
         </article>
         <section id="dxOrderHistory" class="dx-profile-card"><div class="dx-profile-card-head"><div><small>TRANSAKSI</small><h3>Riwayat Pesanan</h3></div><button type="button" id="dxRefreshOrders">Muat ulang</button></div><div id="dxOrderHistoryList">Memuat pesanan...</div></section>
         <section id="dxHelpCenter" class="dx-profile-card"><div class="dx-profile-card-head"><div><small>DUKUNGAN PELANGGAN</small><h3>Pusat Bantuan &amp; Laporan</h3></div><span>?</span></div>
@@ -549,12 +557,12 @@ function updateDXDashboardVisibility() {
           <button type="submit" id="dxSupportSubmit" class="dx-profile-primary">Kirim Laporan</button><p id="dxSupportFeedback" role="status" aria-live="polite"></p></form>
           <h4>Laporan Saya</h4><div id="dxMyTickets">Memuat laporan...</div></section>
         <article class="dx-profile-card dx-profile-ai">
-          <div class="dx-profile-card-head dx-chat-head"><div class="dx-chat-brand"><span class="dx-ai-mark">DX</span><div><small>ASISTEN DIGITAL DX</small><h3>DX AI Assistant</h3><p><i class="dx-online-dot"></i> Siap membantu di DX STORE</p></div></div><span class="dx-chat-menu">•••</span></div>
-          <div class="dx-chat-welcome"><span class="dx-chat-spark">✦</span><div><strong>Halo! Saya DX 👋</strong><p>Ada yang ingin kamu ketahui atau butuh bantuan apa hari ini?</p></div></div>
+          <div class="dx-profile-card-head dx-chat-head"><div class="dx-chat-brand"><span class="dx-ai-mark">DX</span><div><small>ASISTEN DIGITAL DX</small><h3>DX Assistant</h3><p><i class="dx-online-dot"></i> Siap membantu di DX STORE</p></div></div><span class="dx-chat-menu">•••</span></div>
+          <div class="dx-chat-welcome"><span class="dx-chat-spark">✦</span><div><strong>Halo! Saya DX 👋</strong><p>Tanyakan tentang produk, pesanan, pembayaran, atau akunmu.</p></div></div>
           <div id="dxAssistantMessages" class="dx-assistant-messages" aria-live="polite"></div>
           <div class="dx-assistant-suggestions"><button type="button" data-dx-ask="Bagaimana cara membeli produk?">🛍️ Cara membeli</button><button type="button" data-dx-ask="Bagaimana cara membayar pesanan?">💳 Pembayaran</button><button type="button" data-dx-ask="Bagaimana cara melaporkan masalah?">🎧 Pusat bantuan</button></div>
           <form id="dxAssistantForm" class="dx-assistant-form"><input id="dxAssistantInput" type="text" maxlength="500" placeholder="Tulis pesan untuk DX..." autocomplete="off" aria-label="Pesan untuk DX"><button type="submit" aria-label="Kirim pesan">➤</button></form>
-          <small class="dx-assistant-note" id="dxAssistantStatus">AI generatif menunggu konfigurasi layanan API.</small>
+          <small class="dx-assistant-note" id="dxAssistantStatus">Asisten DX siap. Fitur AI generatif memerlukan konfigurasi layanan.</small>
         </article>
         <div class="dx-profile-actions"><button type="button" id="dxOpenAdmin" hidden>Kelola Website</button><button type="button" id="dxAccountLogout">Keluar dari Akun</button></div>
         <p class="dx-profile-version">DX STORE · DIGITAL MARKETPLACE</p>
@@ -615,6 +623,7 @@ function updateDXDashboardVisibility() {
       if (action === "country") $("dxCountry")?.focus();
       if (action === "orders") { $("dxOrderHistory")?.scrollIntoView({behavior:"smooth",block:"start"}); loadDXOrderHistory(); }
       if (action === "help") $("dxHelpCenter")?.scrollIntoView({behavior:"smooth",block:"start"});
+      if (action === "edit") $("dxProfileEdit")?.scrollIntoView({behavior:"smooth",block:"start"});
     });
     button.dataset.bound = "1";
   });
