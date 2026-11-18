@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -6,46 +7,716 @@
   <meta name="theme-color" content="#070b18">
   <meta name="description" content="DX STORE - Marketplace produk digital dan akun game.">
   <title>DX STORE | Digital Marketplace</title>
+
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <style>
-    :root{--dx-bg:#070b18;--dx-card:#101a31;--dx-cyan:#51e5ff;--dx-blue:#278fff;--dx-purple:#8b5cf6;--dx-white:#f4f8ff;--dx-muted:#9aa9c4}
-    *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'Inter',sans-serif;background:var(--dx-bg);color:var(--dx-white);overflow-x:hidden}a{color:inherit;text-decoration:none}button,input{font:inherit}
-    .background-glow{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 15% 15%,rgba(39,143,255,.12),transparent 35%),radial-gradient(circle at 85% 45%,rgba(139,92,246,.10),transparent 35%)}
-    .dx-container{width:min(1150px,92%);margin:auto}.dx-header{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.94);backdrop-filter:blur(18px);border-bottom:1px solid rgba(81,229,255,.12)}.dx-nav{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}.dx-brand{font-size:25px;font-weight:900;letter-spacing:2px}.dx-brand span{color:var(--dx-cyan);text-shadow:0 0 18px rgba(81,229,255,.5)}.dx-nav-links{display:flex;align-items:center;gap:28px}.dx-nav-links a{color:var(--dx-muted);font-size:13px;font-weight:700;transition:.25s}.dx-nav-links a:hover{color:var(--dx-cyan)}.dx-nav-actions{display:flex;align-items:center;gap:10px}
-    .dx-button{display:inline-flex;align-items:center;justify-content:center;min-height:45px;padding:0 22px;border:1px solid transparent;border-radius:10px;background:linear-gradient(110deg,#168fff,#6955e9);color:white;font-size:13px;font-weight:800;cursor:pointer;transition:.25s;box-shadow:0 0 22px rgba(39,143,255,.2)}.dx-button:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(39,143,255,.4)}.dx-button-outline{background:transparent;border-color:rgba(81,229,255,.45);color:var(--dx-cyan);box-shadow:none}
-    .dx-menu-button{display:none;align-items:center;justify-content:center;width:42px;height:42px;border:1px solid rgba(81,229,255,.35);border-radius:10px;background:rgba(16,26,49,.8);color:var(--dx-cyan);font-size:22px;cursor:pointer;flex-shrink:0}
-    .dx-hero{min-height:570px;display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:35px;padding:55px 0 65px}.dx-eyebrow{display:inline-block;margin-bottom:20px;padding:9px 14px;border:1px solid rgba(81,229,255,.25);border-radius:30px;background:rgba(40,168,255,.08);color:var(--dx-cyan);font-size:11px;font-weight:800;letter-spacing:2px}.dx-hero h1{font-size:clamp(38px,5vw,65px);line-height:1.08;font-weight:900;letter-spacing:-2px}.dx-hero h1 span{color:var(--dx-cyan);text-shadow:0 0 25px rgba(81,229,255,.25)}.dx-hero-copy{max-width:490px;margin-top:22px;color:var(--dx-muted);font-size:15px;line-height:1.8}.dx-hero-buttons{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
-    .dx-mascot-widget{position:relative;min-height:430px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(81,229,255,.18);border-radius:28px;background:radial-gradient(circle at 50% 45%,rgba(40,168,255,.20),transparent 55%),linear-gradient(145deg,rgba(20,35,68,.85),rgba(8,12,29,.95));box-shadow:0 0 55px rgba(40,168,255,.08)}.dx-mascot-img{position:relative;z-index:2;display:block;width:100%;max-width:480px;height:auto;object-fit:contain;filter:drop-shadow(0 0 18px rgba(0,210,255,.5)) drop-shadow(0 0 22px rgba(139,92,246,.4))}.dx-mascot-label{position:absolute;z-index:3;bottom:18px;left:20px;color:var(--dx-cyan);font-size:10px;font-weight:800;letter-spacing:2px}
-    .dx-section{padding:85px 0}.dx-section-heading{text-align:center;margin-bottom:38px}.dx-section-heading small{color:var(--dx-cyan);font-size:11px;font-weight:800;letter-spacing:2px}.dx-section-heading h2{margin:12px 0;font-size:clamp(27px,4vw,40px);font-weight:900}.dx-section-heading p{color:var(--dx-muted);font-size:14px}.dx-catalog{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px}.dx-empty-card{grid-column:1/-1;padding:35px 20px;text-align:center;color:var(--dx-muted);background:rgba(16,26,49,.7);border:1px dashed rgba(81,229,255,.2);border-radius:16px}
-    .dx-cta{margin:35px auto 85px;padding:55px 25px;text-align:center;border:1px solid rgba(81,229,255,.18);border-radius:24px;background:radial-gradient(circle at 50% 0%,rgba(39,143,255,.2),transparent 65%),#101a31}.dx-cta h2{font-size:clamp(25px,4vw,38px);font-weight:900}.dx-cta p{margin:15px 0 25px;color:var(--dx-muted);font-size:14px}.dx-footer{padding:35px 0;text-align:center;border-top:1px solid rgba(81,229,255,.12);background:rgba(5,9,20,.8)}.dx-footer strong{color:var(--dx-cyan);font-size:23px;letter-spacing:2px}.dx-footer p{margin-top:10px;color:var(--dx-muted);font-size:12px}
-    .dx-modal{position:fixed;inset:0;z-index:999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.75);backdrop-filter:blur(8px)}.dx-modal.active{display:flex}.dx-modal-box{position:relative;width:min(420px,100%);padding:35px 25px;border:1px solid rgba(81,229,255,.25);border-radius:20px;background:#101a31;box-shadow:0 0 45px rgba(39,143,255,.15)}.dx-modal-box h2{font-size:23px;margin-bottom:10px}.dx-modal-box>p{color:var(--dx-muted);font-size:13px;margin-bottom:22px}.dx-close{position:absolute;top:12px;right:15px;border:none;background:none;color:white;font-size:28px;cursor:pointer}#authForm{display:grid;gap:13px}#authForm input{width:100%;padding:14px;border:1px solid rgba(81,229,255,.2);border-radius:9px;outline:none;background:#080f20;color:white}#authForm input:focus{border-color:var(--dx-cyan)}#authForm button{width:100%}.auth-message{margin-top:15px;color:var(--dx-cyan);font-size:12px}
-    .dx-market-search input{width:100%;padding:14px;margin-bottom:20px;border:1px solid rgba(81,229,255,.3);border-radius:15px;background:#0d1830;color:#fff;font:inherit;outline:none}.product-card{overflow:hidden;border:1px solid rgba(105,160,255,.2);border-radius:18px;background:linear-gradient(145deg,#142443,#0b1428);transition:transform .2s,border-color .2s,box-shadow .2s}.product-card:hover{transform:translateY(-5px);border-color:rgba(81,229,255,.6);box-shadow:0 16px 38px rgba(0,0,0,.25)}.product-card>img{width:100%;height:190px;object-fit:cover}.product-info{padding:18px}.product-info h3{color:#f4f8ff}.product-info p{color:#aab8d0;line-height:1.65}.product-info strong{display:block;margin:12px 0;color:#51e5ff;font-size:18px}
-    .dx-detail-overlay{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,7,20,.84);backdrop-filter:blur(10px)}.dx-detail-overlay.active{display:flex}.dx-detail-panel{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:24px;width:min(760px,100%);max-height:90vh;overflow:auto;padding:24px;border:1px solid rgba(81,229,255,.3);border-radius:22px;background:linear-gradient(145deg,#17294a,#091326);color:#fff}.dx-detail-close{position:absolute;right:12px;top:12px;width:38px;height:38px;border:1px solid #ffffff30;border-radius:50%;background:#071329;color:#fff;font-size:24px;cursor:pointer}.dx-detail-photo{min-height:260px;display:grid;place-items:center;overflow:hidden;border-radius:15px;background:#0b1428;color:#51e5ff;font-size:26px;font-weight:900}.dx-detail-photo img{width:100%;height:100%;min-height:260px;object-fit:cover}.dx-detail-copy{align-self:center;padding:12px}.dx-detail-label{color:#51e5ff;font-size:11px;font-weight:900;letter-spacing:1px}.dx-detail-copy p{color:#b5c3da;line-height:1.8}.dx-detail-price{display:block;margin:18px 0;color:#51e5ff;font-size:24px}
-    @media(max-width:760px){.dx-nav{min-height:68px;flex-wrap:wrap;justify-content:space-between;padding:12px 0}.dx-brand{font-size:21px}.dx-nav-actions{margin-left:auto}.dx-menu-button{display:inline-flex;order:4}.dx-nav-links{display:none!important;order:5;width:100%;flex-direction:column;align-items:flex-start;padding:15px;margin-top:10px;gap:18px;border:1px solid rgba(81,229,255,.15);border-radius:12px;background:#101a31}.dx-nav-links.open{display:flex!important}.dx-nav-actions .dx-button{min-height:38px;padding:0 12px;font-size:11px}.dx-hero{grid-template-columns:1fr;gap:30px}.dx-mascot-widget{min-height:300px}.dx-detail-panel{grid-template-columns:1fr;padding:16px;gap:12px}.dx-detail-photo,.dx-detail-photo img{min-height:190px;max-height:230px}.product-card>img{height:150px}}
+    :root {
+      --dx-bg:#070b18;
+      --dx-card:#101a31;
+      --dx-cyan:#51e5ff;
+      --dx-blue:#278fff;
+      --dx-purple:#8b5cf6;
+      --dx-white:#f4f8ff;
+      --dx-muted:#9aa9c4;
+    }
+
+    * {
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    html { scroll-behavior:smooth; }
+
+    body {
+      font-family:'Inter',sans-serif;
+      background:var(--dx-bg);
+      color:var(--dx-white);
+      overflow-x:hidden;
+    }
+
+    a {
+      color:inherit;
+      text-decoration:none;
+    }
+
+    button,input { font:inherit; }
+
+    .background-glow {
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 15% 15%,rgba(39,143,255,.12),transparent 35%),
+        radial-gradient(circle at 85% 45%,rgba(139,92,246,.10),transparent 35%);
+    }
+
+    .dx-container {
+      width:min(1150px,92%);
+      margin:auto;
+    }
+
+    .dx-header {
+      position:sticky;
+      top:0;
+      z-index:100;
+      background:rgba(7,11,24,.94);
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid rgba(81,229,255,.12);
+    }
+
+    .dx-nav {
+      min-height:76px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+    }
+
+    .dx-brand {
+      font-size:25px;
+      font-weight:900;
+      letter-spacing:2px;
+    }
+
+    .dx-brand span {
+      color:var(--dx-cyan);
+      text-shadow:0 0 18px rgba(81,229,255,.5);
+    }
+
+    .dx-nav-links {
+      display:flex;
+      align-items:center;
+      gap:28px;
+    }
+
+    .dx-nav-links a {
+      color:var(--dx-muted);
+      font-size:13px;
+      font-weight:700;
+      transition:.25s;
+    }
+
+    .dx-nav-links a:hover { color:var(--dx-cyan); }
+
+    .dx-nav-actions {
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .dx-button {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:45px;
+      padding:0 22px;
+      border:1px solid transparent;
+      border-radius:10px;
+      background:linear-gradient(110deg,#168fff,#6955e9);
+      color:white;
+      font-size:13px;
+      font-weight:800;
+      cursor:pointer;
+      transition:.25s;
+      box-shadow:0 0 22px rgba(39,143,255,.2);
+    }
+
+    .dx-button:hover {
+      transform:translateY(-2px);
+      box-shadow:0 0 30px rgba(39,143,255,.4);
+    }
+
+    .dx-button-outline {
+      background:transparent;
+      border-color:rgba(81,229,255,.45);
+      color:var(--dx-cyan);
+      box-shadow:none;
+    }
+
+    /* MENU MOBILE */
+    .dx-menu-button {
+      display:none;
+      align-items:center;
+      justify-content:center;
+      width:42px;
+      height:42px;
+      border:1px solid rgba(81,229,255,.35);
+      border-radius:10px;
+      background:rgba(16,26,49,.8);
+      color:var(--dx-cyan);
+      font-size:22px;
+      cursor:pointer;
+      flex-shrink:0;
+    }
+
+    /* HERO */
+    .dx-hero {
+      min-height:570px;
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      align-items:center;
+      gap:35px;
+      padding-top:55px;
+      padding-bottom:65px;
+    }
+
+    .dx-eyebrow {
+      display:inline-block;
+      margin-bottom:20px;
+      padding:9px 14px;
+      border:1px solid rgba(81,229,255,.25);
+      border-radius:30px;
+      background:rgba(40,168,255,.08);
+      color:var(--dx-cyan);
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:2px;
+    }
+
+    .dx-hero h1 {
+      font-size:clamp(38px,5vw,65px);
+      line-height:1.08;
+      font-weight:900;
+      letter-spacing:-2px;
+    }
+
+    .dx-hero h1 span {
+      color:var(--dx-cyan);
+      text-shadow:0 0 25px rgba(81,229,255,.25);
+    }
+
+    .dx-hero-copy {
+      max-width:490px;
+      margin-top:22px;
+      color:var(--dx-muted);
+      font-size:15px;
+      line-height:1.8;
+    }
+
+    .dx-hero-buttons {
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:30px;
+    }
+
+    /* MASKOT */
+    .dx-mascot-widget {
+      position:relative;
+      min-height:430px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      border:1px solid rgba(81,229,255,.18);
+      border-radius:28px;
+      background:
+        radial-gradient(circle at 50% 45%,rgba(40,168,255,.20),transparent 55%),
+        linear-gradient(145deg,rgba(20,35,68,.85),rgba(8,12,29,.95));
+      box-shadow:0 0 55px rgba(40,168,255,.08);
+    }
+
+    .dx-mascot-widget::before,
+    .dx-mascot-widget::after {
+      content:"";
+      position:absolute;
+      width:260px;
+      height:260px;
+      border:1px solid rgba(81,229,255,.16);
+      border-radius:50%;
+      box-shadow:0 0 35px rgba(40,168,255,.12);
+      animation:dxRingRotate 18s linear infinite;
+    }
+
+    .dx-mascot-widget::after {
+      width:330px;
+      height:330px;
+      border-color:rgba(139,92,246,.2);
+      animation-direction:reverse;
+      animation-duration:24s;
+    }
+
+    .dx-neon-aura {
+      position:absolute;
+      width:75%;
+      aspect-ratio:1;
+      border-radius:50%;
+      background:radial-gradient(circle,rgba(0,195,255,.4),rgba(139,92,246,.25) 50%,transparent 75%);
+      filter:blur(35px);
+      animation:dxPulseGlow 3s ease-in-out infinite alternate;
+    }
+
+    .dx-mascot-img {
+      position:relative;
+      z-index:2;
+      display:block;
+      width:100%;
+      max-width:480px;
+      height:auto;
+      object-fit:contain;
+      background:transparent;
+      filter:
+        drop-shadow(0 0 18px rgba(0,210,255,.5))
+        drop-shadow(0 0 22px rgba(139,92,246,.4));
+      animation:dxMascotFloat 4s ease-in-out infinite;
+      will-change:transform;
+    }
+
+    .dx-mascot-label {
+      position:absolute;
+      z-index:3;
+      bottom:18px;
+      left:20px;
+      color:var(--dx-cyan);
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:2px;
+    }
+
+    @keyframes dxMascotFloat {
+      0%,100% { transform:translate(0,0) rotate(0deg) scale(1); }
+      25% { transform:translate(8px,-12px) rotate(1deg) scale(1.02); }
+      50% { transform:translate(0,-22px) rotate(0deg) scale(1.04); }
+      75% { transform:translate(-8px,-12px) rotate(-1deg) scale(1.02); }
+    }
+
+    @keyframes dxPulseGlow {
+      from { opacity:.55; transform:scale(.92); }
+      to { opacity:1; transform:scale(1.08); }
+    }
+
+    @keyframes dxRingRotate {
+      from { transform:rotate(0deg); }
+      to { transform:rotate(360deg); }
+    }
+
+    /* SECTION */
+    .dx-section { padding:85px 0; }
+
+    .dx-section-heading {
+      text-align:center;
+      margin-bottom:38px;
+    }
+
+    .dx-section-heading small {
+      color:var(--dx-cyan);
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:2px;
+    }
+
+    .dx-section-heading h2 {
+      margin:12px 0;
+      font-size:clamp(27px,4vw,40px);
+      font-weight:900;
+    }
+
+    .dx-section-heading p {
+      color:var(--dx-muted);
+      font-size:14px;
+    }
+
+    .dx-catalog {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+      gap:20px;
+    }
+
+    .dx-empty-card {
+      grid-column:1/-1;
+      padding:35px 20px;
+      text-align:center;
+      color:var(--dx-muted);
+      background:rgba(16,26,49,.7);
+      border:1px dashed rgba(81,229,255,.2);
+      border-radius:16px;
+    }
+
+    /* CTA */
+    .dx-cta {
+      margin-top:35px;
+      margin-bottom:85px;
+      padding:55px 25px;
+      text-align:center;
+      border:1px solid rgba(81,229,255,.18);
+      border-radius:24px;
+      background:
+        radial-gradient(circle at 50% 0%,rgba(39,143,255,.2),transparent 65%),
+        #101a31;
+    }
+
+    .dx-cta h2 {
+      font-size:clamp(25px,4vw,38px);
+      font-weight:900;
+    }
+
+    .dx-cta p {
+      margin:15px 0 25px;
+      color:var(--dx-muted);
+      font-size:14px;
+    }
+
+    /* FOOTER */
+    .dx-footer {
+      padding:35px 0;
+      text-align:center;
+      border-top:1px solid rgba(81,229,255,.12);
+      background:rgba(5,9,20,.8);
+    }
+
+    .dx-footer strong {
+      color:var(--dx-cyan);
+      font-size:23px;
+      letter-spacing:2px;
+    }
+
+    .dx-footer p {
+      margin-top:10px;
+      color:var(--dx-muted);
+      font-size:12px;
+    }
+
+    /* LOGIN */
+    .dx-modal {
+      position:fixed;
+      inset:0;
+      z-index:999;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background:rgba(0,0,0,.75);
+      backdrop-filter:blur(8px);
+    }
+
+    .dx-modal.active { display:flex; }
+
+    .dx-modal-box {
+      position:relative;
+      width:min(420px,100%);
+      padding:35px 25px;
+      border:1px solid rgba(81,229,255,.25);
+      border-radius:20px;
+      background:#101a31;
+      box-shadow:0 0 45px rgba(39,143,255,.15);
+    }
+
+    .dx-modal-box h2 {
+      font-size:23px;
+      margin-bottom:10px;
+    }
+
+    .dx-modal-box > p {
+      color:var(--dx-muted);
+      font-size:13px;
+      margin-bottom:22px;
+    }
+
+    .dx-close {
+      position:absolute;
+      top:12px;
+      right:15px;
+      border:none;
+      background:none;
+      color:white;
+      font-size:28px;
+      cursor:pointer;
+    }
+
+    #authForm { display:grid; gap:13px; }
+
+    #authForm input {
+      width:100%;
+      padding:14px;
+      border:1px solid rgba(81,229,255,.2);
+      border-radius:9px;
+      outline:none;
+      background:#080f20;
+      color:white;
+    }
+
+    #authForm input:focus { border-color:var(--dx-cyan); }
+    #authForm button { width:100%; }
+
+    .auth-message {
+      margin-top:15px;
+      color:var(--dx-cyan);
+      font-size:12px;
+    }
+
+    /* MOBILE */
+    @media (max-width:760px) {
+      .dx-nav {
+        min-height:68px;
+        flex-wrap:wrap;
+        justify-content:space-between;
+        padding:12px 0;
+      }
+
+      .dx-brand { font-size:21px; }
+
+      .dx-nav-actions { margin-left:auto; }
+
+      .dx-menu-button {
+        display:inline-flex;
+        order:4;
+        margin-left:0;
+      }
+
+      .dx-nav-links {
+        display:none !important;
+        order:5;
+        width:100%;
+        flex-direction:column;
+        align-items:flex-start;
+        padding:15px;
+        margin-top:10px;
+        gap:18px;
+        border:1px solid rgba(81,229,255,.15);
+        border-radius:12px;
+        background:#101a31;
+      }
+
+      .dx-nav-links.open {
+        display:flex !important;
+      }
+
+      .dx-nav-links a { font-size:13px; }
+
+      .dx-nav-actions .dx-button {
+        min-height:38px;
+        padding:0 12px;
+        font-size:11px;
+      }
+
+      .dx-hero {
+        grid-template-columns:1fr;
+        gap:30px;
+        padding-top:45px;
+      }
+
+      .dx-hero h1 { font-size:42px; }
+      .dx-hero-copy { font-size:14px; }
+      .dx-mascot-widget { min-height:350px; }
+      .dx-mascot-img { max-width:340px; }
+      .dx-section { padding:60px 0; }
+      .dx-catalog { grid-template-columns:1fr; }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      .dx-mascot-img,
+      .dx-neon-aura,
+      .dx-mascot-widget::before,
+      .dx-mascot-widget::after {
+        animation:none;
+      }
+    }
+   
+    /* DX STORE MARKETPLACE UPGRADE */
+    .dx-market-search{max-width:680px;width:100%;margin:0 auto 26px;display:block}
+    .dx-market-search input{box-sizing:border-box;width:100%;height:54px;padding:0 20px;border:1px solid rgba(81,229,255,.3);border-radius:15px;background:#0d1830;color:#fff;font:inherit;outline:none}
+    .dx-market-search input:focus{border-color:#51e5ff;box-shadow:0 0 0 3px rgba(81,229,255,.12)}
+    .product-card{overflow:hidden;border:1px solid rgba(105,160,255,.2);border-radius:18px;background:linear-gradient(145deg,#142443,#0b1428);transition:transform .2s,border-color .2s,box-shadow .2s}
+    .product-card:hover{transform:translateY(-5px);border-color:rgba(81,229,255,.6);box-shadow:0 16px 38px rgba(0,0,0,.25)}
+    .product-card>img{width:100%;height:190px;object-fit:cover}
+    .product-info{padding:18px}
+    .product-info h3{color:#f4f8ff}
+    .product-info p{color:#aab8d0;line-height:1.65}
+    .product-info strong{display:block;margin:12px 0;color:#51e5ff;font-size:18px}
+    .dx-detail-overlay{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,7,20,.84);backdrop-filter:blur(10px)}
+    .dx-detail-overlay.active{display:flex}
+    .dx-detail-panel{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:24px;width:min(760px,100%);max-height:90vh;overflow:auto;padding:24px;border:1px solid rgba(81,229,255,.3);border-radius:22px;background:linear-gradient(145deg,#17294a,#091326);color:#fff}
+    .dx-detail-close{position:absolute;right:12px;top:12px;width:38px;height:38px;border:1px solid #ffffff30;border-radius:50%;background:#071329;color:#fff;font-size:24px;cursor:pointer}
+    .dx-detail-photo{min-height:260px;display:grid;place-items:center;overflow:hidden;border-radius:15px;background:#0b1428;color:#51e5ff;font-size:26px;font-weight:900}
+    .dx-detail-photo img{width:100%;height:100%;min-height:260px;object-fit:cover}
+    .dx-detail-copy{align-self:center;padding:12px}
+    .dx-detail-label{color:#51e5ff;font-size:11px;font-weight:900;letter-spacing:1px}
+    .dx-detail-copy p{color:#b5c3da;line-height:1.8}
+    .dx-detail-price{display:block;margin:18px 0;color:#51e5ff;font-size:24px}
+    @media(max-width:620px){.dx-detail-panel{grid-template-columns:1fr;padding:16px;gap:12px}.dx-detail-photo,.dx-detail-photo img{min-height:190px;max-height:230px}.product-card>img{height:150px}}
+
   </style>
 </head>
+
 <body>
   <div class="background-glow"></div>
-  <header class="dx-header"><div class="dx-container dx-nav">
-    <a href="#home" class="dx-brand">DX<span>STORE</span></a>
-    <nav class="dx-nav-links" id="dxNavLinks"><a href="#home">Beranda</a><a href="#products">Produk Digital</a><a href="#accounts">Akun Game</a></nav>
-    <div class="dx-nav-actions"><button class="dx-button" onclick="openAuth()">Masuk / Daftar</button></div>
-    <button class="dx-menu-button" id="menuButton" type="button" aria-label="Buka menu" aria-expanded="false" onclick="const nav=document.getElementById('dxNavLinks');const opened=nav.classList.toggle('open');this.textContent=opened?'✕':'☰';this.setAttribute('aria-expanded',String(opened));this.setAttribute('aria-label',opened?'Tutup menu':'Buka menu')">☰</button>
-  </div></header>
+
+  <header class="dx-header">
+    <div class="dx-container dx-nav">
+
+      <a href="#home" class="dx-brand">DX<span>STORE</span></a>
+
+      <nav class="dx-nav-links" id="dxNavLinks">
+        <a href="#home">Beranda</a>
+        <a href="#products">Produk Digital</a>
+        <a href="#accounts">Akun Game</a>
+      </nav>
+
+      <div class="dx-nav-actions">
+        <button class="dx-button" onclick="openAuth()">Masuk / Daftar</button>
+      </div>
+
+      <button
+        class="dx-menu-button"
+        id="menuButton"
+        type="button"
+        aria-label="Buka menu"
+        aria-expanded="false"
+        onclick="
+          const nav = document.getElementById('dxNavLinks');
+          const opened = nav.classList.toggle('open');
+          this.textContent = opened ? '✕' : '☰';
+          this.setAttribute('aria-expanded', String(opened));
+          this.setAttribute('aria-label', opened ? 'Tutup menu' : 'Buka menu');
+        ">
+        ☰
+      </button>
+
+    </div>
+  </header>
+
   <main>
-    <section class="dx-container dx-hero" id="home"><div class="dx-hero-content"><span class="dx-eyebrow">WELCOME TO DX STORE</span><h1>LEVEL UP YOUR<br><span>DIGITAL WORLD.</span></h1><p class="dx-hero-copy">Temukan berbagai produk digital dan akun game pilihan dengan pengalaman marketplace yang mudah dan nyaman.</p><div class="dx-hero-buttons"><a href="#products" class="dx-button">Jelajahi Produk</a><a href="#accounts" class="dx-button dx-button-outline">Lihat Akun Game</a></div></div><div class="dx-mascot-widget"><img src="39976-removebg-preview.png" alt="Maskot Resmi DX STORE" class="dx-mascot-img"><div class="dx-mascot-label">DX-01 // OFFICIAL MASCOT</div></div></section>
-    <section class="dx-section" id="products"><div class="dx-container"><div class="dx-section-heading"><small>DX DIGITAL MARKETPLACE</small><h2>Produk Digital</h2><p>Jelajahi berbagai produk digital pilihan dari DX STORE.</p></div><label class="dx-market-search"><input id="dxMarketplaceSearch" type="search" placeholder="Cari produk atau akun game..." autocomplete="off" aria-label="Cari produk atau akun game"></label><div class="dx-catalog" id="productGrid"><div class="dx-empty-card">Produk digital akan ditampilkan di sini.</div></div></div></section>
-    <section class="dx-section" id="accounts"><div class="dx-container"><div class="dx-section-heading"><small>DX GAME MARKETPLACE</small><h2>Marketplace Akun Game</h2><p>Jelajahi pilihan akun game yang tersedia.</p></div><div class="dx-catalog" id="accountGrid"><div class="dx-empty-card">Akun game akan ditampilkan di sini.</div></div></div></section>
-    <section class="dx-container dx-cta"><h2>READY TO LEVEL UP?</h2><p>Temukan produk digital dan akun game pilihanmu di DX STORE.</p><button class="dx-button" onclick="openAuth()">Mulai Sekarang</button></section>
+    <!-- BERANDA -->
+    <section class="dx-container dx-hero" id="home">
+
+      <div class="dx-hero-content">
+        <span class="dx-eyebrow">WELCOME TO DX STORE</span>
+
+        <h1>LEVEL UP YOUR<br><span>DIGITAL WORLD.</span></h1>
+
+        <p class="dx-hero-copy">
+          Temukan berbagai produk digital dan akun game pilihan
+          dengan pengalaman marketplace yang mudah dan nyaman.
+        </p>
+
+        <div class="dx-hero-buttons">
+          <a href="#products" class="dx-button">Jelajahi Produk</a>
+          <a href="#accounts" class="dx-button dx-button-outline">Lihat Akun Game</a>
+        </div>
+      </div>
+
+      <div class="dx-mascot-widget">
+        <div class="dx-neon-aura"></div>
+
+        <img
+          src="39976-removebg-preview.png"
+          alt="Maskot Resmi DX STORE"
+          class="dx-mascot-img"
+        >
+
+        <div class="dx-mascot-label">DX-01 // OFFICIAL MASCOT</div>
+      </div>
+
+    </section>
+
+    <!-- PRODUK DIGITAL -->
+    <section class="dx-section" id="products">
+      <div class="dx-container">
+
+        <div class="dx-section-heading">
+          <small>DX DIGITAL MARKETPLACE</small>
+          <h2>Produk Digital</h2>
+          <p>Jelajahi berbagai produk digital pilihan dari DX STORE.</p>
+        </div>
+
+        <label class="dx-market-search"><input id="dxMarketplaceSearch" type="search" placeholder="Cari produk atau akun game..." autocomplete="off" aria-label="Cari produk atau akun game"></label>
+        <div class="dx-catalog" id="productGrid">
+          <div class="dx-empty-card">
+            Produk digital akan ditampilkan di sini.
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- AKUN GAME -->
+    <section class="dx-section" id="accounts">
+      <div class="dx-container">
+
+        <div class="dx-section-heading">
+          <small>DX GAME MARKETPLACE</small>
+          <h2>Marketplace Akun Game</h2>
+          <p>Jelajahi pilihan akun game yang tersedia.</p>
+        </div>
+
+        <div class="dx-catalog" id="accountGrid">
+          <div class="dx-empty-card">
+            Akun game akan ditampilkan di sini.
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="dx-container dx-cta">
+      <h2>READY TO LEVEL UP?</h2>
+      <p>Temukan produk digital dan akun game pilihanmu di DX STORE.</p>
+      <button class="dx-button" onclick="openAuth()">Mulai Sekarang</button>
+    </section>
   </main>
-  <footer class="dx-footer"><div class="dx-container"><strong>DX STORE</strong><p>Digital Products &amp; Game Account Marketplace</p><p>© 2026 DX STORE. All rights reserved.</p></div></footer>
-  <div class="dx-modal" id="authModal"><div class="dx-modal-box"><button class="dx-close" onclick="closeAuth()" aria-label="Tutup">&times;</button><h2>Welcome to DX STORE</h2><p>Masuk atau daftar untuk melanjutkan.</p><form id="authForm"><input type="email" id="authEmail" placeholder="Alamat email" autocomplete="email" required><input type="password" id="authPassword" placeholder="Password" autocomplete="current-password" required><button type="submit" class="dx-button">Masuk / Daftar</button></form><p id="authMessage" class="auth-message"></p></div></div>
+
+  <!-- FOOTER -->
+  <footer class="dx-footer">
+    <div class="dx-container">
+      <strong>DX STORE</strong>
+      <p>Digital Products &amp; Game Account Marketplace</p>
+      <p>© 2026 DX STORE. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- LOGIN MODAL -->
+  <div class="dx-modal" id="authModal">
+    <div class="dx-modal-box">
+
+      <button
+        class="dx-close"
+        onclick="closeAuth()"
+        aria-label="Tutup">
+        &times;
+      </button>
+
+      <h2>Welcome to DX STORE</h2>
+      <p>Masuk atau daftar untuk melanjutkan.</p>
+
+      <form id="authForm">
+        <input
+          type="email"
+          id="authEmail"
+          placeholder="Alamat email"
+          autocomplete="email"
+          required
+        >
+
+        <input
+          type="password"
+          id="authPassword"
+          placeholder="Password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button type="submit" class="dx-button">
+          Masuk / Daftar
+        </button>
+      </form>
+
+      <p id="authMessage" class="auth-message"></p>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="app.js?v=4"></script>
   <script src="image-upload.js?v=1"></script>
+
 </body>
 </html>
