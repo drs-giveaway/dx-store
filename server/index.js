@@ -72,8 +72,11 @@ app.post("/api/payments/create", requireUser, async (req, res) => {
       return res.status(400).json({ message: "Item pesanan tidak valid." });
     }
 
+    const itemColumns = itemType === "product"
+      ? "id,name,price,status"
+      : "id,title,price,status";
     const { data: item, error: itemError } = await supabaseAdmin
-      .from(table).select("id,name,title,price,status").eq("id", itemId).eq("status", "active").maybeSingle();
+      .from(table).select(itemColumns).eq("id", itemId).eq("status", "active").maybeSingle();
     if (itemError || !item) return res.status(404).json({ message: "Barang tidak tersedia." });
 
     const amount = Number(item.price);
@@ -136,6 +139,34 @@ app.get("/api/payments/status", requireUser, async (req, res) => {
   const { data: order, error } = await supabaseAdmin
     .from("orders").select("order_id,amount,status").eq("order_id", orderId).eq("user_id", req.user.id).maybeSingle();
   if (error || !order) return res.status(404).json({ message: "Pesanan tidak ditemukan." });
+
+  // Periksa status langsung ke Midtrans agar tombol cek status tidak hanya
+  // bergantung pada keterlambatan webhook.
+  try {
+    const paymentStatus = await coreApi.transaction.status(order.order_id);
+    if (Number(paymentStatus.gross_amount) !== Number(order.amount)) {
+      return res.status(409).json({ message: "Nominal transaksi tidak cocok." });
+    }
+
+    const verifiedStatus = mapMidtransStatus(paymentStatus);
+    if (verifiedStatus !== order.status) {
+      const { error: updateError } = await supabaseAdmin
+        .from("orders")
+        .update({
+          status: verifiedStatus,
+          midtrans_transaction_id: paymentStatus.transaction_id || null
+        })
+        .eq("order_id", order.order_id)
+        .eq("user_id", req.user.id);
+      if (updateError) throw updateError;
+      order.status = verifiedStatus;
+    }
+  } catch (statusError) {
+    console.error("Midtrans status check error:", statusError.message);
+    // Status tersimpan tetap ditampilkan; jangan pernah mengubah pending menjadi paid
+    // hanya karena pemeriksaan ke Midtrans sedang gagal.
+  }
+
   return res.json({ orderId: order.order_id, amount: order.amount, status: order.status });
 });
 
@@ -157,7 +188,11 @@ app.post("/api/payments/webhook", async (req, res) => {
       return res.status(400).json({ message: "Nominal notifikasi tidak cocok." });
     }
 
-    const status = mapMidtransStatus(body);
+    // Midtrans hanya dianggap lunas jika notifikasi menyatakan status sukses
+    // dan nominal cocok dengan pesanan yang tersimpan di server.
+    const status = body.status_code === "200" || body.status_code === 200
+      ? mapMidtransStatus(body)
+      : "pending";
     const update = { status, midtrans_transaction_id: body.transaction_id || null };
     const { error: updateError } = await supabaseAdmin.from("orders").update(update).eq("order_id", body.order_id);
     if (updateError) throw updateError;
