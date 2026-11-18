@@ -1406,211 +1406,15 @@ async function checkDXAdmin() {
 
 /* GANTI MODE LOGIN DAN DAFTAR */
 
-function setupDXAuthSwitch() {
-  const switchButton = $("switchAuth");
-
-  if (!switchButton) return;
-
-  switchButton.onclick = () => {
-    dxAuthMode = dxAuthMode === "login"
-      ? "register"
-      : "login";
-
-    const submitButton = $("authSubmit");
-    const title = $("authTitle");
-    const text = $("authSwitchText");
-
-    if (title) {
-      title.textContent = dxAuthMode === "login"
-        ? "Masuk ke DX STORE"
-        : "Buat Akun DX STORE";
-    }
-
-    if (submitButton) {
-      submitButton.textContent = dxAuthMode === "login"
-        ? "Masuk"
-        : "Daftar";
-    }
-
-    if (text) {
-      text.textContent = dxAuthMode === "login"
-        ? "Belum punya akun?"
-        : "Sudah punya akun?";
-    }
-
-    switchButton.textContent = dxAuthMode === "login"
-      ? "Daftar sekarang"
-      : "Masuk sekarang";
-
-    showDXMessage("");
-  };
-}
+/* Obsolete duplicate removed: setupDXAuthSwitch */
 
 /* PROSES LOGIN DAN REGISTRASI */
 
-async function handleAuthSubmit(event) {
-  event.preventDefault();
-
-  if (!dxSupabase) {
-    showDXMessage("Supabase belum terhubung.");
-    return;
-  }
-
-  const email = $("authEmail")?.value.trim();
-  const password = $("authPassword")?.value;
-  const submitButton = $("authSubmit");
-
-  if (!email || !password) {
-    showDXMessage("Email dan sandi wajib diisi.");
-    return;
-  }
-
-  const originalText = submitButton?.textContent;
-
-  if (submitButton) {
-    submitButton.disabled = true;
-    submitButton.textContent = "Memproses...";
-  }
-
-  try {
-    let result;
-
-    if (dxAuthMode === "login") {
-      result = await dxSupabase.auth.signInWithPassword({
-        email,
-        password
-      });
-    } else {
-      result = await dxSupabase.auth.signUp({
-        email,
-        password
-      });
-    }
-
-    if (result.error) {
-      throw result.error;
-    }
-
-    if (dxAuthMode === "register") {
-      if (!result.data.session) {
-        showDXMessage(
-          "Pendaftaran berhasil. Silakan periksa email untuk konfirmasi akun."
-        );
-        return;
-      }
-    }
-
-    currentUser = result.data.user;
-
-    if (!currentUser) {
-      showDXMessage("Akun belum berhasil masuk.");
-      return;
-    }
-
-    await loadDXProfile(currentUser);
-
-    const isAdmin = await checkDXAdmin();
-
-    updateDXHeaderAuth();
-
-    if (isAdmin) {
-      createDXAdminPanel();
-
-      const panel = $("dxAdminPanel");
-      if (panel) panel.style.display = "none";
-      const adminButton = $("dxOpenAdmin");
-      if (adminButton) adminButton.hidden = false;
-      const adminCard = $("dxAdminAccessCard");
-      if (adminCard) adminCard.hidden = false;
-
-      if (typeof loadDXAdminList === "function") {
-        await loadDXAdminList();
-      }
-    }
-
-    if ($("authPassword")) {
-      $("authPassword").value = "";
-    }
-
-    if ($("authPassword")) $("authPassword").value = "";
-    if (window.location.pathname.endsWith("/login.html")) {
-      window.location.replace("index.html");
-      return;
-    }
-
-    closeAuth();
-    await loadDXStore();
-
-  } catch (error) {
-    console.error("Auth error:", error);
-    showDXMessage(getDXError(error));
-
-  } finally {
-    if (submitButton) {
-      submitButton.disabled = false;
-      submitButton.textContent = originalText || "Masuk";
-    }
-  }
-}
+async /* Obsolete duplicate removed: handleAuthSubmit */
 
 /* PERBARUI STATUS LOGIN */
 
-async function refreshDXUser() {
-  if (!dxSupabase) return;
-
-  const { data, error } = await dxSupabase.auth.getUser();
-
-  if (error || !data?.user) {
-    currentUser = null;
-    currentProfile = null;
-    window.dxAdminPanelExpanded = false;
-
-    const panel = $("dxAdminPanel");
-    if (panel) panel.style.display = "none";
-    const adminButton = $("dxOpenAdmin");
-    if (adminButton) adminButton.hidden = true;
-    const adminCard = $("dxAdminAccessCard");
-    if (adminCard) adminCard.hidden = true;
-
-    updateDXHeaderAuth();
-    return;
-  }
-
-  currentUser = data.user;
-
-  if (window.location.pathname.endsWith("/login.html")) {
-    window.location.replace("index.html");
-    return;
-  }
-
-  await loadDXProfile(currentUser);
-
-  const isAdmin = await checkDXAdmin();
-
-  updateDXHeaderAuth();
-
-  if (isAdmin) {
-    createDXAdminPanel();
-
-    const panel = $("dxAdminPanel");
-    if (panel) panel.style.display = "none";
-    const adminButton = $("dxOpenAdmin");
-    if (adminButton) adminButton.hidden = false;
-    const adminCard = $("dxAdminAccessCard");
-    if (adminCard) adminCard.hidden = false;
-
-    if (typeof loadDXAdminList === "function") {
-      await loadDXAdminList();
-    }
-  } else {
-    const panel = $("dxAdminPanel");
-    if (panel) panel.style.display = "none";
-    const adminButton = $("dxOpenAdmin");
-    if (adminButton) adminButton.hidden = true;
-    const adminCard = $("dxAdminAccessCard");
-    if (adminCard) adminCard.hidden = true;
-  }
-}
+async /* Obsolete duplicate removed: refreshDXUser */
 
 
 
@@ -1740,48 +1544,11 @@ function showDXMascotFarewell() {
 
 /* KELUAR DARI AKUN */
 
-async function handleDXLogout() {
-  if (!dxSupabase) return;
-
-  const { error } = await dxSupabase.auth.signOut();
-
-  if (error) {
-    alert(getDXError(error));
-    return;
-  }
-
-  currentUser = null;
-  currentProfile = null;
-
-  const panel = $("dxAdminPanel");
-  if (panel) panel.style.display = "none";
-
-  updateDXHeaderAuth();
-  await showDXMascotFarewell();
-  window.location.href = "login.html";
-}
+async /* Obsolete duplicate removed: handleDXLogout */
 
 /* NAVIGASI */
 
-function initDXNavigation() {
-  document.querySelectorAll(".dxNavLinks a").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      const target = link.getAttribute("href");
-
-      if (!target || !target.startsWith("#")) return;
-
-      const section = document.querySelector(target);
-
-      if (section) {
-        event.preventDefault();
-        section.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-      }
-    });
-  });
-}
+/* Obsolete duplicate removed: initDXNavigation */
 
 /* =========================================
    DX STORE - BAGIAN 4 DARI 5
