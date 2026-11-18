@@ -623,6 +623,50 @@ function updateDXHeaderAuth() {
    PRODUK DIGITAL DAN MARKETPLACE AKUN GAME
 ========================================= */
 
+
+/* AKTIVITAS PEMBELIAN PUBLIK — NAMA OTOMATIS DISENSOR */
+async function loadDXRecentPurchaseActivity() {
+  const host = document.getElementById("dxPurchaseActivity");
+  if (!host || !dxSupabase) return;
+
+  const { data, error } = await dxSupabase.rpc("dx_public_recent_purchase_activity", { p_limit: 8 });
+  if (error) {
+    console.error("Aktivitas pembelian belum dapat dimuat:", error);
+  }
+
+  const examples = [
+    { buyer_name: "D•••a", item_name: "Contoh aktivitas DX STORE" },
+    { buyer_name: "R•••n", item_name: "Contoh aktivitas DX STORE" },
+    { buyer_name: "A•••f", item_name: "Contoh aktivitas DX STORE" }
+  ];
+  const hasRealPurchases = Array.isArray(data) && data.length > 0;
+  const rows = hasRealPurchases ? data : examples;
+  const title = hasRealPurchases ? "Aktivitas pembelian terbaru" : "Contoh tampilan aktivitas";
+  const note = hasRealPurchases
+    ? "Nama pembeli disensor otomatis · transaksi terverifikasi"
+    : "Belum ada pembelian · nama berikut hanya contoh tampilan";
+
+  host.innerHTML = `
+    <div class="dx-activity-heading">
+      <div><small>DX STORE · LIVE UPDATE</small><h2>${title}</h2><p>${note}</p></div>
+      <span class="dx-activity-live">${hasRealPurchases ? "● LIVE" : "CONTOH"}</span>
+    </div>
+    <div class="dx-activity-track">
+      ${rows.map(row => {
+        const when = hasRealPurchases && row.purchased_at
+          ? new Date(row.purchased_at).toLocaleString(getDXCountry().locale || "id-ID", { dateStyle: "short", timeStyle: "short" })
+          : "Pratinjau";
+        return `<article class="dx-activity-item">
+          <span class="dx-activity-avatar">DX</span>
+          <div><strong>${safeText(row.buyer_name || "P•••i")}</strong>
+          <p>${safeText(row.item_name || "Produk DX STORE")}</p>
+          <small>${safeText(when)}</small></div>
+          ${hasRealPurchases ? '<span class="dx-activity-check" aria-label="Transaksi tercatat">✓</span>' : ""}
+        </article>`;
+      }).join("")}
+    </div>`;
+}
+
 async function loadProducts() {
   const grid = $("productGrid");
   if (!grid || !dxSupabase) return;
@@ -2231,6 +2275,8 @@ async function initializeDXStore() {
 
   await refreshDXUser();
   await loadDXStore();
+  await loadDXRecentPurchaseActivity();
+  if (!window.dxPurchaseActivityRefresh) window.dxPurchaseActivityRefresh = setInterval(loadDXRecentPurchaseActivity, 60000);
 
   dxSupabase.auth.onAuthStateChange((event, session) => {
     currentUser = session?.user || null;
