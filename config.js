@@ -9,6 +9,6 @@ window.DX_CONFIG = {
 
   supabaseKey: "sb_publishable_qYzr-r6cQwQhfbrbChk3oA_6KQL46xh",
 
-  // URL backend Render; aktif setelah service berhasil di-deploy.
-  paymentApiUrl: "https://dx-store-payment-api.onrender.com"
+  // Supabase Edge Function untuk API pesanan manual QRIS.
+  paymentApiUrl: "https://jevjydmlnkmkipzbmtqw.supabase.co/functions/v1/dx-payments"
 };
