@@ -566,7 +566,7 @@ function updateDXDashboardVisibility() {
           <form id="dxAssistantForm" class="dx-assistant-form"><input id="dxAssistantInput" type="text" maxlength="500" placeholder="Tulis pesan untuk DX..." autocomplete="off" aria-label="Pesan untuk DX"><button type="submit" aria-label="Kirim pesan">➤</button></form>
           <small class="dx-assistant-note" id="dxAssistantStatus">Asisten DX siap. Fitur AI generatif memerlukan konfigurasi layanan.</small>
         </article>
-        <div class="dx-profile-actions"><button type="button" id="dxOpenAdmin" hidden>Kelola Website</button><button type="button" id="dxAccountLogout">Keluar dari Akun</button></div>
+        <section id="dxAdminAccessCard" class="dx-admin-access" hidden><div class="dx-admin-access-icon">⚙</div><div class="dx-admin-access-copy"><small>KHUSUS ADMINISTRATOR</small><strong>Pengaturan Website</strong><p>Kelola tampilan toko, produk, pesanan, pengguna, dan laporan dari satu tempat.</p></div><button type="button" id="dxOpenAdmin" hidden><span>⚙</span> Buka Pengaturan Website <b>›</b></button></section><div class="dx-profile-actions"><button type="button" id="dxAccountLogout">Keluar dari Akun</button></div>
         <p class="dx-profile-version">DX STORE · DIGITAL MARKETPLACE</p>
       </section>
       <div class="dx-dana-sectionhead"><div><small>DX MARKETPLACE</small><h2>Jelajahi layanan</h2></div><span>DX-01</span></div>
@@ -686,7 +686,7 @@ function updateDXDashboardVisibility() {
     adminAccessButton.addEventListener("click", () => {
       window.dxAdminPanelExpanded = !window.dxAdminPanelExpanded;
       if (adminPanel) adminPanel.style.display = window.dxAdminPanelExpanded ? "block" : "none";
-      adminAccessButton.textContent = window.dxAdminPanelExpanded ? "Tutup Kelola Website" : "Kelola Website";
+      adminAccessButton.innerHTML = window.dxAdminPanelExpanded ? "<span>×</span> Tutup Pengaturan Website <b>⌃</b>" : "<span>⚙</span> Buka Pengaturan Website <b>›</b>";
       if (window.dxAdminPanelExpanded) {
         loadDXAdminList(); loadDXPaymentOrders(); loadDXStoreSettings(); loadDXAdminTickets(); loadDXAdminOverview(); loadDXAdminUsers();
         adminPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1510,6 +1510,8 @@ async function handleAuthSubmit(event) {
       if (panel) panel.style.display = "none";
       const adminButton = $("dxOpenAdmin");
       if (adminButton) adminButton.hidden = false;
+      const adminCard = $("dxAdminAccessCard");
+      if (adminCard) adminCard.hidden = false;
 
       if (typeof loadDXAdminList === "function") {
         await loadDXAdminList();
@@ -1579,6 +1581,8 @@ async function refreshDXUser() {
     if (panel) panel.style.display = "none";
     const adminButton = $("dxOpenAdmin");
     if (adminButton) adminButton.hidden = false;
+    const adminCard = $("dxAdminAccessCard");
+    if (adminCard) adminCard.hidden = false;
 
     if (typeof loadDXAdminList === "function") {
       await loadDXAdminList();
@@ -1588,6 +1592,8 @@ async function refreshDXUser() {
     if (panel) panel.style.display = "none";
     const adminButton = $("dxOpenAdmin");
     if (adminButton) adminButton.hidden = true;
+    const adminCard = $("dxAdminAccessCard");
+    if (adminCard) adminCard.hidden = true;
   }
 }
 
@@ -1997,6 +2003,8 @@ function createDXAdminPanel() {
   installDXRupiahInput($("dxPrice"));
 
   const adminAccessButton = $("dxOpenAdmin");
+  const adminAccessCard = $("dxAdminAccessCard");
+  if (adminAccessCard) adminAccessCard.hidden = !(await checkDXAdmin());
   if (adminAccessButton) {
     adminAccessButton.hidden = false;
     if (!adminAccessButton.dataset.bound) {
