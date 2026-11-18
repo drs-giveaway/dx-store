@@ -43,7 +43,45 @@ const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
                                             return error ? null : data.user;
                                             }
 
-                                            async function isAdmin(userId: string) {
+                                            async function ensureStoreAcceptingOrders() {
+  const { data, error } = await adminClient
+    .from("store_settings")
+    .select("is_open, maintenance_mode, opening_time, closing_time, timezone")
+    .eq("id", true)
+    .maybeSingle();
+  if (error || !data) {
+    console.error("Store availability check failed:", error?.message || "settings missing");
+    return { ok: false, status: 503, message: "Status toko belum dapat diverifikasi. Silakan coba lagi nanti." };
+  }
+  if (!data.is_open || data.maintenance_mode) {
+    return { ok: false, status: 409, message: "Toko sedang tutup atau dalam pemeliharaan. Pesanan baru belum dapat dibuat." };
+  }
+  const timePattern = /^([01]\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/;
+  const opening = String(data.opening_time || "").trim();
+  const closing = String(data.closing_time || "").trim();
+  const timezone = String(data.timezone || "Asia/Jakarta").trim();
+  if (!timePattern.test(opening) || !timePattern.test(closing)) {
+    return { ok: false, status: 503, message: "Jadwal operasional toko belum valid. Hubungi admin." };
+  }
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
+    const hour = Number(parts.find((part) => part.type === "hour")?.value);
+    const minute = Number(parts.find((part) => part.type === "minute")?.value);
+    if (!Number.isInteger(hour) || !Number.isInteger(minute)) throw new Error("Invalid local time");
+    const [, openHour, openMinute] = opening.match(timePattern);
+    const [, closeHour, closeMinute] = closing.match(timePattern);
+    const now = hour * 60 + minute;
+    const start = Number(openHour) * 60 + Number(openMinute);
+    const end = Number(closeHour) * 60 + Number(closeMinute);
+    const inHours = start <= end ? now >= start && now < end : now >= start || now < end;
+    if (!inHours) return { ok: false, status: 409, message: "Toko sedang di luar jam operasional. Silakan buat pesanan saat toko buka." };
+    return { ok: true, status: 200, message: "" };
+  } catch (error) {
+    console.error("Invalid store timezone:", error);
+    return { ok: false, status: 503, message: "Zona waktu operasional toko tidak valid. Hubungi admin." };
+  }
+}
+async function isAdmin(userId: string) {
                                               const { data, error } = await adminClient
                                                   .from("profiles")
                                                       .select("role")
@@ -64,6 +102,8 @@ const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
                                                                                 if (protectedPath && !user) return json({ message: "Silakan masuk terlebih dahulu." }, 401);
 
                                                                                   if (req.method === "POST" && path.endsWith("/api/payments/create")) {
+    const storeStatus = await ensureStoreAcceptingOrders();
+    if (!storeStatus.ok) return json({ message: storeStatus.message }, storeStatus.status);
     try {
       const body = await req.json();
       if (!getItemTable(body?.itemType) || !isUuid(body?.itemId)) return json({ message: "Item pesanan tidak valid." }, 400);
