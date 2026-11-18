@@ -534,7 +534,7 @@ function updateDXDashboardVisibility() {
           <button type="button" data-dx-profile-action="country"><span>◎</span><strong>Wilayah</strong></button>
           <button type="button" data-dx-profile-action="edit"><span>✎</span><strong>Edit profil</strong></button>
         </div>
-        <article class="dx-profile-card dx-wallet-settings" id="dxProfileEdit">
+        <details class="dx-profile-accordion" id="dxProfileEditAccordion"><summary><span><small>PROFIL</small><strong>Data Profil</strong><em>Nama tampilan dan email akun</em></span><b>⌄</b></summary><article class="dx-profile-card dx-wallet-settings" id="dxProfileEdit">
           <div class="dx-profile-card-head"><div><small>INFORMASI PRIBADI</small><h3>Data Profil</h3></div><span>✦</span></div>
           <label for="dxProfileNameInput">Nama tampilan</label>
           <input id="dxProfileNameInput" type="text" maxlength="40" autocomplete="nickname" placeholder="Masukkan nama tampilan">
@@ -542,12 +542,14 @@ function updateDXDashboardVisibility() {
           <input id="dxProfileEmailInput" type="email" readonly>
           <button type="button" id="dxSaveProfile" class="dx-profile-primary">Simpan perubahan</button>
           <p id="dxProfileMessage" class="dx-profile-message" role="status" aria-live="polite"></p>
-        </article>
-        <article class="dx-profile-card dx-profile-menu">
+        </article></details>
+        <details class="dx-profile-accordion" id="dxProfileSettingsAccordion"><summary><span><small>PREFERENSI</small><strong>Pengaturan Akun</strong><em>Negara, mata uang dan bahasa</em></span><b>⌄</b></summary><article class="dx-profile-card dx-profile-menu">
           <div class="dx-profile-card-head"><div><small>PREFERENSI</small><h3>Pengaturan Akun</h3></div><span>⚙</span></div>
           <button type="button" data-dx-profile-action="country"><span class="dx-profile-menu-icon">◎</span><span><strong>Negara, Mata Uang & Bahasa</strong><small id="dxProfileCountry">Sesuaikan preferensi wilayah</small></span><b>›</b></button>
-        </article>
-        <section id="dxOrderHistory" class="dx-profile-card"><div class="dx-profile-card-head"><div><small>TRANSAKSI</small><h3>Riwayat Pesanan</h3></div><button type="button" id="dxRefreshOrders">Muat ulang</button></div><div id="dxOrderHistoryList">Memuat pesanan...</div></section>
+        </article></details>
+        <details class="dx-profile-accordion" id="dxOrderAccordion"><summary><span><small>TRANSAKSI</small><strong>Riwayat Pesanan</strong><em>Lihat status dan detail pesanan</em></span><b>⌄</b></summary>
+        <section id="dxOrderHistory" class="dx-profile-card"><div class="dx-profile-card-head"><div><small>TRANSAKSI</small><h3>Riwayat Pesanan</h3></div><button type="button" id="dxRefreshOrders">Muat ulang</button></div><div id="dxOrderHistoryList">Memuat pesanan...</div></section></details>
+        <details class="dx-profile-accordion" id="dxHelpAccordion"><summary><span><small>DUKUNGAN</small><strong>Pusat Bantuan & Laporan</strong><em>Kirim laporan dan cek balasan admin</em></span><b>⌄</b></summary>
         <section id="dxHelpCenter" class="dx-profile-card"><div class="dx-profile-card-head"><div><small>DUKUNGAN PELANGGAN</small><h3>Pusat Bantuan &amp; Laporan</h3></div><span>?</span></div>
           <form id="dxSupportForm"><label for="dxSupportCategory">Kategori masalah</label><select id="dxSupportCategory" required><option>Pembayaran</option><option>Pesanan</option><option>Garansi</option><option>Produk</option><option>Akun</option><option>Login</option><option>Lainnya</option></select>
           <label for="dxSupportOrder">Nomor pesanan (opsional)</label><input id="dxSupportOrder" type="text" placeholder="Tempel ID pesanan jika ada">
@@ -555,10 +557,10 @@ function updateDXDashboardVisibility() {
           <label for="dxSupportMessage">Ceritakan masalah</label><textarea id="dxSupportMessage" minlength="10" maxlength="4000" rows="4" required placeholder="Jelaskan kronologi dan bantuan yang dibutuhkan"></textarea>
           <label for="dxSupportImage">Lampiran gambar (opsional, JPG/PNG/WEBP maks. 5 MB)</label><input id="dxSupportImage" type="file" accept="image/jpeg,image/png,image/webp">
           <button type="submit" id="dxSupportSubmit" class="dx-profile-primary">Kirim Laporan</button><p id="dxSupportFeedback" role="status" aria-live="polite"></p></form>
-          <h4>Laporan Saya</h4><div id="dxMyTickets">Memuat laporan...</div></section>
+          <h4>Laporan Saya</h4><div id="dxMyTickets">Memuat laporan...</div></section></details>
         <article class="dx-profile-card dx-profile-ai">
-          <div class="dx-profile-card-head dx-chat-head"><div class="dx-chat-brand"><span class="dx-ai-mark">DX</span><div><small>ASISTEN DIGITAL DX</small><h3>DX Assistant</h3><p><i class="dx-online-dot"></i> Siap membantu di DX STORE</p></div></div><span class="dx-chat-menu">•••</span></div>
-          <div class="dx-chat-welcome"><span class="dx-chat-spark">✦</span><div><strong>Halo! Saya DX 👋</strong><p>Tanyakan tentang produk, pesanan, pembayaran, atau akunmu.</p></div></div>
+          <div class="dx-profile-card-head dx-chat-head"><div class="dx-chat-brand"><span class="dx-ai-mark">DX</span><div><small>ASISTEN DIGITAL DX</small><h3>DX Assistant</h3><p><i class="dx-online-dot"></i> Pendamping digital DX STORE</p></div></div><button type="button" id="dxAssistantClear" class="dx-chat-clear">Percakapan baru</button></div>
+          <div class="dx-chat-welcome"><span class="dx-chat-spark">✦</span><div><strong>Halo! Saya DX 👋</strong><p>Saya bisa bantu menjelaskan produk, pesanan, garansi produk resmi, pembayaran, dan pengaturan akun.</p></div></div>
           <div id="dxAssistantMessages" class="dx-assistant-messages" aria-live="polite"></div>
           <div class="dx-assistant-suggestions"><button type="button" data-dx-ask="Bagaimana cara membeli produk?">🛍️ Cara membeli</button><button type="button" data-dx-ask="Bagaimana cara membayar pesanan?">💳 Pembayaran</button><button type="button" data-dx-ask="Bagaimana cara melaporkan masalah?">🎧 Pusat bantuan</button></div>
           <form id="dxAssistantForm" class="dx-assistant-form"><input id="dxAssistantInput" type="text" maxlength="500" placeholder="Tulis pesan untuk DX..." autocomplete="off" aria-label="Pesan untuk DX"><button type="submit" aria-label="Kirim pesan">➤</button></form>
@@ -620,13 +622,28 @@ function updateDXDashboardVisibility() {
     if (button.dataset.bound) return;
     button.addEventListener("click", () => {
       const action = button.dataset.dxProfileAction;
-      if (action === "country") $("dxCountry")?.focus();
-      if (action === "orders") { $("dxOrderHistory")?.scrollIntoView({behavior:"smooth",block:"start"}); loadDXOrderHistory(); }
-      if (action === "help") $("dxHelpCenter")?.scrollIntoView({behavior:"smooth",block:"start"});
-      if (action === "edit") $("dxProfileEdit")?.scrollIntoView({behavior:"smooth",block:"start"});
+      if (action === "country") { $("dxProfileSettingsAccordion").open = true; $("dxProfileSettingsAccordion")?.scrollIntoView({behavior:"smooth",block:"start"}); $("dxCountry")?.focus(); }
+      if (action === "orders") { $("dxOrderAccordion").open = true; $("dxOrderHistory")?.scrollIntoView({behavior:"smooth",block:"start"}); loadDXOrderHistory(); }
+      if (action === "help") { $("dxHelpAccordion").open = true; $("dxHelpCenter")?.scrollIntoView({behavior:"smooth",block:"start"}); }
+      if (action === "edit") { $("dxProfileEditAccordion").open = true; $("dxProfileEdit")?.scrollIntoView({behavior:"smooth",block:"start"}); }
     });
     button.dataset.bound = "1";
   });
+  const assistantClear = $("dxAssistantClear");
+  if (assistantClear && !assistantClear.dataset.bound) {
+    assistantClear.addEventListener("click", () => {
+      const messages = $("dxAssistantMessages");
+      if (messages) messages.replaceChildren();
+      addDXAssistantMessage("Percakapan baru dimulai. Ada yang bisa DX bantu?", "assistant");
+      if ($("dxAssistantStatus")) $("dxAssistantStatus").textContent = "Siap membantu.";
+    });
+    assistantClear.dataset.bound = "1";
+  }
+  const assistantMessages = $("dxAssistantMessages");
+  if (assistantMessages && !assistantMessages.dataset.initialized) {
+    addDXAssistantMessage("Halo! Pilih topik di bawah atau tulis pertanyaanmu. DX siap membantu.", "assistant");
+    assistantMessages.dataset.initialized = "1";
+  }
   if (!$("dxAssistantForm")?.dataset.bound) {
     const form = $("dxAssistantForm");
     if (form) {
