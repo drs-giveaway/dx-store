@@ -1175,7 +1175,7 @@ async function loadDXPaymentOrders() {
   container.textContent = "Memuat pesanan...";
   try {
     const session = (await dxSupabase.auth.getSession()).data.session;
-    const response = await fetch(new URL("/api/admin/orders", DX_CONFIG.paymentApiUrl), {
+    const response = await fetch(new URL("api/admin/orders", DX_CONFIG.paymentApiUrl + "/"), {
       headers: { "apikey": DX_CONFIG.supabaseKey, "Authorization": "Bearer " + session?.access_token }
     });
     const result = await response.json();
@@ -1205,7 +1205,7 @@ async function reviewDXPayment(orderId, status) {
   if (!confirm(message)) return;
   try {
     const session = (await dxSupabase.auth.getSession()).data.session;
-    const response = await fetch(new URL("/api/admin/orders/" + encodeURIComponent(orderId), DX_CONFIG.paymentApiUrl), {
+    const response = await fetch(new URL("api/admin/orders/" + encodeURIComponent(orderId), DX_CONFIG.paymentApiUrl + "/"), {
       method: "PATCH",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session?.access_token },
       body: JSON.stringify({ status })
