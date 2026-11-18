@@ -1072,7 +1072,12 @@ async function loadDXAdminList() {
           : ""}
 
         <p>Harga: ${formatPrice(item.price)}</p>
-        <p>Status: ${safeText(item.status || "pending")}</p>
+        <p>Status: ${safeText(item.status || (dxAdminType === "products" ? "active" : "pending"))}</p>
+
+        ${dxAdminType === "account_listings" && item.status === "pending"
+          ? `<button type="button" onclick="reviewDXAccountListing('${safeText(item.id)}', 'active')">Setujui / Terbitkan</button>
+             <button type="button" onclick="reviewDXAccountListing('${safeText(item.id)}', 'rejected')">Tolak</button>`
+          : ""}
 
         <button
           type="button"
@@ -1189,8 +1194,14 @@ async function saveDXAdminItem(event) {
         .update(payload)
         .eq("id", editId);
     } else {
-      payload.seller_id = currentUser.id;
-      payload.status = "pending";
+      if (isAccount) {
+        // Kiriman akun game menunggu pemeriksaan admin.
+        payload.seller_id = currentUser.id;
+        payload.status = "pending";
+      } else {
+        // Produk digital yang dibuat admin langsung aktif.
+        payload.status = "active";
+      }
 
       result = await dxSupabase
         .from(dxAdminType)
@@ -1216,6 +1227,35 @@ async function saveDXAdminItem(event) {
     saveButton.disabled = false;
     updateDXAdminFormLabels();
   }
+}
+
+/* VERIFIKASI AKUN GAME OLEH ADMIN */
+
+async function reviewDXAccountListing(id, status) {
+  if (!currentUser || !(await checkDXAdmin())) {
+    alert("Akses ditolak. Khusus administrator.");
+    return;
+  }
+
+  if (!["active", "rejected"].includes(status)) return;
+  const label = status === "active" ? "menyetujui dan menerbitkan" : "menolak";
+  if (!confirm("Yakin ingin " + label + " akun game ini?")) return;
+
+  const { error } = await dxSupabase
+    .from("account_listings")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) {
+    alert("Gagal memverifikasi: " + getDXError(error));
+    return;
+  }
+
+  showDXAdminMessage(status === "active"
+    ? "Akun game berhasil disetujui dan diterbitkan."
+    : "Pengajuan akun game ditolak.");
+  await loadDXAdminList();
+  await loadDXStore();
 }
 
 /* EDIT DATA */
