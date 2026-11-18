@@ -1041,3 +1041,16 @@ section {
  .dx-chat-clear{font-size:8px;padding:6px 7px}
  .dx-profile-page .dx-wallet-shortcuts button{min-height:68px}
 }
+
+
+/* Kartu akses khusus pengaturan website administrator */
+.dx-admin-access{display:flex;align-items:center;gap:16px;margin:18px 0;padding:18px;border:1px solid rgba(81,229,255,.3);border-radius:18px;background:linear-gradient(120deg,rgba(22,55,91,.92),rgba(25,22,61,.94));box-shadow:0 12px 32px rgba(0,0,0,.18)}
+.dx-admin-access[hidden]{display:none!important}
+.dx-admin-access-icon{width:52px;height:52px;flex:0 0 52px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(135deg,#168fff,#7952ee);color:#fff;font-size:25px;box-shadow:0 0 22px rgba(39,143,255,.24)}
+.dx-admin-access-copy{min-width:0;flex:1}
+.dx-admin-access-copy small{display:block;margin-bottom:5px;color:#51e5ff;font-size:9px;font-weight:900;letter-spacing:1.6px}
+.dx-admin-access-copy strong{display:block;color:#f4f8ff;font-size:16px}
+.dx-admin-access-copy p{margin-top:5px;color:#aebbd2;font-size:12px;line-height:1.55}
+.dx-admin-access>button{min-height:42px;padding:0 14px;display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(81,229,255,.4);border-radius:11px;background:linear-gradient(110deg,#168fff,#6955e9);color:white;font-size:11px;font-weight:800;white-space:nowrap}
+.dx-admin-access>button b{font-size:16px}
+@media(max-width:620px){.dx-admin-access{align-items:flex-start;flex-wrap:wrap;gap:12px;padding:15px}.dx-admin-access-copy{flex:1 1 calc(100% - 66px)}.dx-admin-access>button{width:100%;justify-content:center;min-height:46px}}
