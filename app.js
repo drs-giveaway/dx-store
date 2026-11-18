@@ -625,7 +625,7 @@ function updateDXHeaderAuth() {
 ========================================= */
 
 
-/* POPUP AKTIVITAS DX STORE — transaksi asli, berganti otomatis */
+/* POPUP AKTIVITAS DX STORE — tampil hanya jika ada transaksi nyata */
 let dxPurchaseToastRows = [];
 let dxPurchaseToastIndex = 0;
 let dxPurchaseToastTimer = null;
@@ -634,47 +634,69 @@ let dxPurchaseToastDismissed = false;
 async function loadDXRecentPurchaseActivity() {
   const host = document.getElementById("dxPurchaseActivity");
   if (!host) return;
+
   let purchases = [];
   if (dxSupabase) {
     const { data, error } = await dxSupabase.rpc("dx_public_recent_purchase_activity", { p_limit: 12 });
     if (error) console.warn("Aktivitas pembelian belum dapat dimuat:", error);
     if (Array.isArray(data)) purchases = data;
   }
-  const realRows = purchases.map(row => ({
-    kind: "purchase", name: row.buyer_name || "Pembeli DX",
-    item: row.item_name || "Produk DX STORE",
-    time: row.purchased_at ? new Date(row.purchased_at).toLocaleString(getDXCountry().locale || "id-ID", { dateStyle: "short", timeStyle: "short" }) : "Baru saja"
-  }));
-  const welcomeRows = [
-    { kind: "info", name: "Selamat datang di DX STORE", item: "Temukan produk digital pilihan." },
-    { kind: "info", name: "Marketplace DX STORE", item: "Jelajahi produk digital dan akun game." },
-    { kind: "info", name: "Belanja lebih mudah", item: "Periksa detail produk sebelum memesan." },
-    { kind: "info", name: "DX STORE", item: "Pilihan produk digital dalam satu tempat." }
-  ];
-  dxPurchaseToastRows = realRows.length ? realRows : welcomeRows;
-  dxPurchaseToastIndex = 0;
-  renderDXPurchaseToast();
+
+  // Jangan tampilkan pesan sambutan, data contoh, atau notifikasi palsu.
+  // Area notifikasi benar-benar kosong sampai ada pembelian nyata.
+  dxPurchaseToastRows = purchases
+    .filter(row => row && row.buyer_name && row.item_name)
+    .map(row => ({
+      kind: "purchase",
+      name: row.buyer_name,
+      item: row.item_name,
+      time: row.purchased_at
+        ? new Date(row.purchased_at).toLocaleString(getDXCountry().locale || "id-ID", { dateStyle: "short", timeStyle: "short" })
+        : "Baru saja"
+    }));
+
+  if (!dxPurchaseToastRows.length) {
+    host.replaceChildren();
+    host.hidden = true;
+    return;
+  }
+
+  if (dxPurchaseToastIndex >= dxPurchaseToastRows.length) dxPurchaseToastIndex = 0;
+  if (!dxPurchaseToastDismissed) {
+    host.hidden = false;
+    renderDXPurchaseToast();
+  }
+
   if (!dxPurchaseToastTimer) {
     dxPurchaseToastTimer = setInterval(() => {
       const currentHost = document.getElementById("dxPurchaseActivity");
-      if (!currentHost || currentHost.hidden || dxPurchaseToastRows.length < 2) return;
+      if (!currentHost || currentHost.hidden || dxPurchaseToastDismissed || dxPurchaseToastRows.length < 2) return;
       dxPurchaseToastIndex = (dxPurchaseToastIndex + 1) % dxPurchaseToastRows.length;
       renderDXPurchaseToast();
     }, 4800);
   }
 }
+
 function renderDXPurchaseToast() {
   const host = document.getElementById("dxPurchaseActivity");
   const row = dxPurchaseToastRows[dxPurchaseToastIndex];
-  if (!host || !row || dxPurchaseToastDismissed) return;
-  const detail = row.kind === "purchase"
-    ? `<strong>${safeText(row.name)}</strong><p>Baru membeli ${safeText(row.item)}</p><small>${safeText(row.time)} · Pembelian tercatat</small>`
-    : `<strong>${safeText(row.name)}</strong><p>${safeText(row.item)}</p><small>DX STORE · Marketplace digital</small>`;
+  if (!host || !row || row.kind !== "purchase" || dxPurchaseToastDismissed) return;
+
+  // Satu kartu diganti dengan kartu berikutnya; tidak pernah menumpuk.
   host.innerHTML = `<div class="dx-toast-card" role="status" aria-live="polite">
-    <span class="dx-toast-mark">DX</span><div class="dx-toast-copy">${detail}</div>
+    <span class="dx-toast-mark">DX</span>
+    <div class="dx-toast-copy">
+      <strong>${safeText(row.name)}</strong>
+      <p>Baru membeli ${safeText(row.item)}</p>
+      <small>${safeText(row.time)} · Pembelian tercatat</small>
+    </div>
     <button class="dx-toast-close" type="button" aria-label="Tutup notifikasi">×</button>
   </div>`;
-  host.querySelector(".dx-toast-close")?.addEventListener("click", () => { dxPurchaseToastDismissed = true; host.hidden = true; });
+  host.querySelector(".dx-toast-close")?.addEventListener("click", () => {
+    dxPurchaseToastDismissed = true;
+    host.replaceChildren();
+    host.hidden = true;
+  });
 }
 
 
