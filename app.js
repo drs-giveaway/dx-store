@@ -408,7 +408,7 @@ async function createDXPayment() {
     if (!session?.access_token) throw new Error("Silakan masuk terlebih dahulu.");
     const response = await fetch(new URL("api/payments/create", base + "/"), {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
+      headers: { "Content-Type": "application/json", "apikey": DX_CONFIG.supabaseKey, "Authorization": "Bearer " + session.access_token },
       body: JSON.stringify({ itemType: modal.dataset.itemType, itemId: modal.dataset.itemId })
     });
     const result = await response.json();
@@ -452,7 +452,7 @@ async function submitDXPaymentProof() {
     if (upload.error) throw upload.error;
     const response = await fetch(new URL("api/payments/submit-proof", DX_CONFIG.paymentApiUrl + "/"), {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
+      headers: { "Content-Type": "application/json", "apikey": DX_CONFIG.supabaseKey, "Authorization": "Bearer " + session.access_token },
       body: JSON.stringify({ orderId, proofPath: path })
     });
     const result = await response.json();
@@ -477,7 +477,7 @@ async function checkDXPaymentStatus() {
   try {
     const session = (await dxSupabase.auth.getSession()).data.session;
     const response = await fetch(new URL("api/payments/status?orderId=" + encodeURIComponent(modal.dataset.orderId), base + "/"), {
-      headers: { "Authorization": "Bearer " + session?.access_token }
+      headers: { "apikey": DX_CONFIG.supabaseKey, "Authorization": "Bearer " + session?.access_token }
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.message || "Status pesanan gagal diperiksa.");
@@ -1095,7 +1095,7 @@ async function loadDXPaymentOrders() {
   try {
     const session = (await dxSupabase.auth.getSession()).data.session;
     const response = await fetch(new URL("/api/admin/orders", DX_CONFIG.paymentApiUrl), {
-      headers: { "Authorization": "Bearer " + session?.access_token }
+      headers: { "apikey": DX_CONFIG.supabaseKey, "Authorization": "Bearer " + session?.access_token }
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.message || "Pesanan gagal dimuat.");
