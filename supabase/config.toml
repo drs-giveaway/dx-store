@@ -1,0 +1,4 @@
+project_id = "jevjydmlnkmkipzbmtqw"
+
+[functions.dx-payments]
+verify_jwt = true
