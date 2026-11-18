@@ -683,12 +683,20 @@ function updateDXDashboardVisibility() {
   }
   const adminAccessButton = $("dxOpenAdmin");
   if (adminAccessButton && !adminAccessButton.dataset.bound) {
-    adminAccessButton.addEventListener("click", () => {
+    adminAccessButton.addEventListener("click", async () => {
+      if (!(await checkDXAdmin())) {
+        window.dxAdminPanelExpanded = false;
+        if (adminPanel) adminPanel.style.display = "none";
+        adminAccessButton.hidden = true;
+        const card = $("dxAdminAccessCard");
+        if (card) card.hidden = true;
+        return;
+      }
       window.dxAdminPanelExpanded = !window.dxAdminPanelExpanded;
       if (adminPanel) adminPanel.style.display = window.dxAdminPanelExpanded ? "block" : "none";
       adminAccessButton.innerHTML = window.dxAdminPanelExpanded ? "<span>×</span> Tutup Pengaturan Website <b>⌃</b>" : "<span>⚙</span> Buka Pengaturan Website <b>›</b>";
       if (window.dxAdminPanelExpanded) {
-        loadDXAdminList(); loadDXPaymentOrders(); loadDXStoreSettings(); loadDXAdminTickets(); loadDXAdminOverview(); loadDXAdminUsers();
+        await Promise.all([loadDXAdminList(), loadDXPaymentOrders(), loadDXStoreSettings(), loadDXAdminTickets(), loadDXAdminOverview(), loadDXAdminUsers()]);
         adminPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     });
@@ -2663,17 +2671,22 @@ async function refreshDXUser() {
 
   updateDXHeaderAuth();
 
+  const panel = $("dxAdminPanel");
+  const adminButton = $("dxOpenAdmin");
+  const adminCard = $("dxAdminAccessCard");
+
   if (isAdmin) {
     createDXAdminPanel();
-
-    const panel = $("dxAdminPanel");
-    if (panel) panel.style.display = "block";
-
-    await loadDXAdminList();
-    await loadDXPaymentOrders();
-  } else {
-    const panel = $("dxAdminPanel");
+    window.dxAdminPanelExpanded = false;
     if (panel) panel.style.display = "none";
+    if (adminButton) adminButton.hidden = false;
+    if (adminCard) adminCard.hidden = false;
+    await loadDXAdminList();
+  } else {
+    window.dxAdminPanelExpanded = false;
+    if (panel) panel.style.display = "none";
+    if (adminButton) adminButton.hidden = true;
+    if (adminCard) adminCard.hidden = true;
   }
 }
 
