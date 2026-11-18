@@ -210,7 +210,7 @@ async function loadProducts() {
   const { data, error } = await dxSupabase
     .from("products")
     .select("*")
-    .eq("status", "active")
+    .in("status", ["active", "reserved", "sold_out"])
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -238,12 +238,9 @@ async function loadProducts() {
           <h3>${safeText(item.name)}</h3>
           <p>${safeText(item.description || "")}</p>
           <strong>${formatPrice(item.price)}</strong>
-          <button
-            class="dx-button"
-            type="button"
-            onclick="selectItem('product','${safeText(item.id)}')"
-          >
-            Lihat Produk
+          ${item.status === "reserved" ? '<span class="dx-stock-status">PENDING — SEDANG DIPESAN</span>' : item.status === "sold_out" ? '<span class="dx-stock-status dx-sold-out">SOLD OUT</span>' : ''}
+          <button class="dx-button" type="button" ${item.status !== "active" ? "disabled" : ""} onclick="selectItem('product','${safeText(item.id)}')">
+            ${item.status === "reserved" ? "Sedang Dipesan" : item.status === "sold_out" ? "Habis Terjual" : "Lihat Produk"}
           </button>
         </div>
       </article>
@@ -260,7 +257,7 @@ async function loadAccountListings() {
   const { data, error } = await dxSupabase
     .from("account_listings")
     .select("*")
-    .eq("status", "active")
+    .in("status", ["active", "reserved", "sold_out"])
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -288,12 +285,9 @@ async function loadAccountListings() {
           <h3>${safeText(item.title)}</h3>
           <p>${safeText(item.description || "")}</p>
           <strong>${formatPrice(item.price)}</strong>
-          <button
-            class="dx-button"
-            type="button"
-            onclick="selectItem('account','${safeText(item.id)}')"
-          >
-            Lihat Akun
+          ${item.status === "reserved" ? '<span class="dx-stock-status">PENDING — SEDANG DIPESAN</span>' : item.status === "sold_out" ? '<span class="dx-stock-status dx-sold-out">SOLD OUT</span>' : ''}
+          <button class="dx-button" type="button" ${item.status !== "active" ? "disabled" : ""} onclick="selectItem('account','${safeText(item.id)}')">
+            ${item.status === "reserved" ? "Sedang Dipesan" : item.status === "sold_out" ? "Habis Terjual" : "Lihat Akun"}
           </button>
         </div>
       </article>
@@ -331,7 +325,11 @@ function selectItem(type, id) {
       modal.querySelector("#dxDetailDescription").textContent = data.description || "Belum ada deskripsi tambahan.";
       modal.querySelector("#dxDetailPrice").textContent = formatPrice(data.price);
       modal.querySelector("#dxDetailPhoto").innerHTML = image ? '<img src="' + safeText(image) + '" alt="' + safeText(name) + '">' : '<span>DX STORE</span>';
+      const unavailable = data.status !== "active";
+      modal.querySelector("#dxDetailOrder").disabled = unavailable;
+      modal.querySelector("#dxDetailOrder").textContent = data.status === "reserved" ? "PENDING — SEDANG DIPESAN" : data.status === "sold_out" ? "SOLD OUT" : "Lanjutkan";
       modal.querySelector("#dxDetailOrder").onclick = () => {
+        if (unavailable) return;
         modal.classList.remove("active");
         if (!currentUser) {
           openAuth();
@@ -1148,7 +1146,8 @@ async function loadDXAdminList() {
           : ""}
 
         <p>Harga: ${formatPrice(item.price)}</p>
-        <p>Status: ${safeText(item.status || (dxAdminType === "products" ? "active" : "pending"))}</p>
+        <p>Status: <strong>${safeText(item.status || (dxAdminType === "products" ? "active" : "pending"))}</strong></p>
+        ${["reserved", "sold_out"].includes(item.status) ? '<button type="button" onclick="reviewDXListing(\'' + dxAdminType + '\', \'' + safeText(item.id) + '\', \'active\')">Aktifkan Kembali</button>' : ""}
 
         ${item.status === "pending"
           ? `<button type="button" onclick="reviewDXListing('${dxAdminType}', '${safeText(item.id)}', 'active')">Setujui / Terbitkan</button>
