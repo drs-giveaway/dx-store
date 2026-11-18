@@ -1149,7 +1149,6 @@ async function loadDXAdminList() {
         <p>Status moderasi: <strong>${safeText(item.status || (dxAdminType === "products" ? "active" : "pending"))}</strong></p>
         <p>Status penjualan: <strong>${safeText(item.sale_status || "available")}</strong></p>
         ${item.sale_status && item.sale_status !== "available" ? '<button type="button" onclick="setDXSaleStatus(\'' + dxAdminType + '\', \'' + safeText(item.id) + '\', \'available\')">Aktifkan Kembali / Tersedia</button>' : ""}
-        ${["reserved", "sold_out"].includes(item.status) ? '<button type="button" onclick="reviewDXListing(\'' + dxAdminType + '\', \'' + safeText(item.id) + '\', \'active\')">Aktifkan Kembali</button>' : ""}
 
         ${item.status === "pending"
           ? `<button type="button" onclick="reviewDXListing('${dxAdminType}', '${safeText(item.id)}', 'active')">Setujui / Terbitkan</button>
