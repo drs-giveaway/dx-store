@@ -57,12 +57,12 @@
     const wrap = document.createElement("section");
     wrap.id = "dxSellerFormWrap";
     wrap.style.cssText = "max-width:900px;margin:30px auto;padding:22px;border:1px solid #29466f;border-radius:16px;background:#101b32;color:white";
-    wrap.innerHTML = '<h3 style="color:#51e5ff;margin-bottom:8px">Jual Akun Game di DX STORE</h3><p style="color:#aab8d0;margin-bottom:16px">Masuk ke akun untuk memasang iklan. Foto bisa dipilih langsung dari galeri.</p><form id="dxSellerForm" style="display:grid;gap:10px"><label>Nama game<input id="dxSellerGame" required placeholder="Contoh: Mobile Legends"></label><label>Judul akun<input id="dxSellerTitle" required placeholder="Judul listing akun"></label><label>Deskripsi<textarea id="dxSellerDescription" rows="3" placeholder="Jelaskan detail akun"></textarea></label><label>Harga (Rupiah)<input id="dxSellerPrice" type="number" min="1" required placeholder="Contoh: 150000"></label><label>Foto akun<input id="dxSellerImage" type="file" accept="image/jpeg,image/png,image/webp" required></label><button class="dx-button" type="submit">Kirim Listing untuk Ditinjau</button><p id="dxSellerMessage" aria-live="polite"></p></form>';
+    wrap.innerHTML = '<h3 style="color:#51e5ff;margin-bottom:8px">Jual Akun Game di DX STORE</h3><p style="color:#aab8d0;margin-bottom:16px">Masuk ke akun untuk memasang iklan. Foto bisa dipilih langsung dari galeri.</p><form id="dxSellerForm" style="display:grid;gap:10px"><label>Nama game<input id="dxSellerGame" required placeholder="Contoh: Mobile Legends"></label><label>Judul akun<input id="dxSellerTitle" required placeholder="Judul listing akun"></label><label>Deskripsi<textarea id="dxSellerDescription" rows="3" placeholder="Jelaskan detail akun"></textarea></label><label>Harga (Rupiah)<input id="dxSellerPrice" type="text" inputmode="numeric" required placeholder="Contoh: 150.000"></label><label>Foto akun<input id="dxSellerImage" type="file" accept="image/jpeg,image/png,image/webp" required></label><button class="dx-button" type="submit">Kirim Listing untuk Ditinjau</button><p id="dxSellerMessage" aria-live="polite"></p></form>';
     const style = document.createElement("style");
     style.textContent = "#dxSellerForm input,#dxSellerForm textarea{display:block;width:100%;padding:11px;margin-top:6px;border:1px solid #334b70;border-radius:8px;background:#0b1426;color:white}#dxSellerForm label{color:#cbd5e1;font-size:14px}";
     document.head.appendChild(style);
     section.querySelector(".dx-container")?.appendChild(wrap);
-    $("dxSellerForm").addEventListener("submit", async event => {
+    if (typeof installDXRupiahInput === "function") installDXRupiahInput($("dxSellerPrice"));\n    $("dxSellerForm").addEventListener("submit", async event => {
       event.preventDefault();
       const message = $("dxSellerMessage");
       if (!currentUser) { message.textContent = "Silakan masuk atau daftar terlebih dahulu."; openAuth(); return; }
@@ -76,7 +76,7 @@
           game: $("dxSellerGame").value.trim(),
           title: $("dxSellerTitle").value.trim(),
           description: $("dxSellerDescription").value.trim() || null,
-          price: Number($("dxSellerPrice").value),
+          price: typeof parseDXRupiahInput === "function" ? parseDXRupiahInput($("dxSellerPrice").value) : Number($("dxSellerPrice").value.replace(/\\./g, "")),
           image_url: imageUrl,
           status: "pending"
         });
