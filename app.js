@@ -1615,11 +1615,6 @@ async function refreshDXUser() {
 
 
 /* DX-01 VOICE ASSISTANT */
-const DX_MASCOT_VOICE = {
-  enabled: localStorage.getItem("dx-mascot-voice") !== "off",
-  welcomed: false,
-  speaking: false
-};
 const DX_MASCOT_LINES = {
   ID: {welcome:"Halo! Aku DX-01, maskot resmi DX STORE. Selamat datang! Aku siap membantu kamu menjelajahi produk dan akun game.",help:"Kamu bisa menjelajahi Produk Digital atau Akun Game dari navigasi. Buka menu Akun untuk pengaturan akun. Jika perlu bantuan, hubungi pusat bantuan DX STORE.",order:"Pesananmu berhasil dibuat. Silakan lanjutkan pembayaran dan kirim bukti pembayaran. Pesanan menunggu pemeriksaan admin.",proof:"Bukti pembayaran berhasil dikirim dan sedang menunggu pemeriksaan admin.",paid:"Pembayaranmu telah diverifikasi. Terima kasih telah menggunakan DX STORE.",rejected:"Bukti pembayaran belum dapat diterima. Silakan periksa keterangan pada pesanan atau hubungi admin.",unknown:"Aku belum memahami pertanyaan itu. Coba tanyakan tentang cara mencari produk, membuat pesanan, pembayaran, atau pengaturan akun."},
   MY: {welcome:"Helo! Saya DX-01, maskot rasmi DX STORE. Selamat datang! Saya sedia membantu anda meneroka produk dan akaun permainan.",help:"Anda boleh meneroka Produk Digital atau Akaun Permainan melalui navigasi. Buka menu Akaun untuk tetapan akaun. Untuk bantuan, hubungi pusat bantuan DX STORE.",order:"Tempahan anda berjaya dibuat. Sila teruskan pembayaran dan hantar bukti pembayaran. Tempahan sedang menunggu semakan admin.",proof:"Bukti pembayaran berjaya dihantar dan sedang menunggu semakan admin.",paid:"Pembayaran anda telah disahkan. Terima kasih kerana menggunakan DX STORE.",rejected:"Bukti pembayaran belum dapat diterima. Sila semak maklumat tempahan atau hubungi admin.",unknown:"Saya belum memahami soalan itu. Cuba tanya tentang produk, tempahan, pembayaran atau tetapan akaun."},
@@ -1653,27 +1648,6 @@ function getDXMascotLine(type) {
   const translated = DX_MASCOT_LINES[code] || {};
   return translated[type] || fallback[type] || fallback.unknown;
 }
-function speakDXMascot(message, options = {}) {
-  if (!message || !DX_MASCOT_VOICE.enabled || !("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return false;
-  try {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(String(message));
-    utterance.lang = DX_MASCOT_LANG[getDXCountry().code] || "id-ID";
-    utterance.rate = options.rate ?? 0.93;
-    utterance.pitch = options.pitch ?? 0.96;
-    const voices = window.speechSynthesis.getVoices();
-    const prefix = utterance.lang.split("-")[0].toLowerCase();
-    const voice = voices.find(item => item.lang?.toLowerCase() === utterance.lang.toLowerCase()) || voices.find(item => item.lang?.toLowerCase().startsWith(prefix));
-    if (voice) utterance.voice = voice;
-    utterance.onstart = () => { DX_MASCOT_VOICE.speaking = true; };
-    utterance.onend = utterance.onerror = () => { DX_MASCOT_VOICE.speaking = false; };
-    window.speechSynthesis.speak(utterance);
-    return true;
-  } catch (error) {
-    console.warn("DX-01 voice unavailable:", error);
-    return false;
-  }
-}
 function showDXMascotMessage(type, customMessage) {
   const message = customMessage || getDXMascotLine(type);
   let bubble = document.getElementById("dxMascotSpeechBubble");
@@ -1705,7 +1679,6 @@ function showDXMascotMessage(type, customMessage) {
   bubble.hidden = false;
   clearTimeout(window.dxMascotBubbleTimer);
   window.dxMascotBubbleTimer = setTimeout(() => { bubble.hidden = true; }, 7000);
-  speakDXMascot(message);
 }
 function answerDXMascotQuestion(question) {
   const q = String(question || "").toLocaleLowerCase();
@@ -1718,55 +1691,23 @@ function answerDXMascotQuestion(question) {
   showDXMascotMessage("answer", answer);
 }
 function mountDXMascotVoice() {
-  // Otomatis tampil dan berbicara setelah interaksi pertama sesuai aturan autoplay browser.
-  const hosts = [document.querySelector(".dx-mascot-widget"), $("dxDashboard")].filter(Boolean);
-  hosts.forEach((host, index) => {
-    const id = index === 0 ? "dxMascotVoiceHome" : "dxMascotVoiceDashboard";
-    if (document.getElementById(id)) return;
-    const panel = document.createElement("div");
-    panel.id = id;
-    panel.style.cssText = "display:flex;justify-content:center;align-items:center;gap:8px;margin:10px auto 4px;max-width:420px";
-    const toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.dataset.dxMascotAction = "toggle";
-    toggle.textContent = DX_MASCOT_VOICE.enabled ? "🔊 Suara DX-01 aktif" : "🔇 Suara DX-01 mati";
-    toggle.setAttribute("aria-pressed", DX_MASCOT_VOICE.enabled ? "true" : "false");
-    toggle.style.cssText = "border:1px solid #51e5ff88;border-radius:10px;background:#102b50;color:#eaf8ff;padding:8px 11px;font-weight:800;font-size:11px";
-    panel.appendChild(toggle);
-    host.appendChild(panel);
-  });
-  if (!document.documentElement.dataset.dxMascotVoiceBound) {
-    const unlockAndWelcome = () => {
-      if (DX_MASCOT_VOICE.welcomed) return;
-      DX_MASCOT_VOICE.welcomed = true;
-      if (DX_MASCOT_VOICE.enabled) showDXMascotMessage("welcome");
+  // Maskot tetap menampilkan pesan teks; fitur audio dan tombol suara dihapus.
+  localStorage.removeItem("dx-mascot-voice");
+  if (!document.documentElement.dataset.dxMascotTextBound) {
+    let welcomed = false;
+    const welcome = () => {
+      if (welcomed) return;
+      welcomed = true;
+      showDXMascotMessage("welcome");
     };
-    document.addEventListener("pointerdown", unlockAndWelcome, { once: true, capture: true, passive: true });
-    document.addEventListener("keydown", unlockAndWelcome, { once: true, capture: true });
-    document.addEventListener("click", event => {
-      const button = event.target.closest("[data-dx-mascot-action='toggle']");
-      if (!button) return;
-      DX_MASCOT_VOICE.enabled = !DX_MASCOT_VOICE.enabled;
-      localStorage.setItem("dx-mascot-voice", DX_MASCOT_VOICE.enabled ? "on" : "off");
-      if (!DX_MASCOT_VOICE.enabled && "speechSynthesis" in window) window.speechSynthesis.cancel();
-      document.querySelectorAll("[data-dx-mascot-action='toggle']").forEach(el => {
-        el.textContent = DX_MASCOT_VOICE.enabled ? "🔊 Suara DX-01 aktif" : "🔇 Suara DX-01 mati";
-        el.setAttribute("aria-pressed", DX_MASCOT_VOICE.enabled ? "true" : "false");
-      });
-      if (DX_MASCOT_VOICE.enabled) {
-        DX_MASCOT_VOICE.welcomed = true;
-        showDXMascotMessage("welcome");
-      }
-    });
-    document.documentElement.dataset.dxMascotVoiceBound = "1";
-  }
-  if (!window.dxMascotOrderEventsBound) {
+    document.addEventListener("pointerdown", welcome, { once: true, capture: true, passive: true });
+    document.addEventListener("keydown", welcome, { once: true, capture: true });
     window.addEventListener("dx:order-update", event => {
       const status = event.detail?.status;
       const type = status === "paid" || status === "completed" ? "paid" : status === "rejected" ? "rejected" : status === "proof" ? "proof" : "order";
       showDXMascotMessage(type);
     });
-    window.dxMascotOrderEventsBound = true;
+    document.documentElement.dataset.dxMascotTextBound = "1";
   }
 }
 window.dxMascotSpeak = (message) => showDXMascotMessage("answer", String(message || ""));
@@ -1775,24 +1716,16 @@ window.dxMascotSpeak = (message) => showDXMascotMessage("answer", String(message
 function showDXMascotFarewell() {
   const country = getDXCountry();
   const messages = {
-    ID:["Sampai jumpa! Terima kasih sudah berkunjung ke DX STORE. Semoga harimu menyenangkan!","id-ID"],
-    MY:["Jumpa lagi! Terima kasih kerana mengunjungi DX STORE. Semoga hari anda menyenangkan!","ms-MY"],
-    SG:["See you again! Thanks for visiting DX STORE. Have a great day!","en-SG"],
-    US:["See you next time! Thanks for visiting DX STORE. Have a wonderful day!","en-US"],
-    JP:["またお会いしましょう！DX STOREをご利用いただき、ありがとうございます。良い一日を！","ja-JP"],
-    TH:["แล้วพบกันใหม่นะ! ขอบคุณที่แวะมา DX STORE ขอให้เป็นวันที่ดี!","th-TH"],
-    PH:["See you again! Thank you for visiting DX STORE. Have a great day!","en-PH"],
-    AU:["See you next time! Thanks for visiting DX STORE. Have a great day!","en-AU"],
-    GB:["Goodbye for now! Thanks for your visit to DX STORE. Have a lovely day!","en-GB"],
-    DE:["Bis zum nächsten Mal! Danke für deinen Besuch bei DX STORE. Hab einen schönen Tag!","de-DE"],
-    FR:["À bientôt ! Merci de votre visite sur DX STORE. Passez une excellente journée !","fr-FR"],
-    IN:["फिर मिलेंगे! DX STORE पर आने के लिए धन्यवाद। आपका दिन शुभ हो!","hi-IN"],
-    KR:["다음에 또 만나요! DX STORE를 방문해 주셔서 감사합니다. 좋은 하루 보내세요!","ko-KR"],
-    BR:["Até a próxima! Obrigado por visitar a DX STORE. Tenha um ótimo dia!","pt-BR"],
-    CA:["See you next time! Thanks for visiting DX STORE. Have a great day!","en-CA"],
-    CN:["再见！感谢您访问 DX STORE，祝您今天愉快！","zh-CN"]
+    ID:"Sampai jumpa! Terima kasih sudah berkunjung ke DX STORE. Semoga harimu menyenangkan!",
+    MY:"Jumpa lagi! Terima kasih kerana mengunjungi DX STORE. Semoga hari anda menyenangkan!",
+    JP:"またお会いしましょう！DX STOREをご利用いただき、ありがとうございます。",
+    TH:"แล้วพบกันใหม่นะ! ขอบคุณที่แวะมา DX STORE",
+    DE:"Bis zum nächsten Mal! Danke für deinen Besuch bei DX STORE.",
+    FR:"À bientôt ! Merci de votre visite sur DX STORE.",
+    BR:"Até a próxima! Obrigado por visitar a DX STORE.",
+    CN:"再见！感谢您访问 DX STORE。"
   };
-  const [message,lang] = messages[country.code] || messages.ID;
+  const message = messages[country.code] || "See you next time! Thanks for visiting DX STORE.";
   let bubble = document.getElementById("dxMascotFarewell");
   if (!bubble) {
     bubble = document.createElement("div");
@@ -1802,29 +1735,7 @@ function showDXMascotFarewell() {
     document.body.appendChild(bubble);
   }
   bubble.textContent = "DX-01 · " + message;
-  if (DX_MASCOT_VOICE.enabled && "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(message);
-    utterance.lang = lang;
-    utterance.rate = 1;
-    window.speechSynthesis.speak(utterance);
-  }
-  return new Promise(resolve => {
-    const fallback = setTimeout(finish, 9000);
-    function finish() {
-      clearTimeout(fallback);
-      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-      bubble.remove();
-      resolve();
-    }
-    if (!DX_MASCOT_VOICE.enabled || !("speechSynthesis" in window)) {
-      setTimeout(finish, 1800);
-    } else {
-      const utterance = window.speechSynthesis;
-      // Speech is queued once above; keep the farewell visible for its expected duration.
-      setTimeout(finish, Math.min(8000, Math.max(2500, message.length * 65)));
-    }
-  });
+  return new Promise(resolve => setTimeout(() => { bubble.remove(); resolve(); }, 1800));
 }
 
 /* KELUAR DARI AKUN */
