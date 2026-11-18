@@ -1675,25 +1675,41 @@ async function refreshDXUser() {
 /* KELUAR */
 
 async function handleDXLogout() {
-  if (!dxSupabase) return;
+  if (!dxSupabase || window.dxLogoutInProgress) return;
+  window.dxLogoutInProgress = true;
 
-  const { error } = await dxSupabase.auth.signOut();
-
-  if (error) {
-    alert(getDXError(error));
-    return;
+  const logoutButton = document.querySelector(".dx-nav-actions .dx-button");
+  if (logoutButton) {
+    logoutButton.disabled = true;
+    logoutButton.textContent = "Keluar...";
   }
 
-  currentUser = null;
-  currentProfile = null;
+  try {
+    const { error } = await dxSupabase.auth.signOut();
+    if (error) throw error;
 
-  const panel = $("dxAdminPanel");
-  if (panel) panel.style.display = "none";
+    currentUser = null;
+    currentProfile = null;
 
-  updateDXHeaderAuth();
-  await loadDXStore();
+    const panel = $("dxAdminPanel");
+    if (panel) panel.style.display = "none";
 
-  alert("Berhasil keluar dari akun.");
+    updateDXHeaderAuth();
+
+    // Salam perpisahan DX-01 ditampilkan dan dibacakan sebelum kembali ke login.
+    if (typeof showDXMascotFarewell === "function") {
+      await showDXMascotFarewell();
+    }
+
+    window.location.replace("login.html");
+  } catch (error) {
+    window.dxLogoutInProgress = false;
+    if (logoutButton) {
+      logoutButton.disabled = false;
+      logoutButton.textContent = "Keluar";
+    }
+    alert("Gagal keluar: " + getDXError(error));
+  }
 }
 
 /* NAVIGASI */
