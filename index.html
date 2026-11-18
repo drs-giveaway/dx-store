@@ -599,6 +599,15 @@
     .dx-activity-check{margin-left:auto;color:#5ce5a4;font-size:18px;font-weight:900}
     @media(max-width:600px){.dx-purchase-activity{width:calc(100% - 22px);padding:14px;margin-top:14px}.dx-activity-heading h2{font-size:15px}}
 
+
+    .dx-purchase-toast{position:fixed;z-index:999;left:18px;bottom:18px;width:min(360px,calc(100vw - 36px));pointer-events:none}
+    .dx-toast-card{display:flex;align-items:center;gap:12px;padding:14px 15px;border:1px solid rgba(81,229,255,.32);border-radius:16px;background:linear-gradient(135deg,rgba(13,29,55,.97),rgba(30,24,67,.97));box-shadow:0 12px 38px rgba(0,0,0,.4),0 0 22px rgba(39,143,255,.15);animation:dxToastIn .35s ease;pointer-events:auto}
+    .dx-toast-mark{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#168fff,#7955e8);font-weight:900;color:white}
+    .dx-toast-copy{min-width:0;flex:1}.dx-toast-copy strong{display:block;color:#f4f8ff;font-size:13px}.dx-toast-copy p{margin:4px 0;color:#c2d2eb;font-size:12px;line-height:1.4}.dx-toast-copy small{color:#7f9cbe;font-size:10px}
+    .dx-toast-close{border:0;background:transparent;color:#a9bad3;font-size:20px;cursor:pointer;padding:2px 5px}
+    @keyframes dxToastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:600px){.dx-purchase-toast{left:10px;bottom:12px;width:calc(100vw - 20px)}}
+
 </style>
 </head>
 
@@ -639,9 +648,7 @@
     </div>
   </header>
 
-  <section id="dxPurchaseActivity" class="dx-purchase-activity" aria-live="polite" aria-label="Aktivitas pembelian DX STORE">
-    <div class="dx-activity-heading"><div><small>DX STORE · LIVE UPDATE</small><h2>Aktivitas pembelian</h2><p>Memuat aktivitas terbaru...</p></div></div>
-  </section>
+  <section id="dxPurchaseActivity" class="dx-purchase-toast" aria-label="Notifikasi DX STORE"></section>
 
   <main>
     <!-- BERANDA -->
