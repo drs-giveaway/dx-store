@@ -545,7 +545,39 @@
     .dx-detail-price{display:block;margin:18px 0;color:#51e5ff;font-size:24px}
     @media(max-width:620px){.dx-detail-panel{grid-template-columns:1fr;padding:16px;gap:12px}.dx-detail-photo,.dx-detail-photo img{min-height:190px;max-height:230px}.product-card>img{height:150px}}
 
-  </style>
+  
+    /* DX STORE APP DASHBOARD — wallet-app inspired */
+    [hidden]{display:none!important}
+    #dxDashboard{width:min(1080px,92%);margin:28px auto 36px;padding:26px;border:1px solid rgba(81,229,255,.13);border-radius:26px;background:linear-gradient(145deg,rgba(15,31,59,.96),rgba(9,17,36,.98));box-shadow:0 18px 55px #0005}
+    .dx-dana-topline{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+    .dx-dana-topline small,.dx-dana-sectionhead small{color:#51e5ff;font-size:10px;font-weight:900;letter-spacing:2px}
+    .dx-dana-topline h1{margin:7px 0;font-size:clamp(22px,4vw,30px);font-weight:900}
+    .dx-dana-topline p{color:#aab8d0;font-size:13px}
+    .dx-dana-avatar{width:48px;height:48px;flex:none;display:grid;place-items:center;border-radius:17px;background:linear-gradient(135deg,#168fff,#7954e9);font-weight:900;box-shadow:0 8px 25px #278fff55}
+    .dx-dana-maincard{position:relative;overflow:hidden;padding:25px;border:1px solid #65cfff55;border-radius:22px;background:radial-gradient(circle at 90% 0%,#9d64ff55,transparent 40%),linear-gradient(115deg,#1267c8,#273b91 62%,#542e9c);box-shadow:0 15px 36px #06132c88}
+    .dx-dana-maincard:after{content:"";position:absolute;width:190px;height:190px;right:-65px;bottom:-110px;border:1px solid #ffffff35;border-radius:50%;box-shadow:0 0 0 22px #ffffff0b,0 0 0 45px #ffffff08}
+    .dx-dana-cardtop,.dx-dana-cardfoot{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#e3edff;font-size:11px;font-weight:800;letter-spacing:1px}
+    .dx-dana-cardtitle{margin:24px 0 8px;font-size:clamp(22px,4vw,30px);font-weight:900}
+    .dx-dana-maincard p{max-width:540px;color:#e1eaff;font-size:13px;line-height:1.7}
+    .dx-dana-cardfoot{margin-top:25px;padding-top:16px;border-top:1px solid #ffffff35;color:#d7e7ff}
+    .dx-dana-cardfoot strong{font-size:14px;color:white}
+    .dx-dana-shortcuts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0 30px}
+    .dx-dana-shortcuts a{min-height:98px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1px solid #6e91c52c;border-radius:17px;background:#12213d;color:#eaf4ff;text-align:center;transition:.2s}
+    .dx-dana-shortcuts a:hover{transform:translateY(-3px);border-color:#51e5ff88}
+    .dx-dana-shortcuts span{width:38px;height:38px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,#168fff,#7954e9);font-size:19px}
+    .dx-dana-shortcuts strong{font-size:11px}
+    .dx-dana-sectionhead{display:flex;align-items:center;justify-content:space-between;margin:5px 0 18px}
+    .dx-dana-sectionhead h2{font-size:20px;margin-top:5px}
+    .dx-dana-sectionhead>span{color:#9aafd1;font-size:11px;font-weight:900}
+    #dxBottomNav{position:fixed;z-index:500;left:50%;bottom:12px;transform:translateX(-50%);width:min(560px,calc(100% - 24px));display:grid;grid-template-columns:repeat(4,1fr);padding:9px 8px calc(9px + env(safe-area-inset-bottom));border:1px solid #6c8ab455;border-radius:19px;background:rgba(8,17,36,.94);backdrop-filter:blur(18px);box-shadow:0 12px 38px #0009}
+    #dxBottomNav a,#dxBottomNav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;background:transparent;color:#a9bad5;min-height:48px}
+    #dxBottomNav a span,#dxBottomNav button span{font-size:20px;line-height:1}
+    #dxBottomNav small{font-size:10px;font-weight:700}
+    #dxBottomNav a:focus,#dxBottomNav button:focus{color:#51e5ff}
+    body:has(#dxBottomNav:not([hidden])){padding-bottom:92px}
+    @media(max-width:600px){#dxDashboard{width:calc(100% - 22px);margin:14px auto 25px;padding:17px;border-radius:21px}.dx-dana-maincard{padding:20px}.dx-dana-shortcuts{gap:8px}.dx-dana-shortcuts a{min-height:88px}.dx-dana-shortcuts strong{font-size:10px}.dx-dana-cardfoot{font-size:9px}.dx-dana-cardfoot strong{font-size:12px}}
+
+</style>
 </head>
 
 <body>
@@ -680,7 +712,7 @@
   <!-- JAVASCRIPT -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=12"></script>
   <script src="image-upload.js?v=3"></script>
 
 </body>
