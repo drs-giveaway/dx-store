@@ -65,12 +65,12 @@ function formatPrice(value) {
 }
 
 function formatDXRupiahInput(value) {
-  const digits = String(value ?? "").replace(/\\D/g, "");
-  return digits.replace(/\\B(?=(\\d{3})+(?!\\d))/g, ".");
+  const digits = String(value ?? "").replace(/\D/g, "");
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 function parseDXRupiahInput(value) {
-  const digits = String(value ?? "").replace(/\\D/g, "");
+  const digits = String(value ?? "").replace(/\D/g, "");
   return digits ? Number(digits) : 0;
 }
 
@@ -82,14 +82,14 @@ function installDXRupiahInput(input) {
   input.addEventListener("input", () => {
     const before = input.value;
     const cursor = input.selectionStart ?? before.length;
-    const digitsBeforeCursor = before.slice(0, cursor).replace(/\\D/g, "").length;
-    const digits = before.replace(/\\D/g, "");
+    const digitsBeforeCursor = before.slice(0, cursor).replace(/\D/g, "").length;
+    const digits = before.replace(/\D/g, "");
     const formatted = formatDXRupiahInput(digits);
     input.value = formatted;
     let position = 0;
     let seen = 0;
     while (position < formatted.length && seen < digitsBeforeCursor) {
-      if (/\\d/.test(formatted[position])) seen++;
+      if (/\d/.test(formatted[position])) seen++;
       position++;
     }
     input.setSelectionRange(position, position);
