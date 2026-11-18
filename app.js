@@ -1047,7 +1047,8 @@ function createDXAdminPanel() {
     <div id="dxPaymentOrders">Memuat pesanan...</div>
   `;
 
-  main.prepend(panel);\n  installDXRupiahInput($("dxPrice"));
+  main.prepend(panel);
+  installDXRupiahInput($("dxPrice"));
 
   if (!$("dxAdminStyles")) {
     const style = document.createElement("style");
