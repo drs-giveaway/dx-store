@@ -329,10 +329,10 @@ function createDXCheckoutModal() {
       <div class="dx-checkout-instructions">
         <strong>Petunjuk Pembayaran</strong>
         <ol>
-          <li>Buat transaksi QRIS untuk mendapatkan kode pembayaran.</li>
+          <li>Periksa total pesanan yang tertera.</li>
           <li>Buka aplikasi pembayaran yang mendukung QRIS.</li>
-          <li>Scan QR dan pastikan nominalnya sesuai.</li>
-          <li>Status LUNAS hanya ditampilkan setelah dikonfirmasi server pembayaran.</li>
+          <li>Scan QRIS DANA Bisnis dan masukkan nominal yang sama persis.</li>
+          <li>Unggah bukti pembayaran. Pesanan lunas setelah admin memeriksa dana masuk.</li>
         </ol>
       </div>
       <button type="button" class="dx-checkout-close-link">Tutup</button>
@@ -463,7 +463,9 @@ async function submitDXPaymentProof() {
   } catch (error) {
     $("dxCheckoutMessage").textContent = getDXError(error);
     button.disabled = false;
-  } finally { button.textContent = "Bukti Terkirim"; }
+  } finally {
+    button.textContent = button.disabled ? "Bukti Terkirim" : "Kirim Bukti Pembayaran";
+  }
 }
 
 async function checkDXPaymentStatus() {
