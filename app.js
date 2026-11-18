@@ -237,32 +237,45 @@ async function loadAccountListings() {
 }
 
 function selectItem(type, id) {
-  const table = type === "account"
-    ? "account_listings"
-    : "products";
-
+  const table = type === "account" ? "account_listings" : "products";
   if (!dxSupabase) return;
 
-  dxSupabase
-    .from(table)
-    .select("*")
-    .eq("id", id)
-    .maybeSingle()
+  dxSupabase.from(table).select("*").eq("id", id).maybeSingle()
     .then(({ data, error }) => {
       if (error || !data) {
         alert("Data tidak ditemukan.");
         return;
       }
 
-      const name = data.name || data.title || "Item";
-      const description = data.description || "Tidak ada deskripsi.";
-      const price = formatPrice(data.price);
+      let modal = document.getElementById("dxProductDetailModal");
+      if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "dxProductDetailModal";
+        modal.className = "dx-detail-overlay";
+        modal.innerHTML = '<section class="dx-detail-panel" role="dialog" aria-modal="true" aria-labelledby="dxDetailName"><button type="button" class="dx-detail-close" aria-label="Tutup">&times;</button><div id="dxDetailPhoto" class="dx-detail-photo"></div><div class="dx-detail-copy"><span id="dxDetailType" class="dx-detail-label"></span><h2 id="dxDetailName"></h2><p id="dxDetailDescription"></p><strong id="dxDetailPrice" class="dx-detail-price"></strong><button type="button" id="dxDetailOrder" class="dx-button">Lanjutkan</button></div></section>';
+        document.body.appendChild(modal);
+        modal.querySelector(".dx-detail-close").addEventListener("click", () => modal.classList.remove("active"));
+        modal.addEventListener("click", event => { if (event.target === modal) modal.classList.remove("active"); });
+        document.addEventListener("keydown", event => { if (event.key === "Escape") modal.classList.remove("active"); });
+      }
 
-      alert(
-        name + "\n\n" +
-        description + "\n\n" +
-        "Harga: " + price
-      );
+      const name = data.name || data.title || "Item DX STORE";
+      const image = safeImageUrl(data.image_url);
+      modal.querySelector("#dxDetailName").textContent = name;
+      modal.querySelector("#dxDetailType").textContent = type === "account" ? (data.game || "AKUN GAME") : (data.category || "PRODUK DIGITAL");
+      modal.querySelector("#dxDetailDescription").textContent = data.description || "Belum ada deskripsi tambahan.";
+      modal.querySelector("#dxDetailPrice").textContent = formatPrice(data.price);
+      modal.querySelector("#dxDetailPhoto").innerHTML = image ? '<img src="' + safeText(image) + '" alt="' + safeText(name) + '">' : '<span>DX STORE</span>';
+      modal.querySelector("#dxDetailOrder").onclick = () => {
+        modal.classList.remove("active");
+        if (!currentUser) {
+          openAuth();
+          showDXMessage("Masuk atau daftar untuk melanjutkan pemesanan.");
+        } else {
+          alert("Untuk menyelesaikan pesanan, silakan hubungi admin DX STORE.");
+        }
+      };
+      modal.classList.add("active");
     });
 }
 
@@ -1257,6 +1270,15 @@ async function initializeDXStore() {
 
   setupDXAuthSwitch();
   initDXNavigation();
+  const searchInput = document.getElementById("dxMarketplaceSearch");
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.trim().toLocaleLowerCase("id-ID");
+      document.querySelectorAll("#productGrid .product-card, #accountGrid .product-card").forEach(card => {
+        card.hidden = !card.textContent.toLocaleLowerCase("id-ID").includes(query);
+      });
+    });
+  }
 
   const authForm = $("authForm");
 
