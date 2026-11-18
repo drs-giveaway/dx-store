@@ -186,7 +186,7 @@ Deno.serve(async (req: Request) => {
       return json({ message: "Perubahan status tidak valid." }, 400);
     }
     const { data: existing, error: existingError } = await adminClient.from("orders")
-      .select("id,status,item_type,item_id").eq("id", orderId).eq("status", "review").maybeSingle();
+      .select("id,status,item_type,item_id").eq("id", orderId).in("status", status === "paid" ? ["review"] : ["pending", "review"]).maybeSingle();
     if (existingError || !existing) return json({ message: "Pesanan tidak ditemukan atau sudah diproses." }, 409);
     const table = getItemTable(existing.item_type);
     if (!table || !isUuid(existing.item_id)) return json({ message: "Data barang pada pesanan tidak valid." }, 409);
@@ -199,7 +199,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const { data, error } = await adminClient.from("orders").update({ status })
-      .eq("id", orderId).eq("status", "review").select("id,status").maybeSingle();
+      .eq("id", orderId).eq("status", existing.status).select("id,status").maybeSingle();
     if (error || !data) {
       if (status === "paid") await adminClient.from(table).update({ status: "reserved" }).eq("id", existing.item_id).eq("status", "sold_out");
       return json({ message: "Pesanan gagal diperbarui. Silakan muat ulang." }, 409);
