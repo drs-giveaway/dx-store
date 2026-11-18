@@ -56,12 +56,48 @@ function safeImageUrl(value) {
   }
 }
 
+const DX_COUNTRIES = {
+  ID: { name: "Indonesia", language: "id-ID", currency: "IDR", locale: "id-ID", timezone: "Asia/Jakarta" },
+  MY: { name: "Malaysia", language: "ms-MY", currency: "MYR", locale: "ms-MY", timezone: "Asia/Kuala_Lumpur" },
+  SG: { name: "Singapore", language: "en-SG", currency: "SGD", locale: "en-SG", timezone: "Asia/Singapore" },
+  US: { name: "United States", language: "en-US", currency: "USD", locale: "en-US", timezone: "America/New_York" },
+  JP: { name: "Japan", language: "ja-JP", currency: "JPY", locale: "ja-JP", timezone: "Asia/Tokyo" },
+  TH: { name: "Thailand", language: "th-TH", currency: "THB", locale: "th-TH", timezone: "Asia/Bangkok" },
+  PH: { name: "Philippines", language: "en-PH", currency: "PHP", locale: "en-PH", timezone: "Asia/Manila" },
+  AU: { name: "Australia", language: "en-AU", currency: "AUD", locale: "en-AU", timezone: "Australia/Sydney" },
+  GB: { name: "United Kingdom", language: "en-GB", currency: "GBP", locale: "en-GB", timezone: "Europe/London" },
+  DE: { name: "Germany", language: "de-DE", currency: "EUR", locale: "de-DE", timezone: "Europe/Berlin" },
+  FR: { name: "France", language: "fr-FR", currency: "EUR", locale: "fr-FR", timezone: "Europe/Paris" },
+  IN: { name: "India", language: "hi-IN", currency: "INR", locale: "en-IN", timezone: "Asia/Kolkata" },
+  KR: { name: "South Korea", language: "ko-KR", currency: "KRW", locale: "ko-KR", timezone: "Asia/Seoul" },
+  BR: { name: "Brazil", language: "pt-BR", currency: "BRL", locale: "pt-BR", timezone: "America/Sao_Paulo" },
+  CA: { name: "Canada", language: "en-CA", currency: "CAD", locale: "en-CA", timezone: "America/Toronto" },
+  CN: { name: "China", language: "zh-CN", currency: "CNY", locale: "zh-CN", timezone: "Asia/Shanghai" }
+};
+
+function getDXCountry() {
+  const code = localStorage.getItem("dx-country") || "ID";
+  return DX_COUNTRIES[code] ? { code, ...DX_COUNTRIES[code] } : { code: "ID", ...DX_COUNTRIES.ID };
+}
+
+function setDXCountry(code) {
+  if (!DX_COUNTRIES[code]) return;
+  localStorage.setItem("dx-country", code);
+  document.documentElement.lang = DX_COUNTRIES[code].language;
+  const selector = $("dxCountry");
+  if (selector && selector.value !== code) selector.value = code;
+  document.dispatchEvent(new CustomEvent("dx-country-change", { detail: { code, ...DX_COUNTRIES[code] } }));
+}
+
 function formatPrice(value) {
-  return new Intl.NumberFormat("id-ID", {
+  const country = getDXCountry();
+  const formatter = new Intl.NumberFormat(country.locale, {
     style: "currency",
     currency: "IDR",
     maximumFractionDigits: 0
-  }).format(Number(value) || 0);
+  });
+  const amount = formatter.format(Number(value) || 0);
+  return country.currency === "IDR" ? amount : amount + " (IDR)";
 }
 
 function formatDXRupiahInput(value) {
@@ -714,6 +750,12 @@ async function handleAuthSubmit(event) {
       $("authPassword").value = "";
     }
 
+    if ($("authPassword")) $("authPassword").value = "";
+    if (window.location.pathname.endsWith("/login.html")) {
+      window.location.replace("index.html");
+      return;
+    }
+
     closeAuth();
     await loadDXStore();
 
@@ -748,6 +790,11 @@ async function refreshDXUser() {
   }
 
   currentUser = data.user;
+
+  if (window.location.pathname.endsWith("/login.html")) {
+    window.location.replace("index.html");
+    return;
+  }
 
   await loadDXProfile(currentUser);
 
@@ -1612,6 +1659,12 @@ async function initializeDXStore() {
   }
 
   setupDXAuthSwitch();
+  const countrySelect = $("dxCountry");
+  if (countrySelect) {
+    countrySelect.value = getDXCountry().code;
+    countrySelect.addEventListener("change", () => setDXCountry(countrySelect.value));
+  }
+  setDXCountry(getDXCountry().code);
   initDXNavigation();
   const searchInput = document.getElementById("dxMarketplaceSearch");
   if (searchInput) {
