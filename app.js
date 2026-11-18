@@ -539,11 +539,12 @@ function updateDXDashboardVisibility() {
           <button type="button" data-dx-profile-action="help"><span class="dx-profile-menu-icon">?</span><span><strong>Pusat Bantuan</strong><small>Laporkan masalah atau cari bantuan</small></span><b>›</b></button>
         </article>
         <article class="dx-profile-card dx-profile-ai">
-          <div class="dx-profile-card-head"><div><small>DX SMART ASSISTANT</small><h3>Bantuan DX</h3><p>Tanyakan cara menggunakan DX STORE.</p></div><span class="dx-ai-mark">DX</span></div>
-          <div id="dxAssistantMessages" class="dx-assistant-messages" aria-live="polite"><div class="dx-assistant-bubble dx-assistant-bot"><strong>DX</strong><p>Halo! Saya DX, asisten bantuan DX STORE. Ada yang bisa saya bantu?</p></div></div>
-          <div class="dx-assistant-suggestions"><button type="button" data-dx-ask="Bagaimana cara membeli produk?">Cara membeli</button><button type="button" data-dx-ask="Bagaimana cara membayar pesanan?">Cara membayar</button><button type="button" data-dx-ask="Bagaimana cara melaporkan masalah?">Laporkan masalah</button></div>
-          <form id="dxAssistantForm" class="dx-assistant-form"><input id="dxAssistantInput" type="text" maxlength="300" placeholder="Tulis pertanyaan..." autocomplete="off" aria-label="Pertanyaan untuk DX"><button type="submit" aria-label="Kirim pertanyaan">➤</button></form>
-          <small class="dx-assistant-note">DX saat ini membantu berdasarkan panduan fitur DX STORE. Untuk kasus transaksi khusus, gunakan Pusat Bantuan.</small>
+          <div class="dx-profile-card-head dx-chat-head"><div class="dx-chat-brand"><span class="dx-ai-mark">DX</span><div><small>ASISTEN DIGITAL DX</small><h3>DX AI Assistant</h3><p><i class="dx-online-dot"></i> Siap membantu di DX STORE</p></div></div><span class="dx-chat-menu">•••</span></div>
+          <div class="dx-chat-welcome"><span class="dx-chat-spark">✦</span><div><strong>Halo! Saya DX 👋</strong><p>Ada yang ingin kamu ketahui atau butuh bantuan apa hari ini?</p></div></div>
+          <div id="dxAssistantMessages" class="dx-assistant-messages" aria-live="polite"></div>
+          <div class="dx-assistant-suggestions"><button type="button" data-dx-ask="Bagaimana cara membeli produk?">🛍️ Cara membeli</button><button type="button" data-dx-ask="Bagaimana cara membayar pesanan?">💳 Pembayaran</button><button type="button" data-dx-ask="Bagaimana cara melaporkan masalah?">🎧 Pusat bantuan</button></div>
+          <form id="dxAssistantForm" class="dx-assistant-form"><input id="dxAssistantInput" type="text" maxlength="500" placeholder="Tulis pesan untuk DX..." autocomplete="off" aria-label="Pesan untuk DX"><button type="submit" aria-label="Kirim pesan">➤</button></form>
+          <small class="dx-assistant-note">Saat ini DX menggunakan panduan bantuan otomatis. Fitur percakapan AI generatif sedang menunggu koneksi layanan AI.</small>
         </article>
         <div class="dx-profile-actions"><button type="button" id="dxOpenAdmin" hidden>Kelola Website</button><button type="button" id="dxAccountLogout">Keluar dari Akun</button></div>
         <p class="dx-profile-version">DX STORE · DIGITAL MARKETPLACE</p>
