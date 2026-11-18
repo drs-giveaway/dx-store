@@ -595,6 +595,70 @@ function updateDXDashboardVisibility() {
   const profileName = currentUser?.user_metadata?.display_name || currentUser?.email?.split("@")[0] || "Pengguna";
   if ($("dxProfileName")) $("dxProfileName").textContent = profileName;
   if ($("dxProfileAvatar")) $("dxProfileAvatar").textContent = profileName.trim().slice(0, 2).toUpperCase() || "DX";
+  const avatarUrl = safeImageUrl(currentUser?.user_metadata?.avatar_url);
+  const avatarNodes = [$("dxProfileAvatar"), document.querySelector(".dx-dana-avatar")].filter(Boolean);
+  avatarNodes.forEach(node => {
+    node.style.position = "relative";
+    node.style.overflow = "hidden";
+    let photo = node.querySelector("img.dx-user-avatar-photo");
+    if (avatarUrl) {
+      if (!photo) {
+        photo = document.createElement("img");
+        photo.className = "dx-user-avatar-photo";
+        photo.alt = "Foto profil";
+        photo.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit";
+        node.appendChild(photo);
+      }
+      if (photo.src !== avatarUrl) photo.src = avatarUrl;
+      node.textContent = "";
+      node.appendChild(photo);
+    } else {
+      photo?.remove();
+      node.textContent = profileName.trim().slice(0, 2).toUpperCase() || "DX";
+    }
+  });
+  const profileEdit = $("dxProfileEdit");
+  if (profileEdit && !$("dxProfilePhotoInput")) {
+    const photoBox = document.createElement("div");
+    photoBox.id = "dxProfilePhotoControl";
+    photoBox.style.cssText = "margin:14px 0;padding:14px;border:1px solid #29466f;border-radius:12px;background:#0b1426";
+    photoBox.innerHTML = '<label for="dxProfilePhotoInput">Foto profil (JPG, PNG, WEBP · maks. 5 MB)</label><input id="dxProfilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" style="display:block;width:100%;margin-top:8px;color:white"><p id="dxProfilePhotoMessage" class="dx-profile-message" role="status" aria-live="polite">Foto akan tampil di profil dan beranda setelah berhasil disimpan.</p>';
+    $("dxProfileEmailInput")?.insertAdjacentElement("afterend", photoBox);
+    $("dxProfilePhotoInput")?.addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      const feedback = $("dxProfilePhotoMessage");
+      if (!file) return;
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (!allowedTypes.includes(file.type) || file.size > 5 * 1024 * 1024) {
+        event.target.value = "";
+        if (feedback) feedback.textContent = "Pilih JPG, PNG, atau WEBP dengan ukuran maksimal 5 MB.";
+        return;
+      }
+      const uploadButton = $("dxSaveProfile");
+      if (uploadButton) uploadButton.disabled = true;
+      if (feedback) feedback.textContent = "Mengunggah dan menyimpan foto profil...";
+      try {
+        if (!currentUser || !dxSupabase) throw new Error("Silakan masuk kembali sebelum mengunggah foto.");
+        const ext = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
+        const path = currentUser.id + "/profile/" + crypto.randomUUID() + "." + ext;
+        const { data: stored, error: uploadError } = await dxSupabase.storage
+          .from("marketplace-images")
+          .upload(path, file, { contentType: file.type, upsert: false });
+        if (uploadError) throw uploadError;
+        const publicUrl = dxSupabase.storage.from("marketplace-images").getPublicUrl(stored.path).data.publicUrl;
+        const { data, error } = await dxSupabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+        if (error) throw error;
+        currentUser = data.user || { ...currentUser, user_metadata: { ...currentUser.user_metadata, avatar_url: publicUrl } };
+        if (feedback) feedback.textContent = "Foto profil berhasil disimpan dan sudah diterapkan.";
+        event.target.value = "";
+        updateDXDashboardVisibility();
+      } catch (error) {
+        if (feedback) feedback.textContent = "Foto gagal disimpan: " + getDXError(error);
+      } finally {
+        if (uploadButton) uploadButton.disabled = false;
+      }
+    });
+  }
   if ($("dxProfileNameInput") && document.activeElement !== $("dxProfileNameInput")) $("dxProfileNameInput").value = profileName;
   if ($("dxProfileEmailInput")) $("dxProfileEmailInput").value = currentUser?.email || "";
   if ($("dxProfileMember")) $("dxProfileMember").textContent = currentProfile?.created_at ? "Bergabung " + new Date(currentProfile.created_at).toLocaleDateString(getDXCountry().locale, {day:"numeric",month:"long",year:"numeric"}) : "Anggota DX STORE";
