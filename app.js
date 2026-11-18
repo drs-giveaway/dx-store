@@ -988,9 +988,9 @@ function selectItem(type, id) {
     });
 }
 
-/* CHECKOUT QRIS DX STORE
-   Nominal ditampilkan dari harga item terpilih.
-   QRIS dinamis dan status resmi hanya berasal dari backend Midtrans.
+/* CHECKOUT QRIS MANUAL DX STORE
+   Nominal pesanan diambil dari backend; pembeli memasukkannya sendiri
+   saat membayar melalui QRIS statis. Bukti diverifikasi admin.
 */
 function createDXCheckoutModal() {
   let modal = $("dxCheckoutModal");
@@ -1008,7 +1008,7 @@ function createDXCheckoutModal() {
       </header>
       <div class="dx-checkout-banner">
         <span class="dx-checkout-qr-icon">▦</span>
-        <div><h2 id="dxCheckoutTitle">Pembayaran QRIS</h2><p>Scan QR berikut untuk menyelesaikan pembayaran</p></div>
+        <div><h2 id="dxCheckoutTitle">Pembayaran QRIS Manual</h2><p>Scan QRIS, lalu masukkan nominal sesuai total pesanan</p></div>
       </div>
       <div class="dx-checkout-main">
         <div class="dx-checkout-qr" id="dxCheckoutQr">
@@ -1021,7 +1021,7 @@ function createDXCheckoutModal() {
           <strong class="dx-checkout-amount" id="dxCheckoutAmount">Rp0</strong>
           <small>Status Pembayaran</small>
           <div class="dx-checkout-status" id="dxCheckoutStatus">Menunggu pembuatan transaksi</div>
-          <small>Batas Waktu</small>
+          <small>Metode Pembayaran</small>
           <strong id="dxCheckoutExpiry">-</strong>
         </div>
       </div>
@@ -1038,10 +1038,10 @@ function createDXCheckoutModal() {
       <div class="dx-checkout-instructions">
         <strong>Petunjuk Pembayaran</strong>
         <ol>
-          <li>Periksa total pesanan yang tertera.</li>
+          <li>Periksa nominal total pesanan yang ditampilkan DX STORE.</li>
           <li>Buka aplikasi pembayaran yang mendukung QRIS.</li>
-          <li>Scan QRIS DANA Bisnis dan masukkan nominal yang sama persis.</li>
-          <li>Unggah bukti pembayaran. Pesanan lunas setelah admin memeriksa dana masuk.</li>
+          <li>Scan QRIS DX STORE dan masukkan nominal tersebut secara manual dengan tepat.</li>
+          <li>Unggah bukti pembayaran. Pesanan baru dinyatakan lunas setelah admin memeriksa dana masuk.</li>
         </ol>
       </div>
       <button type="button" class="dx-checkout-close-link">Tutup</button>
@@ -1128,8 +1128,8 @@ async function createDXPayment() {
     $("dxCheckoutAmount").textContent = formatPrice(result.amount);
     $("dxCheckoutStatus").textContent = "Menunggu pembayaran";
     $("dxCheckoutQr").innerHTML = '<img src="payment-qris.png" alt="QRIS resmi DANA Bisnis DX STORE">';
-    $("dxCheckoutExpiry").textContent = "Tidak berlaku sebagai QRIS dinamis";
-    $("dxCheckoutMessage").textContent = "Bayar tepat " + formatPrice(result.amount) + " melalui aplikasi apa pun yang mendukung QRIS. QRIS ini statis, jadi nominal harus dimasukkan sendiri. Setelah membayar, unggah bukti pembayaran.";
+    $("dxCheckoutExpiry").textContent = "QRIS statis · pembayaran manual";
+    $("dxCheckoutMessage").textContent = "Total pesanan: " + formatPrice(result.amount) + ". Scan QRIS statis DX STORE, masukkan nominal ini secara manual, lalu unggah bukti pembayaran. Admin akan memeriksa pembayaran sebelum pesanan dinyatakan lunas.";
     $("dxPaymentProof").disabled = false;
     $("dxSubmitProof").disabled = false;
     $("dxCheckPayment").disabled = false;
