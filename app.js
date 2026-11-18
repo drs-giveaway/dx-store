@@ -545,6 +545,7 @@ function updateDXDashboardVisibility() {
           <label for="dxSupportOrder">Nomor pesanan (opsional)</label><input id="dxSupportOrder" type="text" placeholder="Tempel ID pesanan jika ada">
           <label for="dxSupportSubject">Judul laporan</label><input id="dxSupportSubject" type="text" minlength="4" maxlength="120" required placeholder="Ringkas masalah yang dialami">
           <label for="dxSupportMessage">Ceritakan masalah</label><textarea id="dxSupportMessage" minlength="10" maxlength="4000" rows="4" required placeholder="Jelaskan kronologi dan bantuan yang dibutuhkan"></textarea>
+          <label for="dxSupportImage">Lampiran gambar (opsional, JPG/PNG/WEBP maks. 5 MB)</label><input id="dxSupportImage" type="file" accept="image/jpeg,image/png,image/webp">
           <button type="submit" id="dxSupportSubmit" class="dx-profile-primary">Kirim Laporan</button><p id="dxSupportFeedback" role="status" aria-live="polite"></p></form>
           <h4>Laporan Saya</h4><div id="dxMyTickets">Memuat laporan...</div></section>
         <article class="dx-profile-card dx-profile-ai">
@@ -1182,8 +1183,17 @@ async function submitDXSupportTicket(event){
  if(order&&!uuid.test(order)){feedback.textContent="ID pesanan tidak valid.";return;}
  btn.disabled=true;
  try{
-  const payload={user_id:currentUser.id,category:$("dxSupportCategory").value,subject:$("dxSupportSubject").value.trim(),message:$("dxSupportMessage").value.trim(),order_id:order||null};
-  const {data,error}=await dxSupabase.from("support_tickets").insert(payload).select("id").single();if(error)throw error;
+  const image=$("dxSupportImage")?.files?.[0];let imagePath=null;
+  if(image){
+   if(!["image/jpeg","image/png","image/webp"].includes(image.type)||image.size>5*1024*1024)throw new Error("Lampiran harus JPG, PNG, atau WEBP maksimal 5 MB.");
+   const ext=image.type==="image/jpeg"?"jpg":image.type==="image/png"?"png":"webp";
+   imagePath=currentUser.id+"/"+crypto.randomUUID()+"."+ext;
+   const {error:uploadError}=await dxSupabase.storage.from("support-attachments").upload(imagePath,image,{contentType:image.type,upsert:false});
+   if(uploadError)throw uploadError;
+  }
+  const payload={user_id:currentUser.id,category:$("dxSupportCategory").value,subject:$("dxSupportSubject").value.trim(),message:$("dxSupportMessage").value.trim(),order_id:order||null,image_path:imagePath};
+  const {data,error}=await dxSupabase.from("support_tickets").insert(payload).select("id").single();
+  if(error){if(imagePath)await dxSupabase.storage.from("support-attachments").remove([imagePath]);throw error;}
   $("dxSupportForm").reset();feedback.textContent="Laporan terkirim. Nomor tiket: "+data.id;await loadDXMyTickets();
  }catch(e){feedback.textContent="Gagal mengirim laporan: "+getDXError(e);}
  finally{btn.disabled=false;}
@@ -1193,14 +1203,14 @@ async function loadDXMyTickets(){
  host.textContent="Memuat laporan...";
  const {data,error}=await dxSupabase.from("support_tickets").select("id,category,subject,message,status,admin_reply,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(30);
  if(error){host.textContent="Laporan gagal dimuat: "+getDXError(error);return;}
- host.innerHTML=(data||[]).map(t=>`<article class="dx-ticket-card"><b>${safeText(t.subject)}</b><p>${safeText(t.category)} · ${safeText(t.status)}</p><small>No. tiket: ${safeText(t.id)}</small><p>${safeText(t.message)}</p>${t.admin_reply?`<p><b>Balasan admin:</b> ${safeText(t.admin_reply)}</p>`:"<p>Menunggu balasan admin.</p>"}</article>`).join("")||"Belum ada laporan.";
+ const cards=await Promise.all((data||[]).map(async t=>{let imageLink="";if(t.image_path){const {data:signed}=await dxSupabase.storage.from("support-attachments").createSignedUrl(t.image_path,300);if(signed?.signedUrl)imageLink=`<p><a href="${safeText(signed.signedUrl)}" target="_blank" rel="noopener">Lihat lampiran</a></p>`;}return `<article class="dx-ticket-card"><b>${safeText(t.subject)}</b><p>${safeText(t.category)} · ${safeText(t.status)}</p><small>No. tiket: ${safeText(t.id)}</small><p>${safeText(t.message)}</p>${imageLink}${t.admin_reply?`<p><b>Balasan admin:</b> ${safeText(t.admin_reply)}</p>`:"<p>Menunggu balasan admin.</p>"}</article>`;}));host.innerHTML=cards.join("")||"Belum ada laporan.";
 }
 async function loadDXAdminTickets(){
  const host=$("dxAdminTickets");if(!host||!currentUser||!(await checkDXAdmin()))return;
  host.textContent="Memuat laporan...";
- const {data,error}=await dxSupabase.from("support_tickets").select("id,user_id,order_id,category,subject,message,status,admin_reply,created_at").order("created_at",{ascending:false}).limit(100);
+ const {data,error}=await dxSupabase.from("support_tickets").select("id,user_id,order_id,category,subject,message,status,admin_reply,image_path,created_at").order("created_at",{ascending:false}).limit(100);
  if(error){host.textContent="Gagal memuat laporan: "+getDXError(error);return;}
- host.innerHTML=(data||[]).map(t=>`<article class="dx-ticket-card"><b>${safeText(t.subject)}</b><p>${safeText(t.category)} · ${safeText(t.status)}</p><small>${safeText(t.user_id)} · ${new Date(t.created_at).toLocaleString("id-ID")}</small>${t.order_id?`<p>Pesanan: ${safeText(t.order_id)}</p>`:""}<p>${safeText(t.message)}</p><label>Balasan admin</label><textarea id="dxReply-${safeText(t.id)}" rows="3" maxlength="4000">${safeText(t.admin_reply||"")}</textarea><label>Status</label><select id="dxTicketStatus-${safeText(t.id)}"><option ${t.status==="Menunggu"?"selected":""}>Menunggu</option><option ${t.status==="Sedang Ditangani"?"selected":""}>Sedang Ditangani</option><option ${t.status==="Menunggu Informasi Pengguna"?"selected":""}>Menunggu Informasi Pengguna</option><option ${t.status==="Selesai"?"selected":""}>Selesai</option><option ${t.status==="Ditolak"?"selected":""}>Ditolak</option></select><button type="button" data-dx-ticket-save="${safeText(t.id)}">Simpan Balasan &amp; Status</button></article>`).join("")||"Belum ada laporan.";
+ const cards=await Promise.all((data||[]).map(async t=>{let imageLink="";if(t.image_path){const {data:signed}=await dxSupabase.storage.from("support-attachments").createSignedUrl(t.image_path,300);if(signed?.signedUrl)imageLink=`<p><a href="${safeText(signed.signedUrl)}" target="_blank" rel="noopener">Lihat lampiran</a></p>`;}return `<article class="dx-ticket-card"><b>${safeText(t.subject)}</b><p>${safeText(t.category)} · ${safeText(t.status)}</p><small>${safeText(t.user_id)} · ${new Date(t.created_at).toLocaleString("id-ID")}</small>${t.order_id?`<p>Pesanan: ${safeText(t.order_id)}</p>`:""}<p>${safeText(t.message)}</p>${imageLink}<label>Balasan admin</label><textarea id="dxReply-${safeText(t.id)}" rows="3" maxlength="4000">${safeText(t.admin_reply||"")}</textarea><label>Status</label><select id="dxTicketStatus-${safeText(t.id)}"><option ${t.status==="Menunggu"?"selected":""}>Menunggu</option><option ${t.status==="Sedang Ditangani"?"selected":""}>Sedang Ditangani</option><option ${t.status==="Menunggu Informasi Pengguna"?"selected":""}>Menunggu Informasi Pengguna</option><option ${t.status==="Selesai"?"selected":""}>Selesai</option><option ${t.status==="Ditolak"?"selected":""}>Ditolak</option></select><button type="button" data-dx-ticket-save="${safeText(t.id)}">Simpan Balasan &amp; Status</button></article>`;}));host.innerHTML=cards.join("")||"Belum ada laporan.";
 }
 async function updateDXAdminTicket(id){
  if(!currentUser||!(await checkDXAdmin()))return;
