@@ -123,12 +123,7 @@ function showDXAdminMessage(message) {
 /* MODAL LOGIN */
 
 function openAuth() {
-  const modal = $("authModal");
-
-  if (modal) {
-    modal.classList.add("active");
-    showDXMessage("");
-  }
+  window.location.href = "login.html";
 }
 
 function closeAuth() {
@@ -794,7 +789,7 @@ async function handleDXLogout() {
   if (panel) panel.style.display = "none";
 
   updateDXHeaderAuth();
-  await loadDXStore();
+  window.location.href = "login.html";
 }
 
 /* NAVIGASI */
