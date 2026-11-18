@@ -278,6 +278,26 @@ function closeAuth() {
   }
 }
 
+let dxActiveView = "home";
+function showDXView(view) {
+  if (!currentUser || !["home","products","accounts","profile"].includes(view)) return;
+  dxActiveView = view;
+  const dashboard = $("dxDashboard"), home = $("home"), products = $("products"), accounts = $("accounts");
+  const cta = document.querySelector(".dx-cta");
+  if (dashboard) dashboard.hidden = !["home","profile"].includes(view);
+  if (home) home.hidden = true;
+  if (products) products.hidden = view !== "products";
+  if (accounts) accounts.hidden = view !== "accounts";
+  if (cta) cta.hidden = true;
+  const panel = $("dxProfilePanel"); if (panel) panel.hidden = view !== "profile";
+  const target = view === "products" ? products : view === "accounts" ? accounts : dashboard;
+  if (target) window.scrollTo({ top: 0, behavior: "auto" });
+  document.querySelectorAll("#dxBottomNav [data-dx-view]").forEach(el => {
+    const active = el.dataset.dxView === view;
+    el.classList.toggle("active", active);
+    if (active) el.setAttribute("aria-current","page"); else el.removeAttribute("aria-current");
+  });
+}
 function updateDXDashboardVisibility() {
   const main = document.querySelector("main");
   const hero = $("home");
@@ -299,11 +319,12 @@ function updateDXDashboardVisibility() {
         <div class="dx-dana-cardfoot"><span>NEGARA & MATA UANG</span><strong id="dxDashboardCurrency">IDR · Indonesia</strong></div>
       </div>
       <div class="dx-dana-shortcuts">
-        <a href="#products"><span>▣</span><strong>Produk</strong></a>
-        <a href="#accounts"><span>🎮</span><strong>Akun Game</strong></a>
-        <a href="#products"><span>⌕</span><strong>Cari</strong></a>
-        <a href="#accounts"><span>＋</span><strong>Jual Akun</strong></a>
+        <button type="button" data-dx-view="products"><span>▣</span><strong>Produk</strong></button>
+        <button type="button" data-dx-view="accounts"><span>🎮</span><strong>Akun Game</strong></button>
+        <button type="button" data-dx-view="products"><span>⌕</span><strong>Cari</strong></button>
+        <button type="button" data-dx-view="accounts"><span>＋</span><strong>Jual Akun</strong></button>
       </div>
+      <section id="dxProfilePanel" hidden><h2>Pengaturan Akun</h2><p>Ubah negara dan mata uang melalui pilihan di bagian atas.</p></section>
       <div class="dx-dana-sectionhead"><div><small>DX MARKETPLACE</small><h2>Jelajahi layanan</h2></div><span>DX-01</span></div>
     `;
     main.insertBefore(dashboard, hero);
@@ -322,18 +343,13 @@ function updateDXDashboardVisibility() {
     bottom = document.createElement("nav");
     bottom.id = "dxBottomNav";
     bottom.setAttribute("aria-label","Navigasi utama");
-    bottom.innerHTML = '<a href="#dxDashboard"><span>⌂</span><small>Beranda</small></a><a href="#products"><span>▣</span><small>Produk</small></a><a href="#accounts"><span>🎮</span><small>Akun Game</small></a><button type="button" id="dxBottomProfile"><span>◎</span><small>Akun</small></button>';
+    bottom.innerHTML = '<button type="button" data-dx-view="home"><span>⌂</span><small>Beranda</small></button><button type="button" data-dx-view="products"><span>▣</span><small>Produk</small></button><button type="button" data-dx-view="accounts"><span>🎮</span><small>Akun Game</small></button><button type="button" data-dx-view="profile"><span>◎</span><small>Akun</small></button>';
     document.body.appendChild(bottom);
-    bottom.querySelectorAll('a').forEach(link => link.addEventListener("click", event => {
-      const target = document.querySelector(link.getAttribute("href"));
-      if (target) { event.preventDefault(); target.scrollIntoView({behavior:"smooth",block:"start"}); }
-    }));
-    $("dxBottomProfile").addEventListener("click", () => {
-      const selector = $("dxCountry");
-      if (selector) { selector.focus(); selector.scrollIntoView({behavior:"smooth",block:"center"}); }
-    });
+    bottom.querySelectorAll("[data-dx-view]").forEach(item => item.addEventListener("click", () => showDXView(item.dataset.dxView)));
+    dashboard.querySelectorAll(".dx-dana-shortcuts [data-dx-view]").forEach(item => item.addEventListener("click", () => showDXView(item.dataset.dxView)));
   }
   bottom.hidden = !visible;
+  if (visible) showDXView(dxActiveView);
   applyDXLanguage();
 }
 
