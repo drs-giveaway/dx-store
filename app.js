@@ -815,6 +815,53 @@ async function refreshDXUser() {
   }
 }
 
+/* SALAM PERPISAHAN MASKOT DX-01 */
+function showDXMascotFarewell() {
+  const country = getDXCountry();
+  const messages = {
+    ID: ["Sampai jumpa! Terima kasih sudah berkunjung ke DX STORE. Semoga harimu menyenangkan!", "id-ID"],
+    MY: ["Jumpa lagi! Terima kasih kerana mengunjungi DX STORE. Semoga hari anda menyenangkan!", "ms-MY"],
+    SG: ["See you again! Thanks for visiting DX STORE. Have a great day!", "en-SG"],
+    US: ["See you next time! Thanks for visiting DX STORE. Have a wonderful day!", "en-US"],
+    JP: ["またお会いしましょう！DX STOREをご利用いただき、ありがとうございます。良い一日を！", "ja-JP"],
+    TH: ["แล้วพบกันใหม่นะ! ขอบคุณที่แวะมา DX STORE ขอให้เป็นวันที่ดี!", "th-TH"],
+    PH: ["See you again! Thank you for visiting DX STORE. Have a great day!", "en-PH"],
+    AU: ["See you next time! Thanks for visiting DX STORE. Have a great day!", "en-AU"],
+    GB: ["Goodbye for now! Thanks for visiting DX STORE. Have a lovely day!", "en-GB"],
+    DE: ["Bis zum nächsten Mal! Danke für deinen Besuch bei DX STORE. Hab einen schönen Tag!", "de-DE"],
+    FR: ["À bientôt ! Merci de votre visite sur DX STORE. Passez une excellente journée !", "fr-FR"],
+    IN: ["फिर मिलेंगे! DX STORE पर आने के लिए धन्यवाद। आपका दिन शुभ हो!", "hi-IN"],
+    KR: ["다음에 또 만나요! DX STORE를 방문해 주셔서 감사합니다. 좋은 하루 보내세요!", "ko-KR"],
+    BR: ["Até a próxima! Obrigado por visitar a DX STORE. Tenha um ótimo dia!", "pt-BR"],
+    CA: ["See you next time! Thanks for visiting DX STORE. Have a great day!", "en-CA"],
+    CN: ["再见！感谢您访问 DX STORE，祝您今天愉快！", "zh-CN"]
+  };
+  const [message, lang] = messages[country.code] || messages.ID;
+  let bubble = document.getElementById("dxMascotFarewell");
+  if (!bubble) {
+    bubble = document.createElement("div");
+    bubble.id = "dxMascotFarewell";
+    bubble.setAttribute("role", "status");
+    bubble.setAttribute("aria-live", "polite");
+    bubble.style.cssText = "position:fixed;z-index:99999;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px));padding:22px 24px;border:1px solid #51e5ff99;border-radius:18px;background:linear-gradient(145deg,#13284a,#171333);box-shadow:0 18px 70px #000b,0 0 28px #278fff55;color:#f4f8ff;text-align:center;font:600 15px/1.65 Inter,sans-serif";
+    document.body.appendChild(bubble);
+  }
+  bubble.innerHTML = '<div style="color:#51e5ff;font-size:11px;letter-spacing:2px;font-weight:900;margin-bottom:8px">DX-01 · SEE YOU AGAIN</div><div></div>';
+  bubble.lastElementChild.textContent = message;
+  if ("speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.lang = lang;
+    utterance.rate = 1;
+    window.speechSynthesis.speak(utterance);
+  }
+  return new Promise(resolve => window.setTimeout(() => {
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    bubble.remove();
+    resolve();
+  }, 2200));
+}
+
 /* KELUAR DARI AKUN */
 
 async function handleDXLogout() {
@@ -834,6 +881,7 @@ async function handleDXLogout() {
   if (panel) panel.style.display = "none";
 
   updateDXHeaderAuth();
+  await showDXMascotFarewell();
   window.location.href = "login.html";
 }
 
