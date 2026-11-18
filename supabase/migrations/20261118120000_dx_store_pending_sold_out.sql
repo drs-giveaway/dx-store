@@ -1,19 +1,6 @@
 -- DX STORE: separate listing moderation from sale availability.
--- Keep this migration self-contained with the existing manual QRIS order schema.
-alter table public.orders
-  add column if not exists item_type text,
-  add column if not exists item_id uuid,
-  add column if not exists item_name text,
-  add column if not exists proof_path text;
-
-alter table public.orders drop constraint if exists orders_status_check;
-alter table public.orders add constraint orders_status_check
-  check (status in ('pending', 'paid', 'processing', 'completed', 'cancelled', 'disputed', 'review', 'rejected', 'expired', 'failed'));
-
-alter table public.orders drop constraint if exists orders_item_type_check;
-alter table public.orders add constraint orders_item_type_check
-  check (item_type is null or item_type in ('product', 'account'));
-
+-- Existing orders already use buyer_id and total_amount; item references and proof_path
+-- are already part of the live schema.
 -- PENDING reserves a listing; SOLD OUT is permanent until an admin reactivates it.
 alter table public.products
   add column if not exists sale_status text not null default 'available';
@@ -46,10 +33,9 @@ set search_path = public
 as $$
 declare
   v_name text;
-  v_price bigint;
+  v_price numeric;
   v_status text;
   v_sale_status text;
-  v_order_id text;
   v_id uuid;
 begin
   if p_item_type = 'product' then
@@ -72,12 +58,11 @@ begin
     raise exception 'DX_ITEM_UNAVAILABLE';
   end if;
 
-  v_order_id := 'DX-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 12));
-  insert into public.orders (user_id, order_id, item_type, item_id, item_name, amount, status)
-  values (p_user_id, v_order_id, p_item_type, p_item_id, v_name, v_price, 'pending')
+  insert into public.orders (buyer_id, total_amount, item_type, item_id, item_name, status)
+  values (p_user_id, v_price, p_item_type, p_item_id, v_name, v_price, 'pending')
   returning id into v_id;
 
-  return jsonb_build_object('id', v_id, 'order_id', v_order_id, 'amount', v_price, 'status', 'pending');
+  return jsonb_build_object('id', v_id, 'amount', v_price, 'status', 'pending');
 end;
 $$;
 
@@ -122,8 +107,7 @@ begin
   end if;
 
   v_new_status := p_decision;
-  update public.orders set status = v_new_status, updated_at = now()
-    where id = p_order_id;
+  update public.orders set status = v_new_status where id = p_order_id;
   return jsonb_build_object('id', p_order_id, 'status', v_new_status);
 end;
 $$;
