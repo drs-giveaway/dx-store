@@ -438,6 +438,20 @@ let dxActiveView = "home";
 if (!window.dxViewNavigationBound) {
   window.dxViewNavigationBound = true;
   document.addEventListener("click", event => {
+    const actionButton = event.target.closest("#dxDashboard [data-dx-action]");
+    if (actionButton) {
+      if (!currentUser) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (actionButton.dataset.dxAction === "search") {
+        showDXView("products");
+        setTimeout(() => $("dxMarketplaceSearch")?.focus(), 0);
+      } else if (actionButton.dataset.dxAction === "sell-account") {
+        showDXView("accounts");
+        setTimeout(() => $("dxSellerFormWrap")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      }
+      return;
+    }
     const viewButton = event.target.closest("#dxBottomNav [data-dx-view], #dxDashboard [data-dx-view]");
     if (viewButton) {
       if (!currentUser) return;
@@ -499,8 +513,8 @@ function updateDXDashboardVisibility() {
       <div class="dx-dana-shortcuts">
         <button type="button" data-dx-view="products"><span>▣</span><strong>Produk</strong></button>
         <button type="button" data-dx-view="accounts"><span>🎮</span><strong>Akun Game</strong></button>
-        <button type="button" data-dx-view="products"><span>⌕</span><strong>Cari</strong></button>
-        <button type="button" data-dx-view="accounts"><span>＋</span><strong>Jual Akun</strong></button>
+        <button type="button" data-dx-action="search"><span>⌕</span><strong>Cari</strong></button>
+        <button type="button" data-dx-action="sell-account"><span>＋</span><strong>Jual Akun</strong></button>
       </div>
       <section id="dxProfilePanel" hidden>
         <div class="dx-account-card">
