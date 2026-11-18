@@ -123,6 +123,50 @@ const DX_TRANSLATIONS = {
   hi: {"Beranda":"होम","Produk Digital":"डिजिटल उत्पाद","Akun Game":"गेम खाते","Masuk / Daftar":"लॉगिन / रजिस्टर","Keluar":"लॉग आउट","Jelajahi Produk":"उत्पाद देखें","Lihat Akun Game":"गेम खाते देखें","Marketplace Akun Game":"गेम अकाउंट मार्केटप्लेस","Cari produk atau akun game...":"उत्पाद या गेम खाता खोजें...","Lihat Produk":"उत्पाद देखें","Lihat Akun":"खाता देखें","Sedang Dipesan":"लंबित","Habis Terjual":"बिक गया"}
 };
 
+
+Object.assign(DX_TRANSLATIONS.en, {
+  "Halo,":"Hello,","Semua kebutuhan digitalmu dalam satu tempat.":"All your digital needs in one place.",
+  "NEGARA & MATA UANG":"COUNTRY & CURRENCY","Marketplace Digital":"Digital Marketplace",
+  "Jelajahi layanan":"Explore services","Produk":"Products","Cari":"Search","Jual Akun":"Sell Account","Akun":"Account",
+  "Pengaturan Akun":"Account Settings","Ubah negara dan mata uang melalui pilihan di bagian atas.":"Change your country and currency using the selector above.",
+  "Belum ada produk digital.":"No digital products yet.","Belum ada akun game.":"No game accounts yet.",
+  "Produk gagal dimuat.":"Could not load products.","Akun game gagal dimuat.":"Could not load game accounts.",
+  "Memuat akun game...":"Loading game accounts...","Memuat produk...":"Loading products...",
+  "Lanjutkan":"Continue","Tutup":"Close","Deskripsi":"Description","Harga":"Price",
+  "Menunggu pembayaran":"Awaiting payment","Menunggu pemeriksaan admin":"Awaiting admin review",
+  "Kirim Bukti Pembayaran":"Submit Payment Proof","Buat Pesanan":"Create Order",
+  "Membuat pesanan...":"Creating order...","Pesanan Dibuat":"Order Created",
+  "Pilih bukti JPG/PNG dengan ukuran maksimal 4 MB.":"Choose a JPG/PNG proof file up to 4 MB.",
+  "Bukti diterima. Pesanan belum lunas sampai admin memeriksa dana masuk.":"Proof received. The order is not paid until the admin verifies the incoming payment.",
+  "Bayar tepat":"Pay exactly","Tidak berlaku sebagai QRIS dinamis":"This is not a dynamic QRIS payment",
+  "Belum punya akun? Daftar":"Don't have an account? Register","Masuk":"Sign in","Daftar":"Register",
+  "Memproses...":"Processing...","Keluar...":"Signing out...","Menyimpan...":"Saving...",
+  "Belum ada pesanan.":"No orders yet.","Memuat pesanan...":"Loading orders...",
+  "Data gagal dimuat:":"Could not load data:","Belum ada data.":"No data yet.",
+  "Nama produk":"Product name","Deskripsi produk atau akun":"Product or account description",
+  "Harga (Rupiah)":"Price (IDR)","Simpan Produk":"Save Product","Pilih gambar":"Choose image"
+});
+Object.assign(DX_TRANSLATIONS.ms, {
+  "Halo,":"Helo,","Semua kebutuhan digitalmu dalam satu tempat.":"Semua keperluan digital anda di satu tempat.",
+  "NEGARA & MATA UANG":"NEGARA & MATA WANG","Marketplace Digital":"Pasaran Digital",
+  "Jelajahi layanan":"Terokai perkhidmatan","Produk":"Produk","Cari":"Cari","Jual Akun":"Jual Akaun","Akun":"Akaun",
+  "Pengaturan Akun":"Tetapan Akaun","Ubah negara dan mata uang melalui pilihan di bagian atas.":"Tukar negara dan mata wang melalui pilihan di atas.",
+  "Belum ada produk digital.":"Belum ada produk digital.","Belum ada akun game.":"Belum ada akaun permainan.",
+  "Produk gagal dimuat.":"Produk gagal dimuatkan.","Akun game gagal dimuat.":"Akaun permainan gagal dimuatkan.",
+  "Lanjutkan":"Teruskan","Tutup":"Tutup","Deskripsi":"Penerangan","Harga":"Harga",
+  "Menunggu pembayaran":"Menunggu pembayaran","Kirim Bukti Pembayaran":"Hantar Bukti Pembayaran",
+  "Buat Pesanan":"Buat Tempahan","Memproses...":"Sedang diproses...","Menyimpan...":"Menyimpan..."
+});
+Object.assign(DX_TRANSLATIONS.ja, {
+  "Halo,":"こんにちは、","Semua kebutuhan digitalmu dalam satu tempat.":"デジタルに必要なものをすべてここで。",
+  "NEGARA & MATA UANG":"国と言語・通貨","Marketplace Digital":"デジタルマーケット",
+  "Jelajahi layanan":"サービスを見る","Produk":"商品","Cari":"検索","Jual Akun":"アカウントを販売","Akun":"アカウント",
+  "Pengaturan Akun":"アカウント設定","Belum ada produk digital.":"デジタル商品はまだありません。",
+  "Belum ada akun game.":"ゲームアカウントはまだありません。","Lanjutkan":"続行","Tutup":"閉じる",
+  "Deskripsi":"説明","Harga":"価格","Menunggu pembayaran":"支払い待ち","Kirim Bukti Pembayaran":"支払い証明を送信",
+  "Buat Pesanan":"注文する","Memproses...":"処理中...","Menyimpan...":"保存中..."
+});
+
 function getDXCountry() {
   const code = localStorage.getItem("dx-country") || "ID";
   return DX_COUNTRIES[code] ? { code, ...DX_COUNTRIES[code] } : { code: "ID", ...DX_COUNTRIES.ID };
@@ -131,8 +175,7 @@ function getDXCountry() {
 function applyDXLanguage() {
   const country = getDXCountry();
   const language = country.language.split("-")[0];
-  const dictionary = DX_TRANSLATIONS[language] || (language === "id" ? null : DX_TRANSLATIONS.en);
-  if (!dictionary) return;
+  const dictionary = language === "id" ? {} : (DX_TRANSLATIONS[language] || DX_TRANSLATIONS.en || {});
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
@@ -140,12 +183,20 @@ function applyDXLanguage() {
     if (node.__dxOriginalText === undefined) node.__dxOriginalText = node.nodeValue;
     const raw = node.__dxOriginalText;
     const trimmed = raw.trim();
-    node.nodeValue = dictionary && dictionary[trimmed] ? raw.replace(trimmed, dictionary[trimmed]) : raw;
+    const translated = dictionary[trimmed];
+    node.nodeValue = translated ? raw.replace(trimmed, translated) : raw;
   });
-  document.querySelectorAll("[placeholder]").forEach(el => {
-    if (el.dataset.dxOriginalPlaceholder === undefined) el.dataset.dxOriginalPlaceholder = el.placeholder;
-    el.placeholder = dictionary?.[el.dataset.dxOriginalPlaceholder] || el.dataset.dxOriginalPlaceholder;
+  document.querySelectorAll("[placeholder],[aria-label],[title]").forEach(el => {
+    ["placeholder","aria-label","title"].forEach(attribute => {
+      if (!el.hasAttribute(attribute)) return;
+      const key = "dxOriginal" + attribute.replace(/(^|-)([a-z])/g, (_, dash, ch) => ch.toUpperCase());
+      if (el.dataset[key] === undefined) el.dataset[key] = el.getAttribute(attribute);
+      const original = el.dataset[key];
+      el.setAttribute(attribute, dictionary[original] || original);
+    });
   });
+  const titles = {en:"DX STORE — Digital Marketplace",ms:"DX STORE — Pasaran Digital",ja:"DX STORE — デジタルマーケット",de:"DX STORE — Digitaler Marktplatz",fr:"DX STORE — Marché numérique",zh:"DX STORE — 数字市场",ko:"DX STORE — 디지털 마켓",th:"DX STORE — ตลาดดิจิทัล",pt:"DX STORE — Mercado Digital",hi:"DX STORE — डिजिटल मार्केटप्लेस"};
+  document.title = language === "id" ? "DX STORE — Marketplace Digital" : (titles[language] || titles.en);
 }
 
 async function loadDXExchangeRates() {
