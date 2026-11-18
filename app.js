@@ -564,6 +564,8 @@ function updateDXDashboardVisibility() {
     main.insertBefore(dashboard, hero);
   }
   mountDXMascotVoice();
+  const storeBanner = $("dxStoreNoticeBanner");
+  if (storeBanner && storeBanner.parentElement !== main) main.insertBefore(storeBanner, dashboard);
   const visible = !!currentUser;
   loadDXStoreAvailability();
   dashboard.hidden = !visible;
