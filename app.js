@@ -262,29 +262,48 @@ function applyDXLanguage() {
   const country = getDXCountry();
   const language = country.language.split("-")[0];
   const dictionary = language === "id" ? {} : (DX_TRANSLATIONS[language] || DX_TRANSLATIONS.en || {});
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  const nodes = [];
-  while (walker.nextNode()) nodes.push(walker.currentNode);
-  nodes.forEach(node => {
-    if (node.__dxOriginalText === undefined) node.__dxOriginalText = node.nodeValue;
-    const raw = node.__dxOriginalText;
-    const trimmed = raw.trim();
-    const translated = dictionary[trimmed];
-    node.nodeValue = translated ? raw.replace(trimmed, translated) : raw;
-  });
-  document.querySelectorAll("[placeholder],[aria-label],[title]").forEach(el => {
-    ["placeholder","aria-label","title"].forEach(attribute => {
-      if (!el.hasAttribute(attribute)) return;
-      const key = "dxOriginal" + attribute.replace(/(^|-)([a-z])/g, (_, dash, ch) => ch.toUpperCase());
-      if (el.dataset[key] === undefined) el.dataset[key] = el.getAttribute(attribute);
-      const original = el.dataset[key];
-      el.setAttribute(attribute, dictionary[original] || original);
+  const translateTree = root => {
+    if (!root) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(node => {
+      if (node.parentElement?.closest("script,style,noscript,code,pre")) return;
+      if (node.__dxOriginalText === undefined) node.__dxOriginalText = node.nodeValue;
+      const raw = node.__dxOriginalText;
+      const trimmed = raw.trim();
+      const translated = dictionary[trimmed];
+      const next = translated ? raw.replace(trimmed, translated) : raw;
+      if (node.nodeValue !== next) node.nodeValue = next;
     });
-  });
+    if (root.querySelectorAll) root.querySelectorAll("[placeholder],[aria-label],[title]").forEach(el => {
+      ["placeholder","aria-label","title"].forEach(attribute => {
+        if (!el.hasAttribute(attribute)) return;
+        const key = "dxOriginal" + attribute.replace(/(^|-)([a-z])/g, (_, dash, ch) => ch.toUpperCase());
+        if (el.dataset[key] === undefined) el.dataset[key] = el.getAttribute(attribute);
+        const original = el.dataset[key];
+        const translated = dictionary[original] || original;
+        if (el.getAttribute(attribute) !== translated) el.setAttribute(attribute, translated);
+      });
+    });
+  };
+  translateTree(document.body);
   const titles = {en:"DX STORE — Digital Marketplace",ms:"DX STORE — Pasaran Digital",ja:"DX STORE — デジタルマーケット",de:"DX STORE — Digitaler Marktplatz",fr:"DX STORE — Marché numérique",zh:"DX STORE — 数字市场",ko:"DX STORE — 디지털 마켓",th:"DX STORE — ตลาดดิจิทัล",pt:"DX STORE — Mercado Digital",hi:"DX STORE — डिजिटल मार्केटप्लेस"};
-  document.title = language === "id" ? "DX STORE — Marketplace Digital" : (titles[language] || titles.en);
+  const nextTitle = language === "id" ? "DX STORE — Marketplace Digital" : (titles[language] || titles.en);
+  if (document.title !== nextTitle) document.title = nextTitle;
+  if (!window.dxLanguageObserver && document.body) {
+    window.dxLanguageObserver = new MutationObserver(records => {
+      records.forEach(record => {
+        record.addedNodes?.forEach(node => {
+          if (node.nodeType === Node.TEXT_NODE) translateTree(node.parentElement || document.body);
+          else if (node.nodeType === Node.ELEMENT_NODE) translateTree(node);
+        });
+        if (record.type === "characterData" && record.target.parentElement) translateTree(record.target.parentElement);
+      });
+    });
+    window.dxLanguageObserver.observe(document.body,{childList:true,subtree:true,characterData:true});
+  }
 }
-
 async function loadDXExchangeRates() {
   if (dxExchangeRatePromise) return dxExchangeRatePromise;
   dxExchangeRatePromise = (async () => {
