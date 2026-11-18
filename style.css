@@ -934,3 +934,18 @@ section {
     text-align: center;
   }
 }
+
+/* DX ACCOUNT, SUPPORT AND OPERATIONS */
+.dx-ticket-card{margin:12px 0;padding:14px;border:1px solid rgba(81,229,255,.18);border-radius:13px;background:#0b1426;color:#eaf4ff;overflow-wrap:anywhere}
+.dx-ticket-card p{margin:7px 0;color:#b5c3da;line-height:1.6;font-size:13px}
+.dx-ticket-card small{color:#8fa6c8;font-size:11px}
+#dxHelpCenter form{display:grid;gap:9px;margin:14px 0 22px}
+#dxHelpCenter label,#dxAdminPanel label{color:#cbd5e1;font-size:13px}
+#dxHelpCenter input,#dxHelpCenter select,#dxHelpCenter textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #334b70;border-radius:9px;background:#0b1426;color:#fff}
+#dxHelpCenter textarea{resize:vertical}
+#dxHelpCenter button,#dxOrderHistory button{padding:10px 14px;border:1px solid #51e5ff55;border-radius:9px;background:#1267c8;color:#fff;font-weight:800}
+.dx-admin-stat{display:inline-flex;min-width:110px;flex-direction:column;gap:4px;margin:6px;padding:15px;border:1px solid #51e5ff33;border-radius:12px;background:#0b1426}
+.dx-admin-stat b{font-size:24px;color:#51e5ff}.dx-admin-stat small{color:#aab8d0}
+#dxStoreSettingsForm{display:grid;gap:9px;margin:15px 0}
+#dxStoreSettingsForm input:not([type=checkbox]),#dxStoreSettingsForm select{width:100%;box-sizing:border-box;padding:11px;border:1px solid #334b70;border-radius:8px;background:#0b1426;color:#fff}
+#dxStoreSettingsForm button{padding:12px 16px;border:0;border-radius:9px;background:#0879d1;color:#fff;font-weight:800}
