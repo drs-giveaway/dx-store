@@ -1,4 +1,19 @@
 -- DX STORE: separate listing moderation from sale availability.
+-- Keep this migration self-contained with the existing manual QRIS order schema.
+alter table public.orders
+  add column if not exists item_type text,
+  add column if not exists item_id uuid,
+  add column if not exists item_name text,
+  add column if not exists proof_path text;
+
+alter table public.orders drop constraint if exists orders_status_check;
+alter table public.orders add constraint orders_status_check
+  check (status in ('pending', 'paid', 'processing', 'completed', 'cancelled', 'disputed', 'review', 'rejected', 'expired', 'failed'));
+
+alter table public.orders drop constraint if exists orders_item_type_check;
+alter table public.orders add constraint orders_item_type_check
+  check (item_type is null or item_type in ('product', 'account'));
+
 -- PENDING reserves a listing; SOLD OUT is permanent until an admin reactivates it.
 alter table public.products
   add column if not exists sale_status text not null default 'available';
