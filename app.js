@@ -549,7 +549,7 @@ function updateDXDashboardVisibility() {
         </article>
         <section id="dxOrderHistory" class="dx-profile-card"><div class="dx-profile-card-head"><div><small>TRANSAKSI</small><h3>Riwayat Pesanan</h3></div><button type="button" id="dxRefreshOrders">Muat ulang</button></div><div id="dxOrderHistoryList">Memuat pesanan...</div></section>
         <section id="dxHelpCenter" class="dx-profile-card"><div class="dx-profile-card-head"><div><small>DUKUNGAN PELANGGAN</small><h3>Pusat Bantuan &amp; Laporan</h3></div><span>?</span></div>
-          <form id="dxSupportForm"><label for="dxSupportCategory">Kategori masalah</label><select id="dxSupportCategory" required><option>Pembayaran</option><option>Pesanan</option><option>Produk</option><option>Akun</option><option>Login</option><option>Lainnya</option></select>
+          <form id="dxSupportForm"><label for="dxSupportCategory">Kategori masalah</label><select id="dxSupportCategory" required><option>Pembayaran</option><option>Pesanan</option><option>Garansi</option><option>Produk</option><option>Akun</option><option>Login</option><option>Lainnya</option></select>
           <label for="dxSupportOrder">Nomor pesanan (opsional)</label><input id="dxSupportOrder" type="text" placeholder="Tempel ID pesanan jika ada">
           <label for="dxSupportSubject">Judul laporan</label><input id="dxSupportSubject" type="text" minlength="4" maxlength="120" required placeholder="Ringkas masalah yang dialami">
           <label for="dxSupportMessage">Ceritakan masalah</label><textarea id="dxSupportMessage" minlength="10" maxlength="4000" rows="4" required placeholder="Jelaskan kronologi dan bantuan yang dibutuhkan"></textarea>
@@ -846,6 +846,7 @@ async function loadProducts() {
           <h3>${safeText(item.name)}</h3>
           <p>${safeText(item.description || "")}</p>
           <strong>${formatPrice(item.price)}</strong>
+          ${Number(item.warranty_days ?? 7) > 0 ? `<p class="dx-product-warranty">🛡️ Garansi ${Number(item.warranty_days ?? 7)} hari</p>` : '<p class="dx-product-warranty">Tanpa garansi</p>'}
           ${item.sale_status === "pending" ? '<span class="dx-stock-status">PENDING — SEDANG DIPESAN</span>' : item.sale_status === "sold_out" ? '<span class="dx-stock-status dx-sold-out">SOLD OUT</span>' : ''}
           <button class="dx-button" type="button" ${item.sale_status !== "available" ? "disabled" : ""} onclick="selectItem('product','${safeText(item.id)}')">
             ${item.sale_status === "pending" ? "Sedang Dipesan" : item.sale_status === "sold_out" ? "Habis Terjual" : "Lihat Produk"}
@@ -921,7 +922,7 @@ function selectItem(type, id) {
         modal = document.createElement("div");
         modal.id = "dxProductDetailModal";
         modal.className = "dx-detail-overlay";
-        modal.innerHTML = '<section class="dx-detail-panel" role="dialog" aria-modal="true" aria-labelledby="dxDetailName"><button type="button" class="dx-detail-close" aria-label="Tutup">&times;</button><div id="dxDetailPhoto" class="dx-detail-photo"></div><div class="dx-detail-copy"><span id="dxDetailType" class="dx-detail-label"></span><h2 id="dxDetailName"></h2><p id="dxDetailDescription"></p><strong id="dxDetailPrice" class="dx-detail-price"></strong><button type="button" id="dxDetailOrder" class="dx-button">Lanjutkan</button></div></section>';
+        modal.innerHTML = '<section class="dx-detail-panel" role="dialog" aria-modal="true" aria-labelledby="dxDetailName"><button type="button" class="dx-detail-close" aria-label="Tutup">&times;</button><div id="dxDetailPhoto" class="dx-detail-photo"></div><div class="dx-detail-copy"><span id="dxDetailType" class="dx-detail-label"></span><h2 id="dxDetailName"></h2><p id="dxDetailDescription"></p><strong id="dxDetailPrice" class="dx-detail-price"></strong><div id="dxDetailWarranty" class="dx-detail-warranty"></div><button type="button" id="dxDetailOrder" class="dx-button">Lanjutkan</button></div></section>';
         document.body.appendChild(modal);
         modal.querySelector(".dx-detail-close").addEventListener("click", () => modal.classList.remove("active"));
         modal.addEventListener("click", event => { if (event.target === modal) modal.classList.remove("active"); });
@@ -934,6 +935,15 @@ function selectItem(type, id) {
       modal.querySelector("#dxDetailType").textContent = type === "account" ? (data.game || "AKUN GAME") : (data.category || "PRODUK DIGITAL");
       modal.querySelector("#dxDetailDescription").textContent = data.description || "Belum ada deskripsi tambahan.";
       modal.querySelector("#dxDetailPrice").textContent = formatPrice(data.price);
+      const warrantyBox = modal.querySelector("#dxDetailWarranty");
+      if (type === "product") {
+        const days = Number(data.warranty_days ?? 7);
+        warrantyBox.innerHTML = days > 0
+          ? '<strong>🛡️ Garansi resmi DX STORE · ' + days + ' hari</strong><p>' + safeText(data.warranty_terms || "Ajukan klaim melalui Pusat Bantuan dengan ID pesanan.") + '</p>'
+          : '<strong>Produk ini tidak memiliki garansi.</strong>';
+      } else {
+        warrantyBox.innerHTML = "";
+      }
       modal.querySelector("#dxDetailPhoto").innerHTML = image ? '<img src="' + safeText(image) + '" alt="' + safeText(name) + '">' : '<span>DX STORE</span>';
       const unavailable = data.status !== "active" || (data.sale_status || "available") !== "available";
       modal.querySelector("#dxDetailOrder").disabled = unavailable;
@@ -1192,6 +1202,17 @@ async function submitDXSupportTicket(event){
  const btn=$("dxSupportSubmit"),feedback=$("dxSupportFeedback"),order=$("dxSupportOrder").value.trim();
  const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
  if(order&&!uuid.test(order)){feedback.textContent="ID pesanan tidak valid.";return;}
+ const category=$("dxSupportCategory").value;
+ if(category==="Garansi"){
+  if(!order){feedback.textContent="ID pesanan wajib diisi untuk klaim garansi.";return;}
+  const {data:purchase,error:purchaseError}=await dxSupabase.from("orders").select("id,item_type,item_id,status,created_at").eq("id",order).eq("buyer_id",currentUser.id).maybeSingle();
+  if(purchaseError||!purchase){feedback.textContent="Pesanan tidak ditemukan pada akun ini.";return;}
+  if(purchase.status!=="paid"||purchase.item_type!=="product"||!purchase.item_id){feedback.textContent="Garansi hanya untuk produk resmi DX STORE yang sudah dibayar.";return;}
+  const {data:product,error:productError}=await dxSupabase.from("products").select("warranty_days").eq("id",purchase.item_id).maybeSingle();
+  if(productError||!product||Number(product.warranty_days??7)<=0){feedback.textContent="Produk ini tidak memiliki garansi.";return;}
+  const expiresAt=new Date(purchase.created_at).getTime()+Number(product.warranty_days??7)*86400000;
+  if(Date.now()>expiresAt){feedback.textContent="Masa garansi pesanan ini sudah berakhir.";return;}
+ }
  btn.disabled=true;
  try{
   const image=$("dxSupportImage")?.files?.[0];let imagePath=null;
@@ -1901,6 +1922,13 @@ function createDXAdminPanel() {
         >
       </div>
 
+      <div id="dxProductWarrantyWrap" style="margin-bottom:12px;">
+        <label for="dxWarrantyDays">Masa garansi produk DX STORE (hari, 0 = tanpa garansi)</label>
+        <input id="dxWarrantyDays" type="number" min="0" max="3650" step="1" value="7" required>
+        <label for="dxWarrantyTerms">Ketentuan garansi</label>
+        <textarea id="dxWarrantyTerms" rows="3" maxlength="2000">Garansi berlaku untuk kendala pada produk sesuai ketentuan DX STORE. Ajukan melalui Pusat Bantuan dengan ID pesanan.</textarea>
+      </div>
+
       <div style="margin-bottom:12px;">
         <label for="dxImage">URL gambar</label>
         <input
@@ -2066,6 +2094,8 @@ function updateDXAdminFormLabels() {
   $("dxName").placeholder = isAccount
     ? "Contoh: Akun Mobile Legends"
     : "Nama produk digital";
+  const warrantyWrap = $("dxProductWarrantyWrap");
+  if (warrantyWrap) warrantyWrap.style.display = isAccount ? "none" : "block";
 
   $("dxSaveButton").textContent = $("dxEditId").value
     ? "Perbarui Data"
@@ -2242,7 +2272,14 @@ async function saveDXAdminItem(event) {
     payload.game = $("dxGame").value.trim();
     payload.title = name;
   } else {
+    const warrantyDays = Number($("dxWarrantyDays")?.value);
+    if (!Number.isInteger(warrantyDays) || warrantyDays < 0 || warrantyDays > 3650) {
+      showDXAdminMessage("Masa garansi harus 0 sampai 3650 hari.");
+      return;
+    }
     payload.name = name;
+    payload.warranty_days = warrantyDays;
+    payload.warranty_terms = $("dxWarrantyTerms")?.value.trim() || "Ajukan klaim melalui Pusat Bantuan dengan ID pesanan.";
   }
 
   const saveButton = $("dxSaveButton");
@@ -2367,6 +2404,9 @@ async function editDXAdminItem(id) {
 
   if (dxAdminType === "account_listings") {
     $("dxGame").value = data.game || "";
+  } else {
+    $("dxWarrantyDays").value = String(data.warranty_days ?? 7);
+    $("dxWarrantyTerms").value = data.warranty_terms || "";
   }
 
   $("dxCancelEdit").style.display = "inline-block";
