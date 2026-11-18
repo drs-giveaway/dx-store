@@ -62,7 +62,8 @@
     style.textContent = "#dxSellerForm input,#dxSellerForm textarea{display:block;width:100%;padding:11px;margin-top:6px;border:1px solid #334b70;border-radius:8px;background:#0b1426;color:white}#dxSellerForm label{color:#cbd5e1;font-size:14px}";
     document.head.appendChild(style);
     section.querySelector(".dx-container")?.appendChild(wrap);
-    if (typeof installDXRupiahInput === "function") installDXRupiahInput($("dxSellerPrice"));\n    $("dxSellerForm").addEventListener("submit", async event => {
+    if (typeof installDXRupiahInput === "function") installDXRupiahInput($("dxSellerPrice"));
+    $("dxSellerForm").addEventListener("submit", async event => {
       event.preventDefault();
       const message = $("dxSellerMessage");
       if (!currentUser) { message.textContent = "Silakan masuk atau daftar terlebih dahulu."; openAuth(); return; }
