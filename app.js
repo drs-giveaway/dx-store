@@ -64,6 +64,40 @@ function formatPrice(value) {
   }).format(Number(value) || 0);
 }
 
+function formatDXRupiahInput(value) {
+  const digits = String(value ?? "").replace(/\\D/g, "");
+  return digits.replace(/\\B(?=(\\d{3})+(?!\\d))/g, ".");
+}
+
+function parseDXRupiahInput(value) {
+  const digits = String(value ?? "").replace(/\\D/g, "");
+  return digits ? Number(digits) : 0;
+}
+
+function installDXRupiahInput(input) {
+  if (!input || input.dataset.dxRupiahReady === "1") return;
+  input.type = "text";
+  input.inputMode = "numeric";
+  input.autocomplete = "off";
+  input.addEventListener("input", () => {
+    const before = input.value;
+    const cursor = input.selectionStart ?? before.length;
+    const digitsBeforeCursor = before.slice(0, cursor).replace(/\\D/g, "").length;
+    const digits = before.replace(/\\D/g, "");
+    const formatted = formatDXRupiahInput(digits);
+    input.value = formatted;
+    let position = 0;
+    let seen = 0;
+    while (position < formatted.length && seen < digitsBeforeCursor) {
+      if (/\\d/.test(formatted[position])) seen++;
+      position++;
+    }
+    input.setSelectionRange(position, position);
+  });
+  input.value = formatDXRupiahInput(input.value);
+  input.dataset.dxRupiahReady = "1";
+}
+
 function getDXError(error) {
   return error?.message || "Terjadi kesalahan. Silakan coba lagi.";
 }
@@ -908,7 +942,7 @@ function createDXAdminPanel() {
     <div id="dxPaymentOrders">Memuat pesanan...</div>
   `;
 
-  main.prepend(panel);
+  main.prepend(panel);\n  installDXRupiahInput($("dxPrice"));
 
   if (!$("dxAdminStyles")) {
     const style = document.createElement("style");
@@ -1154,7 +1188,7 @@ async function saveDXAdminItem(event) {
   const editId = $("dxEditId").value;
   const name = $("dxName").value.trim();
   const description = $("dxDescription").value.trim();
-  const price = Number($("dxPrice").value);
+  const price = parseDXRupiahInput($("dxPrice").value);
   const imageUrl = $("dxImage").value.trim();
 
   if (!name || !Number.isFinite(price) || price < 0) {
@@ -1286,7 +1320,7 @@ async function editDXAdminItem(id) {
     : data.title;
 
   $("dxDescription").value = data.description || "";
-  $("dxPrice").value = data.price;
+  $("dxPrice").value = formatDXRupiahInput(data.price);
   $("dxImage").value = data.image_url || "";
 
   if (dxAdminType === "account_listings") {
