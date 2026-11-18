@@ -855,11 +855,28 @@ function showDXMascotFarewell() {
     utterance.rate = 1;
     window.speechSynthesis.speak(utterance);
   }
-  return new Promise(resolve => window.setTimeout(() => {
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-    bubble.remove();
-    resolve();
-  }, 2200));
+  return new Promise(function(resolve) {
+    let finished = false;
+    function finish() {
+      if (finished) return;
+      finished = true;
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      bubble.remove();
+      resolve();
+    }
+    const fallback = window.setTimeout(finish, 9000);
+    if ("speechSynthesis" in window) {
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.lang = lang;
+      utterance.rate = 1;
+      utterance.onend = function() { window.clearTimeout(fallback); finish(); };
+      utterance.onerror = function() { window.clearTimeout(fallback); finish(); };
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    } else {
+      window.setTimeout(function() { window.clearTimeout(fallback); finish(); }, 2200);
+    }
+  });
 }
 
 /* KELUAR DARI AKUN */
