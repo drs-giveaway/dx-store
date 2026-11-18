@@ -466,6 +466,8 @@ function showDXView(view) {
   if (accounts) accounts.hidden = view !== "accounts";
   if (cta) cta.hidden = true;
   const panel = $("dxProfilePanel"); if (panel) panel.hidden = view !== "profile";
+  const adminPanel = $("dxAdminPanel");
+  if (adminPanel && !window.dxAdminPanelExpanded) adminPanel.style.display = "none";
   const target = view === "products" ? products : view === "accounts" ? accounts : dashboard;
   if (target) window.scrollTo({ top: 0, behavior: "auto" });
   document.querySelectorAll("#dxBottomNav [data-dx-view]").forEach(el => {
@@ -500,7 +502,18 @@ function updateDXDashboardVisibility() {
         <button type="button" data-dx-view="products"><span>⌕</span><strong>Cari</strong></button>
         <button type="button" data-dx-view="accounts"><span>＋</span><strong>Jual Akun</strong></button>
       </div>
-      <section id="dxProfilePanel" hidden><h2>Pengaturan Akun</h2><p>Ubah negara dan mata uang melalui pilihan di bagian atas.</p></section>
+      <section id="dxProfilePanel" hidden>
+        <div class="dx-account-card">
+          <small>DX STORE · ACCOUNT CENTER</small>
+          <h2>Pengaturan Akun</h2>
+          <p id="dxAccountEmail">Akun Anda</p>
+          <p>Ubah negara dan mata uang melalui pilihan di bagian atas.</p>
+          <div class="dx-account-actions">
+            <button type="button" id="dxOpenAdmin" hidden>Kelola Website</button>
+            <button type="button" id="dxAccountLogout">Keluar</button>
+          </div>
+        </div>
+      </section>
       <div class="dx-dana-sectionhead"><div><small>DX MARKETPLACE</small><h2>Jelajahi layanan</h2></div><span>DX-01</span></div>
     `;
     main.insertBefore(dashboard, hero);
@@ -514,6 +527,13 @@ function updateDXDashboardVisibility() {
   if (nameNode) nameNode.textContent = name;
   const currencyNode = $("dxDashboardCurrency");
   if (currencyNode) currencyNode.textContent = getDXCountry().currency + " · " + getDXCountry().name;
+  const accountEmail = $("dxAccountEmail");
+  if (accountEmail) accountEmail.textContent = currentUser?.email || "Akun Anda";
+  const accountLogout = $("dxAccountLogout");
+  if (accountLogout && !accountLogout.dataset.bound) {
+    accountLogout.addEventListener("click", handleDXLogout);
+    accountLogout.dataset.bound = "1";
+  }
   let bottom = $("dxBottomNav");
   if (!bottom) {
     bottom = document.createElement("nav");
@@ -534,12 +554,10 @@ function updateDXHeaderAuth() {
   const button = actions?.querySelector(".dx-button");
   if (!actions || !button) return;
 
-  button.textContent = currentUser
-    ? (currentProfile?.role === "admin" ? "Admin / Keluar" : "Keluar")
-    : "Masuk / Daftar";
+  button.textContent = currentUser ? "Akun" : "Masuk / Daftar";
 
   button.onclick = () => {
-    if (currentUser) handleDXLogout();
+    if (currentUser) showDXView("profile");
     else openAuth();
   };
 
@@ -1111,7 +1129,9 @@ async function handleAuthSubmit(event) {
       createDXAdminPanel();
 
       const panel = $("dxAdminPanel");
-      if (panel) panel.style.display = "block";
+      if (panel) panel.style.display = "none";
+      const adminButton = $("dxOpenAdmin");
+      if (adminButton) adminButton.hidden = false;
 
       if (typeof loadDXAdminList === "function") {
         await loadDXAdminList();
@@ -1178,7 +1198,9 @@ async function refreshDXUser() {
     createDXAdminPanel();
 
     const panel = $("dxAdminPanel");
-    if (panel) panel.style.display = "block";
+    if (panel) panel.style.display = "none";
+    const adminButton = $("dxOpenAdmin");
+    if (adminButton) adminButton.hidden = false;
 
     if (typeof loadDXAdminList === "function") {
       await loadDXAdminList();
@@ -1186,6 +1208,8 @@ async function refreshDXUser() {
   } else {
     const panel = $("dxAdminPanel");
     if (panel) panel.style.display = "none";
+    const adminButton = $("dxOpenAdmin");
+    if (adminButton) adminButton.hidden = true;
   }
 }
 
@@ -1316,7 +1340,8 @@ function createDXAdminPanel() {
   const panel = document.createElement("section");
   panel.id = "dxAdminPanel";
   panel.style.display = "none";
-  panel.style.margin = "30px auto";
+  panel.style.margin = "24px 0 0";
+  panel.dataset.dxAdminPanel = "1";
   panel.style.padding = "24px";
   panel.style.maxWidth = "1100px";
   panel.style.background = "#101b32";
@@ -1340,9 +1365,6 @@ function createDXAdminPanel() {
         Akun Game
       </button>
 
-      <button type="button" id="dxAdminLogout">
-        Keluar
-      </button>
     </div>
 
     <form id="dxAdminForm">
@@ -1421,8 +1443,25 @@ function createDXAdminPanel() {
     <div id="dxPaymentOrders">Memuat pesanan...</div>
   `;
 
-  main.prepend(panel);
+  const accountPanel = $("dxProfilePanel");
+  if (accountPanel) accountPanel.appendChild(panel);
+  else main.appendChild(panel);
   installDXRupiahInput($("dxPrice"));
+
+  const adminAccessButton = $("dxOpenAdmin");
+  if (adminAccessButton) {
+    adminAccessButton.hidden = false;
+    adminAccessButton.addEventListener("click", () => {
+      window.dxAdminPanelExpanded = !window.dxAdminPanelExpanded;
+      panel.style.display = window.dxAdminPanelExpanded ? "block" : "none";
+      adminAccessButton.textContent = window.dxAdminPanelExpanded ? "Tutup Kelola Website" : "Kelola Website";
+      if (window.dxAdminPanelExpanded) {
+        loadDXAdminList();
+        loadDXPaymentOrders();
+        panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }
 
   if (!$("dxAdminStyles")) {
     const style = document.createElement("style");
@@ -1494,7 +1533,6 @@ function createDXAdminPanel() {
     updateDXAdminFormLabels();
   });
 
-  $("dxAdminLogout").addEventListener("click", handleDXLogout);
   $("dxRefreshPaymentOrders").addEventListener("click", loadDXPaymentOrders);
   $("dxPaymentOrders").addEventListener("click", event => {
     const button = event.target.closest("[data-dx-order][data-dx-decision]");
