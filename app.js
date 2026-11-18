@@ -167,6 +167,92 @@ Object.assign(DX_TRANSLATIONS.ja, {
   "Buat Pesanan":"注文する","Memproses...":"処理中...","Menyimpan...":"保存中..."
 });
 
+
+Object.assign(DX_TRANSLATIONS.de, {
+  "Halo,":"Hallo,","Semua kebutuhan digitalmu dalam satu tempat.":"Alle digitalen Bedürfnisse an einem Ort.",
+  "NEGARA & MATA UANG":"LAND & WÄHRUNG","Marketplace Digital":"Digitaler Marktplatz","Jelajahi layanan":"Dienste entdecken",
+  "Produk":"Produkte","Cari":"Suchen","Jual Akun":"Konto verkaufen","Akun":"Konto",
+  "Pengaturan Akun":"Kontoeinstellungen","Ubah negara dan mata uang melalui pilihan di bagian atas.":"Land und Währung über die Auswahl oben ändern.",
+  "Belum ada produk digital.":"Noch keine digitalen Produkte.","Belum ada akun game.":"Noch keine Spielkonten.",
+  "Produk gagal dimuat.":"Produkte konnten nicht geladen werden.","Akun game gagal dimuat.":"Spielkonten konnten nicht geladen werden.",
+  "Lanjutkan":"Weiter","Tutup":"Schließen","Deskripsi":"Beschreibung","Harga":"Preis","Menunggu pembayaran":"Zahlung ausstehend",
+  "Menunggu pemeriksaan admin":"Warten auf Admin-Prüfung","Kirim Bukti Pembayaran":"Zahlungsnachweis senden",
+  "Buat Pesanan":"Bestellung erstellen","Memproses...":"Wird verarbeitet...","Menyimpan...":"Wird gespeichert...",
+  "Belum ada pesanan.":"Noch keine Bestellungen.","Memuat pesanan...":"Bestellungen werden geladen..."
+});
+Object.assign(DX_TRANSLATIONS.fr, {
+  "Halo,":"Bonjour,","Semua kebutuhan digitalmu dalam satu tempat.":"Tous vos besoins numériques au même endroit.",
+  "NEGARA & MATA UANG":"PAYS ET DEVISE","Marketplace Digital":"Marché numérique","Jelajahi layanan":"Découvrir les services",
+  "Produk":"Produits","Cari":"Rechercher","Jual Akun":"Vendre un compte","Akun":"Compte",
+  "Pengaturan Akun":"Paramètres du compte","Ubah negara dan mata uang melalui pilihan di bagian atas.":"Modifiez le pays et la devise avec le sélecteur ci-dessus.",
+  "Belum ada produk digital.":"Aucun produit numérique pour le moment.","Belum ada akun game.":"Aucun compte de jeu pour le moment.",
+  "Produk gagal dimuat.":"Échec du chargement des produits.","Akun game gagal dimuat.":"Échec du chargement des comptes de jeu.",
+  "Lanjutkan":"Continuer","Tutup":"Fermer","Deskripsi":"Description","Harga":"Prix","Menunggu pembayaran":"En attente de paiement",
+  "Menunggu pemeriksaan admin":"En attente de vérification","Kirim Bukti Pembayaran":"Envoyer la preuve de paiement",
+  "Buat Pesanan":"Créer une commande","Memproses...":"Traitement...","Menyimpan...":"Enregistrement...",
+  "Belum ada pesanan.":"Aucune commande pour le moment.","Memuat pesanan...":"Chargement des commandes..."
+});
+Object.assign(DX_TRANSLATIONS.zh, {
+  "Halo,":"你好，","Semua kebutuhan digitalmu dalam satu tempat.":"您的数字需求，一站满足。",
+  "NEGARA & MATA UANG":"国家与货币","Marketplace Digital":"数字商品市场","Jelajahi layanan":"探索服务",
+  "Produk":"商品","Cari":"搜索","Jual Akun":"出售账号","Akun":"账号",
+  "Pengaturan Akun":"账号设置","Ubah negara dan mata uang melalui pilihan di bagian atas.":"使用上方选项更改国家和货币。",
+  "Belum ada produk digital.":"暂无数字商品。","Belum ada akun game.":"暂无游戏账号。",
+  "Produk gagal dimuat.":"商品加载失败。","Akun game gagal dimuat.":"游戏账号加载失败。",
+  "Lanjutkan":"继续","Tutup":"关闭","Deskripsi":"描述","Harga":"价格","Menunggu pembayaran":"等待付款",
+  "Menunggu pemeriksaan admin":"等待管理员审核","Kirim Bukti Pembayaran":"提交付款凭证",
+  "Buat Pesanan":"创建订单","Memproses...":"处理中...","Menyimpan...":"保存中...",
+  "Belum ada pesanan.":"暂无订单。","Memuat pesanan...":"正在加载订单..."
+});
+Object.assign(DX_TRANSLATIONS.ko, {
+  "Halo,":"안녕하세요,","Semua kebutuhan digitalmu dalam satu tempat.":"모든 디지털 서비스를 한곳에서 만나보세요.",
+  "NEGARA & MATA UANG":"국가 및 통화","Marketplace Digital":"디지털 마켓플레이스","Jelajahi layanan":"서비스 둘러보기",
+  "Produk":"상품","Cari":"검색","Jual Akun":"계정 판매","Akun":"계정",
+  "Pengaturan Akun":"계정 설정","Ubah negara dan mata uang melalui pilihan di bagian atas.":"위 선택 메뉴에서 국가와 통화를 변경하세요.",
+  "Belum ada produk digital.":"아직 디지털 상품이 없습니다.","Belum ada akun game.":"아직 게임 계정이 없습니다.",
+  "Produk gagal dimuat.":"상품을 불러오지 못했습니다.","Akun game gagal dimuat.":"게임 계정을 불러오지 못했습니다.",
+  "Lanjutkan":"계속","Tutup":"닫기","Deskripsi":"설명","Harga":"가격","Menunggu pembayaran":"결제 대기 중",
+  "Menunggu pemeriksaan admin":"관리자 확인 대기 중","Kirim Bukti Pembayaran":"결제 증빙 제출",
+  "Buat Pesanan":"주문하기","Memproses...":"처리 중...","Menyimpan...":"저장 중...",
+  "Belum ada pesanan.":"주문이 없습니다.","Memuat pesanan...":"주문 불러오는 중..."
+});
+Object.assign(DX_TRANSLATIONS.th, {
+  "Halo,":"สวัสดี,","Semua kebutuhan digitalmu dalam satu tempat.":"ทุกสิ่งที่คุณต้องการด้านดิจิทัลในที่เดียว",
+  "NEGARA & MATA UANG":"ประเทศและสกุลเงิน","Marketplace Digital":"ตลาดสินค้าดิจิทัล","Jelajahi layanan":"สำรวจบริการ",
+  "Produk":"สินค้า","Cari":"ค้นหา","Jual Akun":"ขายบัญชี","Akun":"บัญชี",
+  "Pengaturan Akun":"ตั้งค่าบัญชี","Ubah negara dan mata uang melalui pilihan di bagian atas.":"เปลี่ยนประเทศและสกุลเงินจากเมนูด้านบน",
+  "Belum ada produk digital.":"ยังไม่มีสินค้าดิจิทัล","Belum ada akun game.":"ยังไม่มีบัญชีเกม",
+  "Produk gagal dimuat.":"โหลดสินค้าไม่สำเร็จ","Akun game gagal dimuat.":"โหลดบัญชีเกมไม่สำเร็จ",
+  "Lanjutkan":"ดำเนินการต่อ","Tutup":"ปิด","Deskripsi":"คำอธิบาย","Harga":"ราคา","Menunggu pembayaran":"รอการชำระเงิน",
+  "Menunggu pemeriksaan admin":"รอผู้ดูแลตรวจสอบ","Kirim Bukti Pembayaran":"ส่งหลักฐานการชำระเงิน",
+  "Buat Pesanan":"สร้างคำสั่งซื้อ","Memproses...":"กำลังดำเนินการ...","Menyimpan...":"กำลังบันทึก...",
+  "Belum ada pesanan.":"ยังไม่มีคำสั่งซื้อ","Memuat pesanan...":"กำลังโหลดคำสั่งซื้อ..."
+});
+Object.assign(DX_TRANSLATIONS.pt, {
+  "Halo,":"Olá,","Semua kebutuhan digitalmu dalam satu tempat.":"Todas as suas necessidades digitais em um só lugar.",
+  "NEGARA & MATA UANG":"PAÍS E MOEDA","Marketplace Digital":"Mercado digital","Jelajahi layanan":"Explorar serviços",
+  "Produk":"Produtos","Cari":"Pesquisar","Jual Akun":"Vender conta","Akun":"Conta",
+  "Pengaturan Akun":"Configurações da conta","Ubah negara dan mata uang melalui pilihan di bagian atas.":"Altere o país e a moeda usando a opção acima.",
+  "Belum ada produk digital.":"Ainda não há produtos digitais.","Belum ada akun game.":"Ainda não há contas de jogos.",
+  "Produk gagal dimuat.":"Falha ao carregar produtos.","Akun game gagal dimuat.":"Falha ao carregar contas de jogos.",
+  "Lanjutkan":"Continuar","Tutup":"Fechar","Deskripsi":"Descrição","Harga":"Preço","Menunggu pembayaran":"Aguardando pagamento",
+  "Menunggu pemeriksaan admin":"Aguardando análise do administrador","Kirim Bukti Pembayaran":"Enviar comprovante de pagamento",
+  "Buat Pesanan":"Criar pedido","Memproses...":"Processando...","Menyimpan...":"Salvando...",
+  "Belum ada pesanan.":"Ainda não há pedidos.","Memuat pesanan...":"Carregando pedidos..."
+});
+Object.assign(DX_TRANSLATIONS.hi, {
+  "Halo,":"नमस्ते,","Semua kebutuhan digitalmu dalam satu tempat.":"आपकी सभी डिजिटल ज़रूरतें एक ही जगह।",
+  "NEGARA & MATA UANG":"देश और मुद्रा","Marketplace Digital":"डिजिटल मार्केटप्लेस","Jelajahi layanan":"सेवाएँ देखें",
+  "Produk":"उत्पाद","Cari":"खोजें","Jual Akun":"खाता बेचें","Akun":"खाता",
+  "Pengaturan Akun":"खाता सेटिंग","Ubah negara dan mata uang melalui pilihan di bagian atas.":"ऊपर दिए विकल्प से देश और मुद्रा बदलें।",
+  "Belum ada produk digital.":"अभी कोई डिजिटल उत्पाद नहीं है।","Belum ada akun game.":"अभी कोई गेम खाता नहीं है।",
+  "Produk gagal dimuat.":"उत्पाद लोड नहीं हो सके।","Akun game gagal dimuat.":"गेम खाते लोड नहीं हो सके।",
+  "Lanjutkan":"जारी रखें","Tutup":"बंद करें","Deskripsi":"विवरण","Harga":"कीमत","Menunggu pembayaran":"भुगतान की प्रतीक्षा",
+  "Menunggu pemeriksaan admin":"व्यवस्थापक की जाँच की प्रतीक्षा","Kirim Bukti Pembayaran":"भुगतान प्रमाण भेजें",
+  "Buat Pesanan":"ऑर्डर बनाएँ","Memproses...":"प्रक्रिया जारी...","Menyimpan...":"सहेजा जा रहा है...",
+  "Belum ada pesanan.":"अभी कोई ऑर्डर नहीं है।","Memuat pesanan...":"ऑर्डर लोड हो रहे हैं..."
+});
+
 function getDXCountry() {
   const code = localStorage.getItem("dx-country") || "ID";
   return DX_COUNTRIES[code] ? { code, ...DX_COUNTRIES[code] } : { code: "ID", ...DX_COUNTRIES.ID };
