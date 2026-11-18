@@ -276,6 +276,64 @@ function closeAuth() {
   }
 }
 
+function updateDXDashboardVisibility() {
+  const main = document.querySelector("main");
+  const hero = $("home");
+  const cta = document.querySelector(".dx-cta");
+  if (!main || !hero) return;
+  let dashboard = $("dxDashboard");
+  if (!dashboard) {
+    dashboard = document.createElement("section");
+    dashboard.id = "dxDashboard";
+    dashboard.innerHTML = `
+      <div class="dx-dana-topline">
+        <div><small>DX STORE · DIGITAL WALLET EXPERIENCE</small><h1>Halo, <span id="dxDashboardName">Pengguna</span> 👋</h1><p>Semua kebutuhan digitalmu dalam satu tempat.</p></div>
+        <div class="dx-dana-avatar">DX</div>
+      </div>
+      <div class="dx-dana-maincard">
+        <div class="dx-dana-cardtop"><span>DX STORE</span><span>●●●●  DX-01</span></div>
+        <div class="dx-dana-cardtitle">Marketplace Digital</div>
+        <p>Temukan produk digital dan akun game pilihan dengan proses pemesanan yang mudah.</p>
+        <div class="dx-dana-cardfoot"><span>NEGARA & MATA UANG</span><strong id="dxDashboardCurrency">IDR · Indonesia</strong></div>
+      </div>
+      <div class="dx-dana-shortcuts">
+        <a href="#products"><span>▣</span><strong>Produk</strong></a>
+        <a href="#accounts"><span>🎮</span><strong>Akun Game</strong></a>
+        <a href="#products"><span>⌕</span><strong>Cari</strong></a>
+        <a href="#accounts"><span>＋</span><strong>Jual Akun</strong></a>
+      </div>
+      <div class="dx-dana-sectionhead"><div><small>DX MARKETPLACE</small><h2>Jelajahi layanan</h2></div><span>DX-01</span></div>
+    `;
+    main.insertBefore(dashboard, hero);
+  }
+  const visible = !!currentUser;
+  dashboard.hidden = !visible;
+  hero.hidden = visible;
+  if (cta) cta.hidden = visible;
+  const name = currentUser?.user_metadata?.display_name || currentUser?.email?.split("@")[0] || "Pengguna";
+  const nameNode = $("dxDashboardName");
+  if (nameNode) nameNode.textContent = name;
+  const currencyNode = $("dxDashboardCurrency");
+  if (currencyNode) currencyNode.textContent = getDXCountry().currency + " · " + getDXCountry().name;
+  let bottom = $("dxBottomNav");
+  if (!bottom) {
+    bottom = document.createElement("nav");
+    bottom.id = "dxBottomNav";
+    bottom.setAttribute("aria-label","Navigasi utama");
+    bottom.innerHTML = '<a href="#dxDashboard"><span>⌂</span><small>Beranda</small></a><a href="#products"><span>▣</span><small>Produk</small></a><a href="#accounts"><span>🎮</span><small>Akun Game</small></a><button type="button" id="dxBottomProfile"><span>◎</span><small>Akun</small></button>';
+    document.body.appendChild(bottom);
+    bottom.querySelectorAll('a').forEach(link => link.addEventListener("click", event => {
+      const target = document.querySelector(link.getAttribute("href"));
+      if (target) { event.preventDefault(); target.scrollIntoView({behavior:"smooth",block:"start"}); }
+    }));
+    $("dxBottomProfile").addEventListener("click", () => {
+      const selector = $("dxCountry");
+      if (selector) { selector.focus(); selector.scrollIntoView({behavior:"smooth",block:"center"}); }
+    });
+  }
+  bottom.hidden = !visible;
+}
+
 /* STATUS TOMBOL HEADER */
 
 function updateDXHeaderAuth() {
@@ -313,6 +371,7 @@ function updateDXHeaderAuth() {
     countrySelect.hidden = !currentUser;
     countrySelect.value = getDXCountry().code;
   }
+  updateDXDashboardVisibility();
 }
 
 /* =========================================
@@ -1880,6 +1939,10 @@ async function initializeDXStore() {
     countrySelect.addEventListener("change", () => setDXCountry(countrySelect.value));
   }
   setDXCountry(getDXCountry().code);
+  loadDXExchangeRates().then(() => {
+    if (dxExchangeRateReady) { loadProducts(); loadAccountListings(); }
+  });
+  applyDXLanguage();
   initDXNavigation();
   const searchInput = document.getElementById("dxMarketplaceSearch");
   if (searchInput) {
