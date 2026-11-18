@@ -971,3 +971,13 @@ section {
 .dx-wallet-settings{scroll-margin-top:90px}
 #dxOrderHistory,#dxHelpCenter{scroll-margin-top:90px}
 @media(max-width:420px){.dx-wallet-shortcuts{gap:7px}.dx-wallet-shortcuts button{min-height:76px}.dx-wallet-shortcuts button strong{font-size:9px}.dx-wallet-profile-head h2{font-size:25px}}
+
+
+/* DX STORE OFFICIAL PRODUCT WARRANTY */
+.dx-product-warranty{display:inline-flex;align-items:center;gap:6px;margin:8px 0;padding:6px 9px;border:1px solid #2874a6;border-radius:999px;background:#0d2b48;color:#9be7ff;font-size:11px;font-weight:800}
+.dx-detail-warranty{margin:14px 0;padding:13px;border:1px solid #28618a;border-radius:13px;background:linear-gradient(140deg,#102c49,#121d3a);color:#d9f3ff;font-size:12px;line-height:1.55}
+.dx-detail-warranty strong{display:block;color:#8ee6ff;font-size:13px}
+.dx-detail-warranty p{margin:7px 0 0;color:#c0d4e9}
+#dxAdminPanel #dxProductWarrantyWrap{padding:12px;border:1px solid #285276;border-radius:12px;background:#0b1b30}
+#dxAdminPanel #dxProductWarrantyWrap label{display:block;margin:8px 0 5px;color:#b9dcf4;font-size:12px}
+#dxAdminPanel #dxWarrantyDays{max-width:180px}
