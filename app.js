@@ -175,6 +175,8 @@ function setDXCountry(code) {
   document.documentElement.lang = DX_COUNTRIES[code].language;
   const selector = $("dxCountry");
   if (selector && selector.value !== code) selector.value = code;
+  const dashboardCurrency = $("dxDashboardCurrency");
+  if (dashboardCurrency) dashboardCurrency.textContent = DX_COUNTRIES[code].currency + " · " + DX_COUNTRIES[code].name;
   applyDXLanguage();
   document.dispatchEvent(new CustomEvent("dx-country-change", { detail: { code, ...DX_COUNTRIES[code] } }));
   loadDXExchangeRates().then(() => {
@@ -332,6 +334,7 @@ function updateDXDashboardVisibility() {
     });
   }
   bottom.hidden = !visible;
+  applyDXLanguage();
 }
 
 /* STATUS TOMBOL HEADER */
