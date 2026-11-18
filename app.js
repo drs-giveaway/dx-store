@@ -548,6 +548,25 @@ function updateDXDashboardVisibility() {
     accountLogout.addEventListener("click", handleDXLogout);
     accountLogout.dataset.bound = "1";
   }
+  const accountPanel = $("dxProfilePanel");
+  const adminPanel = $("dxAdminPanel");
+  if (accountPanel && adminPanel && adminPanel.parentElement !== accountPanel) {
+    accountPanel.appendChild(adminPanel);
+  }
+  const adminAccessButton = $("dxOpenAdmin");
+  if (adminAccessButton && !adminAccessButton.dataset.bound) {
+    adminAccessButton.addEventListener("click", () => {
+      window.dxAdminPanelExpanded = !window.dxAdminPanelExpanded;
+      if (adminPanel) adminPanel.style.display = window.dxAdminPanelExpanded ? "block" : "none";
+      adminAccessButton.textContent = window.dxAdminPanelExpanded ? "Tutup Kelola Website" : "Kelola Website";
+      if (window.dxAdminPanelExpanded) {
+        loadDXAdminList();
+        loadDXPaymentOrders();
+        adminPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+    adminAccessButton.dataset.bound = "1";
+  }
   let bottom = $("dxBottomNav");
   if (!bottom) {
     bottom = document.createElement("nav");
