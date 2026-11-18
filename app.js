@@ -733,13 +733,14 @@ function updateDXHeaderAuth() {
   if (currentUser && !countrySelect) {
     countrySelect = document.createElement("select");
     countrySelect.id = "dxCountry";
-    countrySelect.setAttribute("aria-label", "Pengaturan negara dan mata uang");
+    countrySelect.setAttribute("aria-label", "Pilih negara");
     countrySelect.title = "Ubah negara";
-    countrySelect.style.cssText = "min-height:42px;max-width:145px;padding:0 10px;border:1px solid rgba(81,229,255,.45);border-radius:10px;background:#101b32;color:#eaf5ff;font:600 12px Inter,sans-serif";
-    Object.entries(DX_COUNTRIES).forEach(([code, country]) => {
+    countrySelect.style.cssText = "min-height:38px;width:82px;max-width:82px;padding:0 6px;border:1px solid rgba(81,229,255,.45);border-radius:10px;background:#101b32;color:#eaf5ff;font:700 12px Inter,sans-serif";
+    const countryFlags = { ID:"🇮🇩", MY:"🇲🇾", SG:"🇸🇬", US:"🇺🇸", JP:"🇯🇵", TH:"🇹🇭", PH:"🇵🇭", AU:"🇦🇺", GB:"🇬🇧", DE:"🇩🇪", FR:"🇫🇷", IN:"🇮🇳", KR:"🇰🇷", BR:"🇧🇷", CA:"🇨🇦", CN:"🇨🇳" };
+    Object.entries(DX_COUNTRIES).forEach(([code]) => {
       const option = document.createElement("option");
       option.value = code;
-      option.textContent = country.name + " (" + country.currency + ")";
+      option.textContent = (countryFlags[code] || "🌐") + " " + code;
       countrySelect.appendChild(option);
     });
     countrySelect.addEventListener("change", () => setDXCountry(countrySelect.value));
