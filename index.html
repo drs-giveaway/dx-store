@@ -562,8 +562,8 @@
     .dx-dana-cardfoot{margin-top:25px;padding-top:16px;border-top:1px solid #ffffff35;color:#d7e7ff}
     .dx-dana-cardfoot strong{font-size:14px;color:white}
     .dx-dana-shortcuts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0 30px}
-    .dx-dana-shortcuts a{min-height:98px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1px solid #6e91c52c;border-radius:17px;background:#12213d;color:#eaf4ff;text-align:center;transition:.2s}
-    .dx-dana-shortcuts a:hover{transform:translateY(-3px);border-color:#51e5ff88}
+    .dx-dana-shortcuts a,.dx-dana-shortcuts button{min-height:98px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1px solid #6e91c52c;border-radius:17px;background:#12213d;color:#eaf4ff;text-align:center;transition:.2s}
+    .dx-dana-shortcuts a:hover,.dx-dana-shortcuts button:hover{transform:translateY(-3px);border-color:#51e5ff88}
     .dx-dana-shortcuts span{width:38px;height:38px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,#168fff,#7954e9);font-size:19px}
     .dx-dana-shortcuts strong{font-size:11px}
     .dx-dana-sectionhead{display:flex;align-items:center;justify-content:space-between;margin:5px 0 18px}
@@ -575,7 +575,7 @@
     #dxBottomNav small{font-size:10px;font-weight:700}
     #dxBottomNav a:focus,#dxBottomNav button:focus{color:#51e5ff}
     body:has(#dxBottomNav:not([hidden])){padding-bottom:92px}
-    @media(max-width:600px){#dxDashboard{width:calc(100% - 22px);margin:14px auto 25px;padding:17px;border-radius:21px}.dx-dana-maincard{padding:20px}.dx-dana-shortcuts{gap:8px}.dx-dana-shortcuts a{min-height:88px}.dx-dana-shortcuts strong{font-size:10px}.dx-dana-cardfoot{font-size:9px}.dx-dana-cardfoot strong{font-size:12px}}
+    @media(max-width:600px){#dxDashboard{width:calc(100% - 22px);margin:14px auto 25px;padding:17px;border-radius:21px}.dx-dana-maincard{padding:20px}.dx-dana-shortcuts{gap:8px}.dx-dana-shortcuts a,.dx-dana-shortcuts button{min-height:88px}.dx-dana-shortcuts strong{font-size:10px}.dx-dana-cardfoot{font-size:9px}.dx-dana-cardfoot strong{font-size:12px}}
 
 </style>
 </head>
@@ -712,7 +712,7 @@
   <!-- JAVASCRIPT -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="app.js?v=14"></script>
+  <script src="app.js?v=15"></script>
   <script src="image-upload.js?v=3"></script>
 
 </body>
