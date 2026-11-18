@@ -583,6 +583,22 @@
     body:has(#dxBottomNav:not([hidden])){padding-bottom:92px}
     @media(max-width:600px){#dxDashboard{width:calc(100% - 22px);margin:14px auto 25px;padding:17px;border-radius:21px}.dx-dana-maincard{padding:20px}.dx-dana-shortcuts{gap:8px}.dx-dana-shortcuts a,.dx-dana-shortcuts button{min-height:88px}.dx-dana-shortcuts strong{font-size:10px}.dx-dana-cardfoot{font-size:9px}.dx-dana-cardfoot strong{font-size:12px}}
 
+
+    .dx-purchase-activity{width:min(1120px,calc(100% - 32px));margin:22px auto 8px;padding:18px;border:1px solid #55cfff35;border-radius:20px;background:linear-gradient(130deg,#101e39f2,#171638f2);box-shadow:0 14px 40px #02081755;overflow:hidden}
+    .dx-activity-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .dx-activity-heading small{color:#53ddff;font-size:10px;font-weight:900;letter-spacing:1.5px}
+    .dx-activity-heading h2{margin:5px 0;color:#f4f8ff;font-size:17px}
+    .dx-activity-heading p{margin:0;color:#aebed8;font-size:11px}
+    .dx-activity-live{flex-shrink:0;padding:6px 10px;border:1px solid #55e7ff55;border-radius:30px;color:#6deaff;font-size:10px;font-weight:900}
+    .dx-activity-track{display:flex;gap:10px;overflow-x:auto;padding:2px 1px 7px;scroll-snap-type:x mandatory}
+    .dx-activity-item{position:relative;display:flex;align-items:center;gap:10px;flex:0 0 min(260px,78vw);min-height:68px;padding:11px;border:1px solid #7895c52c;border-radius:14px;background:#0a1429;scroll-snap-align:start}
+    .dx-activity-avatar{display:grid;place-items:center;width:38px;height:38px;flex-shrink:0;border-radius:12px;background:linear-gradient(135deg,#138fff,#8156e9);color:white;font-size:11px;font-weight:900}
+    .dx-activity-item strong{display:block;color:#f5f8ff;font-size:13px}
+    .dx-activity-item p{margin:3px 0;color:#bdcbe0;font-size:11px}
+    .dx-activity-item small{color:#8298ba;font-size:10px}
+    .dx-activity-check{margin-left:auto;color:#5ce5a4;font-size:18px;font-weight:900}
+    @media(max-width:600px){.dx-purchase-activity{width:calc(100% - 22px);padding:14px;margin-top:14px}.dx-activity-heading h2{font-size:15px}}
+
 </style>
 </head>
 
@@ -622,6 +638,10 @@
 
     </div>
   </header>
+
+  <section id="dxPurchaseActivity" class="dx-purchase-activity" aria-live="polite" aria-label="Aktivitas pembelian DX STORE">
+    <div class="dx-activity-heading"><div><small>DX STORE · LIVE UPDATE</small><h2>Aktivitas pembelian</h2><p>Memuat aktivitas terbaru...</p></div></div>
+  </section>
 
   <main>
     <!-- BERANDA -->
@@ -718,7 +738,7 @@
   <!-- JAVASCRIPT -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=21"></script>
   <script src="image-upload.js?v=3"></script>
 
 </body>
