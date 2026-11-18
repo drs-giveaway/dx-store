@@ -66,44 +66,24 @@ Deno.serve(async (req: Request) => {
   if (req.method === "POST" && path.endsWith("/api/payments/create")) {
     try {
       const body = await req.json();
-      const table = getItemTable(body?.itemType);
-      if (!table || !isUuid(body?.itemId)) return json({ message: "Item pesanan tidak valid." }, 400);
-
-      const columns = body.itemType === "product" ? "id,name,price,status" : "id,title,price,status";
-      const { data: item, error: itemError } = await adminClient
-        .from(table).select(columns).eq("id", body.itemId).eq("status", "active").maybeSingle();
-
-      if (itemError || !item) return json({ message: "Barang tidak tersedia atau sedang dipesan." }, 404);
-
-      const amount = Number(item.price);
-      if (!Number.isSafeInteger(amount) || amount < 1) return json({ message: "Harga barang tidak valid." }, 400);
-
-      // Atomic reservation prevents two buyers from reserving the same item.
-      const { data: reserved, error: reserveError } = await adminClient.from(table)
-        .update({ status: "reserved" }).eq("id", item.id).eq("status", "active")
-        .select("id").maybeSingle();
-      if (reserveError || !reserved) return json({ message: "Barang baru saja dipesan pembeli lain. Status: PENDING." }, 409);
-
-      const itemName = String(item.name || item.title || "Item DX STORE").slice(0, 200);
-      const { data: order, error: insertError } = await adminClient
-        .from("orders")
-        .insert({
-          buyer_id: user!.id,
-          total_amount: amount,
-          item_type: body.itemType,
-          item_id: item.id,
-          item_name: itemName,
-          status: "pending",
-        })
-        .select("id,total_amount,status")
-        .single();
-
-      if (insertError || !order) {
-        await adminClient.from(table).update({ status: "active" }).eq("id", item.id).eq("status", "reserved");
-        console.error("Create order:", insertError?.message);
-        return json({ message: "Pesanan gagal dibuat. Barang dikembalikan ke status tersedia." }, 500);
+      if (!getItemTable(body?.itemType) || !isUuid(body?.itemId)) {
+        return json({ message: "Item pesanan tidak valid." }, 400);
       }
-      return json({ orderId: order.id, amount: Number(order.total_amount), status: order.status });
+
+      // One database transaction locks the listing, reserves it, and creates its order.
+      const { data, error } = await adminClient.rpc("dx_create_order_with_reservation", {
+        p_user_id: user!.id,
+        p_item_type: body.itemType,
+        p_item_id: body.itemId,
+      });
+      if (error || !data) {
+        console.error("Create order RPC:", error?.message);
+        const message = error?.message?.includes("DX_ITEM_UNAVAILABLE")
+          ? "Barang sudah dipesan atau telah terjual."
+          : "Pesanan gagal dibuat. Periksa migrasi database DX STORE.";
+        return json({ message }, error?.message?.includes("DX_ITEM_UNAVAILABLE") ? 409 : 500);
+      }
+      return json({ orderId: data.id, amount: Number(data.amount), status: data.status });
     } catch (error) {
       console.error("Create order:", error);
       return json({ message: "Permintaan pesanan tidak valid." }, 400);
@@ -121,13 +101,13 @@ Deno.serve(async (req: Request) => {
       if (!allowedPath.test(proofPath)) return json({ message: "Lokasi bukti pembayaran tidak valid." }, 400);
 
       const { data: order, error } = await adminClient.from("orders")
-        .select("id,status").eq("id", orderId).eq("buyer_id", user!.id).maybeSingle();
+        .select("id,status").eq("id", orderId).eq("user_id", user!.id).maybeSingle();
       if (error || !order) return json({ message: "Pesanan tidak ditemukan." }, 404);
       if (!["pending", "review"].includes(order.status)) return json({ message: "Pesanan tidak dapat menerima bukti lagi." }, 409);
 
       const { data: updated, error: updateError } = await adminClient.from("orders")
         .update({ proof_path: proofPath, status: "review" })
-        .eq("id", orderId).eq("buyer_id", user!.id).in("status", ["pending", "review"])
+        .eq("id", orderId).eq("user_id", user!.id).in("status", ["pending", "review"])
         .select("id,status").maybeSingle();
 
       if (updateError || !updated) return json({ message: "Bukti gagal disimpan. Periksa status pesanan." }, 409);
@@ -142,17 +122,17 @@ Deno.serve(async (req: Request) => {
     if (!isUuid(orderId)) return json({ message: "Nomor pesanan tidak valid." }, 400);
 
     const { data: order, error } = await adminClient.from("orders")
-      .select("id,total_amount,status").eq("id", orderId).eq("buyer_id", user!.id).maybeSingle();
+      .select("id,amount,status").eq("id", orderId).eq("user_id", user!.id).maybeSingle();
     if (error || !order) return json({ message: "Pesanan tidak ditemukan." }, 404);
 
-    return json({ orderId: order.id, amount: Number(order.total_amount), status: order.status });
+    return json({ orderId: order.id, amount: Number(order.amount), status: order.status });
   }
 
   if (path.endsWith("/api/admin/orders") && req.method === "GET") {
     if (!await isAdmin(user!.id)) return json({ message: "Akses khusus admin." }, 403);
 
     const { data, error } = await adminClient.from("orders")
-      .select("id,buyer_id,total_amount,item_name,status,proof_path,created_at")
+      .select("id,user_id,order_id,amount,item_name,status,proof_path,created_at")
       .order("created_at", { ascending: false }).limit(100);
     if (error) return json({ message: "Daftar pesanan gagal dimuat." }, 500);
 
@@ -165,8 +145,9 @@ Deno.serve(async (req: Request) => {
       }
       return {
         order_id: order.id,
-        buyer_id: order.buyer_id,
-        amount: Number(order.total_amount),
+        buyer_id: order.user_id,
+        order_number: order.order_id,
+        amount: Number(order.amount),
         item_name: order.item_name || "Pesanan DX STORE",
         status: order.status,
         created_at: order.created_at,
@@ -180,34 +161,21 @@ Deno.serve(async (req: Request) => {
   if (req.method === "PATCH" && adminMatch) {
     if (!await isAdmin(user!.id)) return json({ message: "Akses khusus admin." }, 403);
     const orderId = adminMatch[1];
-    let status = "";
-    try { status = (await req.json())?.status; } catch { /* invalid JSON */ }
-    if (!isUuid(orderId) || !["paid", "rejected"].includes(status)) {
+    let decision = "";
+    try { decision = (await req.json())?.status; } catch { /* invalid JSON */ }
+    if (!isUuid(orderId) || !["paid", "rejected"].includes(decision)) {
       return json({ message: "Perubahan status tidak valid." }, 400);
     }
-    const { data: existing, error: existingError } = await adminClient.from("orders")
-      .select("id,status,item_type,item_id").eq("id", orderId).in("status", status === "paid" ? ["review"] : ["pending", "review"]).maybeSingle();
-    if (existingError || !existing) return json({ message: "Pesanan tidak ditemukan atau sudah diproses." }, 409);
-    const table = getItemTable(existing.item_type);
-    if (!table || !isUuid(existing.item_id)) return json({ message: "Data barang pada pesanan tidak valid." }, 409);
 
-    if (status === "paid") {
-      const { data: sold, error: soldError } = await adminClient.from(table)
-        .update({ status: "sold_out" }).eq("id", existing.item_id).eq("status", "reserved")
-        .select("id").maybeSingle();
-      if (soldError || !sold) return json({ message: "Barang tidak dalam status PENDING. Pesanan belum dapat diselesaikan." }, 409);
-    }
-
-    const { data, error } = await adminClient.from("orders").update({ status })
-      .eq("id", orderId).eq("status", existing.status).select("id,status").maybeSingle();
+    const { data, error } = await adminClient.rpc("dx_review_order_and_listing", {
+      p_order_id: orderId,
+      p_decision: decision,
+    });
     if (error || !data) {
-      if (status === "paid") await adminClient.from(table).update({ status: "reserved" }).eq("id", existing.item_id).eq("status", "sold_out");
-      return json({ message: "Pesanan gagal diperbarui. Silakan muat ulang." }, 409);
-    }
-    if (status === "rejected") {
-      const { error: releaseError } = await adminClient.from(table).update({ status: "active" })
-        .eq("id", existing.item_id).eq("status", "reserved");
-      if (releaseError) console.error("Release reserved item:", releaseError.message);
+      console.error("Review order RPC:", error?.message);
+      return json({ message: error?.message?.includes("DX_ORDER_UNAVAILABLE")
+        ? "Pesanan sudah diproses atau status barang berubah."
+        : "Status pesanan gagal diperbarui. Pastikan migrasi database sudah diterapkan." }, 409);
     }
     return json({ order_id: data.id, status: data.status });
   }
