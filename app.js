@@ -271,12 +271,179 @@ function selectItem(type, id) {
         if (!currentUser) {
           openAuth();
           showDXMessage("Masuk atau daftar untuk melanjutkan pemesanan.");
-        } else {
-          alert("Untuk menyelesaikan pesanan, silakan hubungi admin DX STORE.");
+          return;
         }
+        openDXCheckout(type, data);
       };
       modal.classList.add("active");
     });
+}
+
+/* CHECKOUT QRIS DX STORE
+   Nominal ditampilkan dari harga item terpilih.
+   QRIS dinamis dan status resmi hanya berasal dari backend Midtrans.
+*/
+function createDXCheckoutModal() {
+  let modal = $("dxCheckoutModal");
+  if (modal) return modal;
+
+  modal = document.createElement("div");
+  modal.id = "dxCheckoutModal";
+  modal.className = "dx-checkout-overlay";
+  modal.innerHTML = `
+    <section class="dx-checkout-panel" role="dialog" aria-modal="true" aria-labelledby="dxCheckoutTitle">
+      <button type="button" class="dx-checkout-close" aria-label="Tutup">&times;</button>
+      <header class="dx-checkout-brand">
+        <div class="dx-checkout-logo">DX <span>STORE</span></div>
+        <small>GAME TOP UP &amp; DIGITAL PRODUCT</small>
+      </header>
+      <div class="dx-checkout-banner">
+        <span class="dx-checkout-qr-icon">▦</span>
+        <div><h2 id="dxCheckoutTitle">Pembayaran QRIS</h2><p>Scan QR berikut untuk menyelesaikan pembayaran</p></div>
+      </div>
+      <div class="dx-checkout-main">
+        <div class="dx-checkout-qr" id="dxCheckoutQr">
+          <div class="dx-checkout-qr-placeholder">QRIS<br>AKAN MUNCUL<br>SETELAH TRANSAKSI DIBUAT</div>
+        </div>
+        <div class="dx-checkout-details">
+          <small>Barang yang dibeli</small>
+          <strong id="dxCheckoutItem">-</strong>
+          <small>Nominal Pembayaran</small>
+          <strong class="dx-checkout-amount" id="dxCheckoutAmount">Rp0</strong>
+          <small>Status Pembayaran</small>
+          <div class="dx-checkout-status" id="dxCheckoutStatus">Menunggu pembuatan transaksi</div>
+          <small>Batas Waktu</small>
+          <strong id="dxCheckoutExpiry">-</strong>
+        </div>
+      </div>
+      <p class="dx-checkout-note" id="dxCheckoutMessage" aria-live="polite">QRIS dinamis akan diminta dari server pembayaran. QRIS cetak/static tidak digunakan untuk nominal otomatis.</p>
+      <div class="dx-checkout-actions">
+        <button type="button" class="dx-button" id="dxCreatePayment">Buat Pembayaran QRIS</button>
+        <button type="button" class="dx-button dx-checkout-secondary" id="dxCheckPayment" disabled>↻ Cek Status Pembayaran</button>
+      </div>
+      <div class="dx-checkout-instructions">
+        <strong>Petunjuk Pembayaran</strong>
+        <ol>
+          <li>Buat transaksi QRIS untuk mendapatkan kode pembayaran.</li>
+          <li>Buka aplikasi pembayaran yang mendukung QRIS.</li>
+          <li>Scan QR dan pastikan nominalnya sesuai.</li>
+          <li>Status LUNAS hanya ditampilkan setelah dikonfirmasi server pembayaran.</li>
+        </ol>
+      </div>
+      <button type="button" class="dx-checkout-close-link">Tutup</button>
+    </section>`;
+
+  const style = document.createElement("style");
+  style.id = "dxCheckoutStyles";
+  style.textContent = `
+    .dx-checkout-overlay{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,6,23,.9);backdrop-filter:blur(12px);overflow:auto}
+    .dx-checkout-overlay.active{display:flex}
+    .dx-checkout-panel{position:relative;width:min(900px,100%);max-height:94vh;overflow:auto;padding:25px;border:1px solid #278dff;border-radius:24px;background:radial-gradient(circle at 0 0,rgba(20,115,255,.18),transparent 35%),radial-gradient(circle at 100% 20%,rgba(128,45,255,.18),transparent 35%),#071126;color:#f5f7ff;box-shadow:0 0 45px rgba(20,130,255,.18)}
+    .dx-checkout-close{position:absolute;top:14px;right:16px;width:38px;height:38px;border:1px solid #38527d;border-radius:12px;background:#111d39;color:#fff;font-size:25px}
+    .dx-checkout-brand{display:flex;align-items:center;gap:18px;margin-bottom:22px}
+    .dx-checkout-logo{font-size:28px;font-weight:900;font-style:italic;color:#28caff}.dx-checkout-logo span{color:#bd6cff}
+    .dx-checkout-brand small{padding-left:18px;border-left:1px solid #7890bd;color:#dce6ff;font-size:12px}
+    .dx-checkout-banner{display:flex;align-items:center;gap:18px;padding:18px 22px;border:1px solid #5e6dff;border-radius:17px;background:linear-gradient(105deg,#155eea,#7414db);margin-bottom:25px}
+    .dx-checkout-qr-icon{font-size:38px}.dx-checkout-banner h2{font-size:25px;margin:0 0 5px}.dx-checkout-banner p{margin:0;color:#e5eaff;font-size:13px}
+    .dx-checkout-main{display:grid;grid-template-columns:minmax(210px,1fr) minmax(220px,1fr);gap:28px;align-items:center}
+    .dx-checkout-qr{min-height:260px;display:grid;place-items:center;padding:18px;border:2px dashed #526caa;border-radius:18px;background:#fff;color:#667085;text-align:center}
+    .dx-checkout-qr img{width:min(100%,300px);max-height:300px;object-fit:contain}
+    .dx-checkout-qr-placeholder{font-size:15px;font-weight:800;line-height:1.8}
+    .dx-checkout-details{display:grid;gap:8px}.dx-checkout-details small{color:#9eb1d6;font-size:12px;margin-top:8px}.dx-checkout-details strong{overflow-wrap:anywhere}.dx-checkout-amount{font-size:clamp(30px,5vw,43px);color:#fff}.dx-checkout-status{padding:12px;border:1px solid #eab308;border-radius:12px;color:#facc15;background:rgba(120,75,0,.2);font-weight:700}
+    .dx-checkout-note{margin:20px 0;padding:13px;border:1px solid #30466f;border-radius:12px;color:#c4d3ee;font-size:13px;line-height:1.6}
+    .dx-checkout-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.dx-checkout-actions button{min-height:48px;border:0;border-radius:12px;color:#fff;font-weight:800;background:linear-gradient(100deg,#087eea,#8618d5)}.dx-checkout-actions button:disabled{opacity:.45;cursor:not-allowed}.dx-checkout-actions .dx-checkout-secondary{background:#182747;border:1px solid #46618f}
+    .dx-checkout-instructions{margin-top:22px;padding:18px;border:1px solid #344a75;border-radius:14px;color:#cbd8f1;font-size:13px;line-height:1.8}.dx-checkout-instructions strong{color:#36caff}.dx-checkout-instructions ol{padding-left:20px;margin-top:8px}
+    .dx-checkout-close-link{display:block;margin:16px auto 0;border:0;background:transparent;color:#9bb7e8}
+    @media(max-width:620px){.dx-checkout-panel{padding:18px}.dx-checkout-brand{display:block}.dx-checkout-brand small{display:block;margin-top:7px;padding:0;border:0}.dx-checkout-main{grid-template-columns:1fr}.dx-checkout-qr{min-height:220px}.dx-checkout-actions{grid-template-columns:1fr}.dx-checkout-banner{padding:14px}.dx-checkout-banner h2{font-size:20px}}
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(modal);
+
+  const close = () => modal.classList.remove("active");
+  modal.querySelector(".dx-checkout-close").addEventListener("click", close);
+  modal.querySelector(".dx-checkout-close-link").addEventListener("click", close);
+  modal.addEventListener("click", event => { if (event.target === modal) close(); });
+  return modal;
+}
+
+function openDXCheckout(type, item) {
+  const modal = createDXCheckoutModal();
+  const itemName = item.name || item.title || "Item DX STORE";
+  const amount = Number(item.price);
+  modal.dataset.itemType = type;
+  modal.dataset.itemId = String(item.id);
+  modal.dataset.orderId = "";
+  $("dxCheckoutItem").textContent = itemName;
+  $("dxCheckoutAmount").textContent = formatPrice(amount);
+  $("dxCheckoutExpiry").textContent = "-";
+  $("dxCheckoutStatus").textContent = "Menunggu pembuatan transaksi";
+  $("dxCheckoutQr").innerHTML = '<div class="dx-checkout-qr-placeholder">QRIS<br>AKAN MUNCUL<br>SETELAH TRANSAKSI DIBUAT</div>';
+  $("dxCheckoutMessage").textContent = "Nominal mengikuti harga item yang dipilih. QRIS dinamis dibuat oleh backend Midtrans.";
+  $("dxCreatePayment").disabled = false;
+  $("dxCheckPayment").disabled = true;
+  $("dxCreatePayment").onclick = createDXPayment;
+  $("dxCheckPayment").onclick = checkDXPaymentStatus;
+  modal.classList.add("active");
+}
+
+async function createDXPayment() {
+  const modal = $("dxCheckoutModal");
+  const base = DX_CONFIG.paymentApiUrl;
+  if (!base) {
+    $("dxCheckoutMessage").textContent = "Backend pembayaran belum dikonfigurasi. QRIS belum dapat dibuat dan pembayaran belum bisa diterima melalui website.";
+    return;
+  }
+  const button = $("dxCreatePayment");
+  button.disabled = true;
+  button.textContent = "Membuat transaksi...";
+  try {
+    const response = await fetch(new URL("/api/payments/create", base), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (await dxSupabase.auth.getSession()).data.session?.access_token },
+      body: JSON.stringify({ itemType: modal.dataset.itemType, itemId: modal.dataset.itemId })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || "Transaksi gagal dibuat.");
+    if (!result.orderId || !result.qrUrl || !Number.isFinite(Number(result.amount))) throw new Error("Respons server pembayaran tidak lengkap.");
+    modal.dataset.orderId = result.orderId;
+    $("dxCheckoutAmount").textContent = formatPrice(result.amount);
+    $("dxCheckoutStatus").textContent = "Menunggu Pembayaran...";
+    $("dxCheckoutQr").innerHTML = '<img src="' + safeText(safeImageUrl(result.qrUrl)) + '" alt="QRIS pembayaran DX STORE">';
+    $("dxCheckoutExpiry").textContent = result.expiresAt ? new Date(result.expiresAt).toLocaleString("id-ID") : "Sesuai batas waktu transaksi";
+    $("dxCheckoutMessage").textContent = "Scan QRIS dan bayar sesuai nominal yang tertera.";
+    $("dxCheckPayment").disabled = false;
+  } catch (error) {
+    $("dxCheckoutMessage").textContent = getDXError(error);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Buat Pembayaran QRIS";
+  }
+}
+
+async function checkDXPaymentStatus() {
+  const modal = $("dxCheckoutModal");
+  const base = DX_CONFIG.paymentApiUrl;
+  if (!base || !modal.dataset.orderId) return;
+  const button = $("dxCheckPayment");
+  button.disabled = true;
+  button.textContent = "Memeriksa...";
+  try {
+    const response = await fetch(new URL("/api/payments/status?orderId=" + encodeURIComponent(modal.dataset.orderId), base), {
+      headers: { "Authorization": "Bearer " + (await dxSupabase.auth.getSession()).data.session?.access_token }
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || "Status pembayaran gagal diperiksa.");
+    const labels = { paid: "LUNAS", pending: "Menunggu Pembayaran...", expired: "Kedaluwarsa", failed: "Gagal" };
+    $("dxCheckoutStatus").textContent = labels[result.status] || "Status belum diketahui";
+    $("dxCheckoutMessage").textContent = result.status === "paid"
+      ? "Pembayaran telah dikonfirmasi oleh server pembayaran."
+      : "Status terbaru: " + $("dxCheckoutStatus").textContent;
+  } catch (error) {
+    $("dxCheckoutMessage").textContent = getDXError(error);
+  } finally {
+    button.disabled = false;
+    button.textContent = "↻ Cek Status Pembayaran";
+  }
 }
 
 async function loadDXStore() {
