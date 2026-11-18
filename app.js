@@ -1374,10 +1374,26 @@ function showDXMascotMessage(type, customMessage) {
     bubble.id = "dxMascotSpeechBubble";
     bubble.setAttribute("role", "status");
     bubble.setAttribute("aria-live", "polite");
-    bubble.style.cssText = "position:fixed;z-index:700;right:16px;bottom:112px;width:min(330px,calc(100vw - 32px));padding:13px 15px;border:1px solid #51e5ff66;border-radius:14px;background:rgba(10,20,42,.94);backdrop-filter:blur(12px);box-shadow:0 8px 28px #0007;color:#f4f8ff;font:500 13px/1.55 Inter,sans-serif";
+    bubble.style.cssText = "position:fixed;z-index:700;right:16px;bottom:112px;display:flex;align-items:center;gap:11px;width:min(360px,calc(100vw - 32px));min-height:104px;padding:10px 13px;border:1px solid #51e5ff88;border-radius:16px;background:rgba(10,20,42,.92);backdrop-filter:blur(12px);box-shadow:0 8px 28px #0007;color:#f4f8ff;font:500 13px/1.55 Inter,sans-serif";
+    const avatar = document.createElement("img");
+    avatar.src = "./39976-removebg-preview.png";
+    avatar.alt = "Maskot DX-01";
+    avatar.style.cssText = "display:block;flex:0 0 76px;width:76px;height:84px;object-fit:contain;object-position:center;filter:drop-shadow(0 0 10px #26cfff88)";
+    avatar.onerror = () => { avatar.style.display = "none"; };
+    const content = document.createElement("div");
+    content.style.cssText = "min-width:0;flex:1";
+    const name = document.createElement("div");
+    name.textContent = "DX-01";
+    name.style.cssText = "margin-bottom:4px;color:#65eaff;font-size:11px;font-weight:900;letter-spacing:1.2px";
+    const words = document.createElement("div");
+    words.id = "dxMascotSpeechText";
+    words.style.cssText = "font-size:13px;line-height:1.5;color:#f4f8ff";
+    content.append(name, words);
+    bubble.append(avatar, content);
     document.body.appendChild(bubble);
   }
-  bubble.textContent = "DX-01 · " + message;
+  const words = bubble.querySelector("#dxMascotSpeechText");
+  if (words) words.textContent = message;
   bubble.hidden = false;
   clearTimeout(window.dxMascotBubbleTimer);
   window.dxMascotBubbleTimer = setTimeout(() => { bubble.hidden = true; }, 7000);
