@@ -173,27 +173,40 @@ function closeAuth() {
 /* STATUS TOMBOL HEADER */
 
 function updateDXHeaderAuth() {
-  const button = document.querySelector(
-    ".dx-nav-actions .dx-button"
-  );
-
-  if (!button) return;
+  const actions = document.querySelector(".dx-nav-actions");
+  const button = actions?.querySelector(".dx-button");
+  if (!actions || !button) return;
 
   button.textContent = currentUser
-    ? (
-        currentProfile?.role === "admin"
-          ? "Admin / Keluar"
-          : "Keluar"
-      )
+    ? (currentProfile?.role === "admin" ? "Admin / Keluar" : "Keluar")
     : "Masuk / Daftar";
 
   button.onclick = () => {
-    if (currentUser) {
-      handleDXLogout();
-    } else {
-      openAuth();
-    }
+    if (currentUser) handleDXLogout();
+    else openAuth();
   };
+
+  let countrySelect = $("dxCountry");
+  if (currentUser && !countrySelect) {
+    countrySelect = document.createElement("select");
+    countrySelect.id = "dxCountry";
+    countrySelect.setAttribute("aria-label", "Pengaturan negara dan mata uang");
+    countrySelect.title = "Ubah negara";
+    countrySelect.style.cssText = "min-height:42px;max-width:145px;padding:0 10px;border:1px solid rgba(81,229,255,.45);border-radius:10px;background:#101b32;color:#eaf5ff;font:600 12px Inter,sans-serif";
+    Object.entries(DX_COUNTRIES).forEach(([code, country]) => {
+      const option = document.createElement("option");
+      option.value = code;
+      option.textContent = country.name + " (" + country.currency + ")";
+      countrySelect.appendChild(option);
+    });
+    countrySelect.addEventListener("change", () => setDXCountry(countrySelect.value));
+    actions.insertBefore(countrySelect, button);
+  }
+
+  if (countrySelect) {
+    countrySelect.hidden = !currentUser;
+    countrySelect.value = getDXCountry().code;
+  }
 }
 
 /* =========================================
