@@ -504,6 +504,7 @@ function updateDXDashboardVisibility() {
         <div><small>DX STORE · DIGITAL WALLET EXPERIENCE</small><h1>Halo, <span id="dxDashboardName">Pengguna</span> 👋</h1><p>Semua kebutuhan digitalmu dalam satu tempat.</p></div>
         <div class="dx-dana-avatar">DX</div>
       </div>
+      <div id="dxStoreNoticeBanner" hidden role="status" style="margin:14px 0;padding:14px;border:1px solid #51e5ff55;border-radius:12px;background:#102543;color:#eaf5ff"></div>
       <div class="dx-dana-maincard">
         <div class="dx-dana-cardtop"><span>DX STORE</span><span>●●●●  DX-01</span></div>
         <div class="dx-dana-cardtitle">Marketplace Digital</div>
@@ -538,13 +539,21 @@ function updateDXDashboardVisibility() {
           <button type="button" data-dx-profile-action="orders"><span class="dx-profile-menu-icon">▤</span><span><strong>Riwayat Pesanan</strong><small>Lihat status pesananmu</small></span><b>›</b></button>
           <button type="button" data-dx-profile-action="help"><span class="dx-profile-menu-icon">?</span><span><strong>Pusat Bantuan</strong><small>Laporkan masalah atau cari bantuan</small></span><b>›</b></button>
         </article>
+        <section id="dxOrderHistory" class="dx-profile-card"><div class="dx-profile-card-head"><div><small>TRANSAKSI</small><h3>Riwayat Pesanan</h3></div><button type="button" id="dxRefreshOrders">Muat ulang</button></div><div id="dxOrderHistoryList">Memuat pesanan...</div></section>
+        <section id="dxHelpCenter" class="dx-profile-card"><div class="dx-profile-card-head"><div><small>DUKUNGAN PELANGGAN</small><h3>Pusat Bantuan &amp; Laporan</h3></div><span>?</span></div>
+          <form id="dxSupportForm"><label for="dxSupportCategory">Kategori masalah</label><select id="dxSupportCategory" required><option>Pembayaran</option><option>Pesanan</option><option>Produk</option><option>Akun</option><option>Login</option><option>Lainnya</option></select>
+          <label for="dxSupportOrder">Nomor pesanan (opsional)</label><input id="dxSupportOrder" type="text" placeholder="Tempel ID pesanan jika ada">
+          <label for="dxSupportSubject">Judul laporan</label><input id="dxSupportSubject" type="text" minlength="4" maxlength="120" required placeholder="Ringkas masalah yang dialami">
+          <label for="dxSupportMessage">Ceritakan masalah</label><textarea id="dxSupportMessage" minlength="10" maxlength="4000" rows="4" required placeholder="Jelaskan kronologi dan bantuan yang dibutuhkan"></textarea>
+          <button type="submit" id="dxSupportSubmit" class="dx-profile-primary">Kirim Laporan</button><p id="dxSupportFeedback" role="status" aria-live="polite"></p></form>
+          <h4>Laporan Saya</h4><div id="dxMyTickets">Memuat laporan...</div></section>
         <article class="dx-profile-card dx-profile-ai">
           <div class="dx-profile-card-head dx-chat-head"><div class="dx-chat-brand"><span class="dx-ai-mark">DX</span><div><small>ASISTEN DIGITAL DX</small><h3>DX AI Assistant</h3><p><i class="dx-online-dot"></i> Siap membantu di DX STORE</p></div></div><span class="dx-chat-menu">•••</span></div>
           <div class="dx-chat-welcome"><span class="dx-chat-spark">✦</span><div><strong>Halo! Saya DX 👋</strong><p>Ada yang ingin kamu ketahui atau butuh bantuan apa hari ini?</p></div></div>
           <div id="dxAssistantMessages" class="dx-assistant-messages" aria-live="polite"></div>
           <div class="dx-assistant-suggestions"><button type="button" data-dx-ask="Bagaimana cara membeli produk?">🛍️ Cara membeli</button><button type="button" data-dx-ask="Bagaimana cara membayar pesanan?">💳 Pembayaran</button><button type="button" data-dx-ask="Bagaimana cara melaporkan masalah?">🎧 Pusat bantuan</button></div>
           <form id="dxAssistantForm" class="dx-assistant-form"><input id="dxAssistantInput" type="text" maxlength="500" placeholder="Tulis pesan untuk DX..." autocomplete="off" aria-label="Pesan untuk DX"><button type="submit" aria-label="Kirim pesan">➤</button></form>
-          <small class="dx-assistant-note">Saat ini DX menggunakan panduan bantuan otomatis. Fitur percakapan AI generatif sedang menunggu koneksi layanan AI.</small>
+          <small class="dx-assistant-note" id="dxAssistantStatus">DX AI menghubungkan layanan percakapan.</small>
         </article>
         <div class="dx-profile-actions"><button type="button" id="dxOpenAdmin" hidden>Kelola Website</button><button type="button" id="dxAccountLogout">Keluar dari Akun</button></div>
         <p class="dx-profile-version">DX STORE · DIGITAL MARKETPLACE</p>
@@ -555,6 +564,7 @@ function updateDXDashboardVisibility() {
   }
   mountDXMascotVoice();
   const visible = !!currentUser;
+  loadDXStoreAvailability();
   dashboard.hidden = !visible;
   hero.hidden = visible;
   if (cta) cta.hidden = visible;
@@ -600,12 +610,8 @@ function updateDXDashboardVisibility() {
     button.addEventListener("click", () => {
       const action = button.dataset.dxProfileAction;
       if (action === "country") $("dxCountry")?.focus();
-      if (action === "orders") {
-        const orders = $("dxOrders") || document.querySelector("#orders, [data-dx-orders]");
-        if (orders) orders.scrollIntoView({behavior:"smooth",block:"start"});
-        else showDXAssistantReply("Riwayat pesanan dapat dilihat melalui menu pesanan setelah fitur riwayat tersedia pada akunmu.");
-      }
-      if (action === "help") showDXAssistantReply("Untuk melaporkan kendala, buka Pusat Bantuan. Pilih kategori masalah, jelaskan kronologi, lalu kirim laporan agar dapat ditinjau admin.");
+      if (action === "orders") { $("dxOrderHistory")?.scrollIntoView({behavior:"smooth",block:"start"}); loadDXOrderHistory(); }
+      if (action === "help") $("dxHelpCenter")?.scrollIntoView({behavior:"smooth",block:"start"});
     });
     button.dataset.bound = "1";
   });
@@ -619,7 +625,7 @@ function updateDXDashboardVisibility() {
         if (!question) return;
         addDXAssistantMessage(question, "user");
         input.value = "";
-        window.setTimeout(() => showDXAssistantReply(getDXAssistantAnswer(question)), 220);
+        askDXAssistant(question);
       });
       form.dataset.bound = "1";
     }
@@ -629,10 +635,13 @@ function updateDXDashboardVisibility() {
     button.addEventListener("click", () => {
       const question = button.dataset.dxAsk;
       addDXAssistantMessage(question, "user");
-      window.setTimeout(() => showDXAssistantReply(getDXAssistantAnswer(question)), 180);
+      askDXAssistant(question);
     });
     button.dataset.bound = "1";
   });
+  if($("dxRefreshOrders")&&!$("dxRefreshOrders").dataset.bound){$("dxRefreshOrders").addEventListener("click",loadDXOrderHistory);$("dxRefreshOrders").dataset.bound="1";}
+  if($("dxSupportForm")&&!$("dxSupportForm").dataset.bound){$("dxSupportForm").addEventListener("submit",submitDXSupportTicket);$("dxSupportForm").dataset.bound="1";}
+  if(currentUser){loadDXOrderHistory();loadDXMyTickets();}
   const accountLogout = $("dxAccountLogout");
   if (accountLogout && !accountLogout.dataset.bound) {
     accountLogout.addEventListener("click", handleDXLogout);
@@ -650,8 +659,7 @@ function updateDXDashboardVisibility() {
       if (adminPanel) adminPanel.style.display = window.dxAdminPanelExpanded ? "block" : "none";
       adminAccessButton.textContent = window.dxAdminPanelExpanded ? "Tutup Kelola Website" : "Kelola Website";
       if (window.dxAdminPanelExpanded) {
-        loadDXAdminList();
-        loadDXPaymentOrders();
+        loadDXAdminList(); loadDXPaymentOrders(); loadDXStoreSettings(); loadDXAdminTickets(); loadDXAdminOverview(); loadDXAdminUsers();
         adminPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     });
@@ -1156,6 +1164,85 @@ async function loadDXStore() {
   ]);
 }
 
+
+
+/* DX ACCOUNT SERVICES */
+async function loadDXOrderHistory(){
+ const host=$("dxOrderHistoryList");if(!host||!dxSupabase||!currentUser)return;
+ host.textContent="Memuat pesanan...";
+ const {data,error}=await dxSupabase.from("orders").select("id,item_name,total_amount,status,created_at").eq("buyer_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
+ if(error){host.textContent="Riwayat gagal dimuat: "+getDXError(error);return;}
+ if(!data?.length){host.textContent="Belum ada pesanan.";return;}
+ host.innerHTML=data.map(o=>`<article class="dx-ticket-card"><b>${safeText(o.item_name||"Pesanan DX STORE")}</b><p>No. ${safeText(o.id)}</p><p>${formatPrice(o.total_amount)} · ${safeText(o.status)}</p><small>${new Date(o.created_at).toLocaleString(getDXCountry().locale||"id-ID")}</small></article>`).join("");
+}
+async function submitDXSupportTicket(event){
+ event.preventDefault();if(!currentUser||!dxSupabase)return;
+ const btn=$("dxSupportSubmit"),feedback=$("dxSupportFeedback"),order=$("dxSupportOrder").value.trim();
+ const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+ if(order&&!uuid.test(order)){feedback.textContent="ID pesanan tidak valid.";return;}
+ btn.disabled=true;
+ try{
+  const payload={user_id:currentUser.id,category:$("dxSupportCategory").value,subject:$("dxSupportSubject").value.trim(),message:$("dxSupportMessage").value.trim(),order_id:order||null};
+  const {data,error}=await dxSupabase.from("support_tickets").insert(payload).select("id").single();if(error)throw error;
+  $("dxSupportForm").reset();feedback.textContent="Laporan terkirim. Nomor tiket: "+data.id;await loadDXMyTickets();
+ }catch(e){feedback.textContent="Gagal mengirim laporan: "+getDXError(e);}
+ finally{btn.disabled=false;}
+}
+async function loadDXMyTickets(){
+ const host=$("dxMyTickets");if(!host||!currentUser||!dxSupabase)return;
+ host.textContent="Memuat laporan...";
+ const {data,error}=await dxSupabase.from("support_tickets").select("id,category,subject,message,status,admin_reply,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(30);
+ if(error){host.textContent="Laporan gagal dimuat: "+getDXError(error);return;}
+ host.innerHTML=(data||[]).map(t=>`<article class="dx-ticket-card"><b>${safeText(t.subject)}</b><p>${safeText(t.category)} · ${safeText(t.status)}</p><small>No. tiket: ${safeText(t.id)}</small><p>${safeText(t.message)}</p>${t.admin_reply?`<p><b>Balasan admin:</b> ${safeText(t.admin_reply)}</p>`:"<p>Menunggu balasan admin.</p>"}</article>`).join("")||"Belum ada laporan.";
+}
+async function loadDXAdminTickets(){
+ const host=$("dxAdminTickets");if(!host||!currentUser||!(await checkDXAdmin()))return;
+ host.textContent="Memuat laporan...";
+ const {data,error}=await dxSupabase.from("support_tickets").select("id,user_id,order_id,category,subject,message,status,admin_reply,created_at").order("created_at",{ascending:false}).limit(100);
+ if(error){host.textContent="Gagal memuat laporan: "+getDXError(error);return;}
+ host.innerHTML=(data||[]).map(t=>`<article class="dx-ticket-card"><b>${safeText(t.subject)}</b><p>${safeText(t.category)} · ${safeText(t.status)}</p><small>${safeText(t.user_id)} · ${new Date(t.created_at).toLocaleString("id-ID")}</small>${t.order_id?`<p>Pesanan: ${safeText(t.order_id)}</p>`:""}<p>${safeText(t.message)}</p><label>Balasan admin</label><textarea id="dxReply-${safeText(t.id)}" rows="3" maxlength="4000">${safeText(t.admin_reply||"")}</textarea><label>Status</label><select id="dxTicketStatus-${safeText(t.id)}"><option ${t.status==="Menunggu"?"selected":""}>Menunggu</option><option ${t.status==="Sedang Ditangani"?"selected":""}>Sedang Ditangani</option><option ${t.status==="Menunggu Informasi Pengguna"?"selected":""}>Menunggu Informasi Pengguna</option><option ${t.status==="Selesai"?"selected":""}>Selesai</option><option ${t.status==="Ditolak"?"selected":""}>Ditolak</option></select><button type="button" data-dx-ticket-save="${safeText(t.id)}">Simpan Balasan &amp; Status</button></article>`).join("")||"Belum ada laporan.";
+}
+async function updateDXAdminTicket(id){
+ if(!currentUser||!(await checkDXAdmin()))return;
+ const patch={admin_reply:$("dxReply-"+id)?.value.trim()||null,status:$("dxTicketStatus-"+id)?.value,updated_at:new Date().toISOString()};
+ const {error}=await dxSupabase.from("support_tickets").update(patch).eq("id",id);if(error){alert(getDXError(error));return;}await loadDXAdminTickets();
+}
+async function loadDXStoreSettings(){
+ if(!currentUser||!(await checkDXAdmin()))return;
+ const {data,error}=await dxSupabase.from("store_settings").select("*").eq("id",true).single();
+ if(error){$("dxStoreStatus").textContent=getDXError(error);return;}
+ $("dxStoreOpen").checked=data.is_open;$("dxStoreMaintenance").checked=data.maintenance_mode;$("dxStoreOpening").value=String(data.opening_time).slice(0,5);$("dxStoreClosing").value=String(data.closing_time).slice(0,5);$("dxStoreTimezone").value=data.timezone||"Asia/Jakarta";$("dxStoreNotice").value=data.notice||"";
+ $("dxStoreStatus").textContent=(data.is_open&&!data.maintenance_mode?"Toko menerima pesanan.":"Pesanan sedang ditutup.")+" Jadwal "+String(data.opening_time).slice(0,5)+"–"+String(data.closing_time).slice(0,5)+" "+data.timezone;
+}
+async function saveDXStoreSettings(event){
+ event.preventDefault();if(!currentUser||!(await checkDXAdmin()))return;
+ const btn=$("dxStoreSave"),feedback=$("dxStoreFeedback");btn.disabled=true;
+ try{const patch={is_open:$("dxStoreOpen").checked,maintenance_mode:$("dxStoreMaintenance").checked,opening_time:$("dxStoreOpening").value,closing_time:$("dxStoreClosing").value,timezone:$("dxStoreTimezone").value,notice:$("dxStoreNotice").value.trim()||null,updated_by:currentUser.id,updated_at:new Date().toISOString()};
+ const {error}=await dxSupabase.from("store_settings").update(patch).eq("id",true);if(error)throw error;feedback.textContent="Pengaturan tersimpan.";await loadDXStoreSettings();await loadDXStoreAvailability();
+ }catch(e){feedback.textContent="Gagal menyimpan: "+getDXError(e);}finally{btn.disabled=false;}
+}
+async function loadDXStoreAvailability(){
+ const banner=$("dxStoreNoticeBanner");if(!banner||!dxSupabase)return;
+ const {data,error}=await dxSupabase.from("store_settings").select("is_open,maintenance_mode,opening_time,closing_time,timezone,notice").eq("id",true).maybeSingle();if(error||!data){banner.hidden=true;return;}
+ banner.hidden=false;banner.textContent=(data.notice?data.notice+" · ":"")+(data.is_open&&!data.maintenance_mode?"Toko menerima pesanan.":"Toko sedang tidak menerima pesanan.")+" Jam operasional "+String(data.opening_time).slice(0,5)+"–"+String(data.closing_time).slice(0,5)+" ("+data.timezone+").";
+}
+async function loadDXAdminOverview(){
+ const host=$("dxAdminOverview");if(!host||!currentUser||!(await checkDXAdmin()))return;
+ const tables=[["profiles","Pengguna"],["orders","Pesanan"],["products","Produk"],["support_tickets","Laporan"]];
+ const counts=await Promise.all(tables.map(async([table,label])=>{const {count,error}=await dxSupabase.from(table).select("*",{count:"exact",head:true});return {label,count,error};}));
+ host.innerHTML=counts.map(x=>`<span class="dx-admin-stat"><b>${x.error?"—":x.count}</b><small>${x.label}</small></span>`).join("");
+}
+async function loadDXAdminUsers(){
+ const host=$("dxAdminUsers");if(!host||!currentUser||!(await checkDXAdmin()))return;
+ const {data,error}=await dxSupabase.from("profiles").select("id,display_name,role,created_at").order("created_at",{ascending:false}).limit(100);
+ if(error){host.textContent=getDXError(error);return;}
+ host.innerHTML=(data||[]).map(u=>`<article class="dx-ticket-card"><b>${safeText(u.display_name||"Pengguna")}</b><p>${safeText(u.role)}</p><small>${safeText(u.id)}</small></article>`).join("")||"Belum ada pengguna.";
+}
+async function askDXAssistant(question){
+ const status=$("dxAssistantStatus");if(status)status.textContent="DX sedang menyiapkan jawaban...";
+ try{const {data,error}=await dxSupabase.functions.invoke("dx-ai",{body:{message:question}});if(error)throw error;if(!data?.reply)throw new Error("Jawaban AI kosong.");showDXAssistantReply(data.reply);if(status)status.textContent="DX AI aktif.";}
+ catch(error){showDXAssistantReply(getDXAssistantAnswer(question)+"\n\nCatatan: AI generatif belum terkonfigurasi; ini jawaban panduan otomatis.");if(status)status.textContent="Mode panduan otomatis — konfigurasi API AI diperlukan.";}
+}
 
 /* DX PROFILE ASSISTANT — panduan interaktif fitur toko */
 function addDXAssistantMessage(message, role) {
@@ -1824,6 +1911,18 @@ function createDXAdminPanel() {
     <h3>Pesanan &amp; Verifikasi Pembayaran QRIS</h3>
     <button type="button" id="dxRefreshPaymentOrders">Muat Ulang Pesanan</button>
     <div id="dxPaymentOrders">Memuat pesanan...</div>
+    <hr style="border-color:#263c60;margin:25px 0;"><h3>Operasional Toko</h3><div id="dxStoreStatus">Memuat pengaturan toko...</div>
+    <form id="dxStoreSettingsForm">
+      <label><input id="dxStoreOpen" type="checkbox" style="display:inline-block;width:auto;"> Toko menerima pesanan</label>
+      <label><input id="dxStoreMaintenance" type="checkbox" style="display:inline-block;width:auto;"> Mode pemeliharaan</label>
+      <label for="dxStoreOpening">Jam buka</label><input id="dxStoreOpening" type="time" value="08:00" required>
+      <label for="dxStoreClosing">Jam tutup</label><input id="dxStoreClosing" type="time" value="22:00" required>
+      <label for="dxStoreTimezone">Zona waktu</label><select id="dxStoreTimezone"><option value="Asia/Jakarta">WIB · Jakarta</option><option value="Asia/Kuala_Lumpur">Malaysia</option><option value="Asia/Singapore">Singapore</option><option value="Asia/Tokyo">Japan</option><option value="UTC">UTC</option></select>
+      <label for="dxStoreNotice">Pengumuman toko</label><input id="dxStoreNotice" maxlength="240" placeholder="Pengumuman untuk pengunjung">
+      <button type="submit" id="dxStoreSave">Simpan Pengaturan Toko</button><p id="dxStoreFeedback" role="status"></p>
+    </form>
+    <hr style="border-color:#263c60;margin:25px 0;"><h3>Pusat Laporan Pengguna</h3><button type="button" id="dxRefreshTickets">Muat Ulang Laporan</button><div id="dxAdminTickets">Memuat laporan...</div>
+    <hr style="border-color:#263c60;margin:25px 0;"><h3>Ringkasan Admin</h3><div id="dxAdminOverview">Memuat statistik...</div><h3>Daftar Pengguna</h3><div id="dxAdminUsers">Memuat pengguna...</div>
   `;
 
   const accountPanel = $("dxProfilePanel");
@@ -1917,6 +2016,9 @@ function createDXAdminPanel() {
   });
 
   $("dxRefreshPaymentOrders").addEventListener("click", loadDXPaymentOrders);
+  $("dxRefreshTickets")?.addEventListener("click", loadDXAdminTickets);
+  $("dxStoreSettingsForm")?.addEventListener("submit", saveDXStoreSettings);
+  $("dxAdminTickets")?.addEventListener("click", event => { const b=event.target.closest("[data-dx-ticket-save]"); if(b) updateDXAdminTicket(b.dataset.dxTicketSave); });
   $("dxPaymentOrders").addEventListener("click", event => {
     const button = event.target.closest("[data-dx-order][data-dx-decision]");
     if (button) reviewDXPayment(button.dataset.dxOrder, button.dataset.dxDecision);
