@@ -279,6 +279,16 @@ function closeAuth() {
 }
 
 let dxActiveView = "home";
+if (!window.dxViewNavigationBound) {
+  window.dxViewNavigationBound = true;
+  document.addEventListener("click", event => {
+    const link = event.target.closest('a[href="#home"],a[href="#products"],a[href="#accounts"]');
+    if (!link || !currentUser) return;
+    event.preventDefault();
+    const href = link.getAttribute("href");
+    showDXView(href === "#products" ? "products" : href === "#accounts" ? "accounts" : "home");
+  }, true);
+}
 function showDXView(view) {
   if (!currentUser || !["home","products","accounts","profile"].includes(view)) return;
   dxActiveView = view;
