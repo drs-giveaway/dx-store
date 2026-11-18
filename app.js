@@ -1190,6 +1190,8 @@ async function loadDXPaymentOrders() {
         ${order.status === "review" ? `
           <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="paid">Setujui — sudah cek dana masuk</button>
           <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Tolak bukti</button>
+        ` : order.status === "pending" ? `
+          <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Batalkan pesanan / lepaskan barang</button>
         ` : ""}
       </article>
     `).join("");
