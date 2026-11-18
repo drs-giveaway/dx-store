@@ -427,6 +427,7 @@ async function loadProducts() {
       </article>
     `;
   }).join("");
+  applyDXLanguage();
 }
 
 async function loadAccountListings() {
@@ -474,6 +475,7 @@ async function loadAccountListings() {
       </article>
     `;
   }).join("");
+  applyDXLanguage();
 }
 
 function selectItem(type, id) {
