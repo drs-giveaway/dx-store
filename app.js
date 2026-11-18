@@ -1146,7 +1146,9 @@ async function loadDXAdminList() {
           : ""}
 
         <p>Harga: ${formatPrice(item.price)}</p>
-        <p>Status: <strong>${safeText(item.status || (dxAdminType === "products" ? "active" : "pending"))}</strong></p>
+        <p>Status moderasi: <strong>${safeText(item.status || (dxAdminType === "products" ? "active" : "pending"))}</strong></p>
+        <p>Status penjualan: <strong>${safeText(item.sale_status || "available")}</strong></p>
+        ${item.sale_status && item.sale_status !== "available" ? '<button type="button" onclick="setDXSaleStatus(\'' + dxAdminType + '\', \'' + safeText(item.id) + '\', \'available\')">Aktifkan Kembali / Tersedia</button>' : ""}
         ${["reserved", "sold_out"].includes(item.status) ? '<button type="button" onclick="reviewDXListing(\'' + dxAdminType + '\', \'' + safeText(item.id) + '\', \'active\')">Aktifkan Kembali</button>' : ""}
 
         ${item.status === "pending"
@@ -1334,6 +1336,18 @@ async function reviewDXListing(table, id, status) {
   showDXAdminMessage(status === "active"
     ? itemLabel + " berhasil disetujui dan diterbitkan."
     : "Pengajuan " + itemLabel + " ditolak.");
+  await loadDXAdminList();
+  await loadDXStore();
+}
+
+async function setDXSaleStatus(table, id, status) {
+  if (!currentUser || !(await checkDXAdmin())) { alert("Akses admin diperlukan."); return; }
+  if (!["products", "account_listings"].includes(table) || status !== "available") return;
+  if (!confirm("Aktifkan kembali barang ini agar bisa dipesan?")) return;
+  const { error } = await dxSupabase.from(table)
+    .update({ sale_status: "available", updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) { alert("Gagal mengubah status: " + getDXError(error)); return; }
   await loadDXAdminList();
   await loadDXStore();
 }
