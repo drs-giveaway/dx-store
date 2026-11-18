@@ -2004,7 +2004,7 @@ function createDXAdminPanel() {
 
   const adminAccessButton = $("dxOpenAdmin");
   const adminAccessCard = $("dxAdminAccessCard");
-  if (adminAccessCard) adminAccessCard.hidden = !(await checkDXAdmin());
+  if (adminAccessCard) adminAccessCard.hidden = currentProfile?.role !== "admin";
   if (adminAccessButton) {
     adminAccessButton.hidden = false;
     if (!adminAccessButton.dataset.bound) {
