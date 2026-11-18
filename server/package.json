@@ -2,7 +2,7 @@
   "name": "dx-store-payment-api",
   "version": "1.0.0",
   "private": true,
-  "description": "DX STORE secure Midtrans QRIS payment API",
+  "description": "DX STORE manual DANA Business QRIS payment API",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -13,7 +13,6 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
     "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "midtrans-client": "^1.4.3"
+    "express": "^5.1.0"
   }
 }

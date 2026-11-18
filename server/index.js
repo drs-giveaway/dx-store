@@ -1,10 +1,8 @@
 const express = require("express");
 const cors = require("cors");
-const crypto = require("crypto");
-const midtransClient = require("midtrans-client");
 const { createClient } = require("@supabase/supabase-js");
 
-const required = ["SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "MIDTRANS_SERVER_KEY"];
+const required = ["SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"];
 for (const key of required) {
   if (!process.env[key]) {
     console.error("Missing required environment variable:", key);
@@ -15,23 +13,15 @@ for (const key of required) {
 const app = express();
 const port = Number(process.env.PORT || 10000);
 const frontendOrigin = process.env.FRONTEND_ORIGIN || "https://drs-giveaway.github.io";
-const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
 
 const supabaseAuth = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const supabaseAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false }
 });
-const coreApi = new midtransClient.CoreApi({
-  isProduction,
-  serverKey: process.env.MIDTRANS_SERVER_KEY,
-  clientKey: process.env.MIDTRANS_CLIENT_KEY || ""
-});
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || origin === frontendOrigin || origin === "https://drs-giveaway.github.io") {
-      return callback(null, true);
-    }
+    if (!origin || origin === frontendOrigin) return callback(null, true);
     return callback(new Error("Origin tidak diizinkan."));
   }
 }));
@@ -48,159 +38,212 @@ async function requireUser(req, res, next) {
   next();
 }
 
-function getTable(itemType) {
+async function requireAdmin(req, res, next) {
+  const { data, error } = await supabaseAdmin
+    .from("profiles")
+    .select("role")
+    .eq("id", req.user.id)
+    .maybeSingle();
+
+  if (error || data?.role !== "admin") {
+    return res.status(403).json({ message: "Akses khusus admin." });
+  }
+  next();
+}
+
+function getItemTable(itemType) {
   if (itemType === "product") return "products";
   if (itemType === "account") return "account_listings";
   return null;
 }
 
-function mapMidtransStatus(status) {
-  if (status.transaction_status === "settlement") return "paid";
-  if (status.transaction_status === "capture" && status.fraud_status === "accept") return "paid";
-  if (["expire"].includes(status.transaction_status)) return "expired";
-  if (["cancel", "deny"].includes(status.transaction_status)) return "failed";
-  return "pending";
+function isUuid(value) {
+  return typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
-app.get("/health", (_req, res) => res.json({ ok: true, service: "DX STORE payment API" }));
+app.get("/health", (_req, res) => {
+  res.json({ ok: true, service: "DX STORE manual DANA QRIS API" });
+});
 
 app.post("/api/payments/create", requireUser, async (req, res) => {
   try {
     const { itemType, itemId } = req.body || {};
-    const table = getTable(itemType);
-    if (!table || typeof itemId !== "string" || !/^[0-9a-f-]{16,}$/i.test(itemId)) {
+    const table = getItemTable(itemType);
+    if (!table || !isUuid(itemId)) {
       return res.status(400).json({ message: "Item pesanan tidak valid." });
     }
 
-    const itemColumns = itemType === "product"
+    const columns = itemType === "product"
       ? "id,name,price,status"
       : "id,title,price,status";
+
     const { data: item, error: itemError } = await supabaseAdmin
-      .from(table).select(itemColumns).eq("id", itemId).eq("status", "active").maybeSingle();
-    if (itemError || !item) return res.status(404).json({ message: "Barang tidak tersedia." });
+      .from(table)
+      .select(columns)
+      .eq("id", itemId)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (itemError || !item) {
+      return res.status(404).json({ message: "Barang tidak tersedia." });
+    }
 
     const amount = Number(item.price);
     if (!Number.isSafeInteger(amount) || amount < 1) {
       return res.status(400).json({ message: "Harga barang tidak valid." });
     }
 
-    const orderId = "DX-" + Date.now() + "-" + crypto.randomBytes(4).toString("hex").toUpperCase();
     const itemName = String(item.name || item.title || "Item DX STORE").slice(0, 200);
+    const { data: order, error: insertError } = await supabaseAdmin
+      .from("orders")
+      .insert({
+        buyer_id: req.user.id,
+        total_amount: amount,
+        item_type: itemType,
+        item_id: item.id,
+        item_name: itemName,
+        status: "pending"
+      })
+      .select("id,total_amount,status")
+      .single();
 
-    const { error: insertError } = await supabaseAdmin.from("orders").insert({
-      user_id: req.user.id,
-      order_id: orderId,
-      item_type: itemType,
-      item_id: item.id,
-      item_name: itemName,
-      amount,
-      status: "pending"
+    if (insertError || !order) throw insertError || new Error("Pesanan tidak berhasil disimpan.");
+
+    return res.json({
+      orderId: order.id,
+      amount: Number(order.total_amount),
+      status: order.status
     });
-    if (insertError) throw insertError;
-
-    try {
-      const transaction = await coreApi.charge({
-        payment_type: "qris",
-        transaction_details: { order_id: orderId, gross_amount: amount },
-        item_details: [{ id: String(item.id), price: amount, quantity: 1, name: itemName }],
-        customer_details: { email: req.user.email || undefined },
-        qris: { acquirer: "gopay" }
-      });
-
-      const qrAction = (transaction.actions || []).find(action =>
-        action.name === "generate-qr-code" || action.name === "generate-qr-code-v2"
-      );
-      if (!qrAction?.url) throw new Error("Midtrans tidak mengembalikan URL QRIS.");
-
-      await supabaseAdmin.from("orders").update({
-        midtrans_transaction_id: transaction.transaction_id || null
-      }).eq("order_id", orderId);
-
-      return res.json({
-        orderId,
-        amount,
-        qrUrl: qrAction.url,
-        expiresAt: transaction.expiry_time || null
-      });
-    } catch (paymentError) {
-      await supabaseAdmin.from("orders").update({ status: "failed" }).eq("order_id", orderId);
-      throw paymentError;
-    }
   } catch (error) {
-    console.error("Create payment error:", error.message);
-    return res.status(500).json({ message: "Transaksi QRIS belum berhasil dibuat. Periksa konfigurasi pembayaran." });
+    console.error("Create manual order error:", error.message);
+    return res.status(500).json({ message: "Pesanan gagal dibuat. Silakan coba lagi." });
   }
+});
+
+app.post("/api/payments/submit-proof", requireUser, async (req, res) => {
+  const { orderId, proofPath } = req.body || {};
+  if (!isUuid(orderId) || typeof proofPath !== "string") {
+    return res.status(400).json({ message: "Bukti pembayaran tidak valid." });
+  }
+
+  const allowedPath = new RegExp("^" + req.user.id + "/" + orderId + "\\.(jpg|png)$", "i");
+  if (!allowedPath.test(proofPath)) {
+    return res.status(400).json({ message: "Lokasi bukti pembayaran tidak valid." });
+  }
+
+  const { data: order, error } = await supabaseAdmin
+    .from("orders")
+    .select("id,status")
+    .eq("id", orderId)
+    .eq("buyer_id", req.user.id)
+    .maybeSingle();
+
+  if (error || !order) {
+    return res.status(404).json({ message: "Pesanan tidak ditemukan." });
+  }
+  if (!["pending", "review"].includes(order.status)) {
+    return res.status(409).json({ message: "Pesanan tidak dapat menerima bukti lagi." });
+  }
+
+  const { data: updated, error: updateError } = await supabaseAdmin
+    .from("orders")
+    .update({ proof_path: proofPath, status: "review" })
+    .eq("id", orderId)
+    .eq("buyer_id", req.user.id)
+    .in("status", ["pending", "review"])
+    .select("id,status")
+    .maybeSingle();
+
+  if (updateError || !updated) {
+    return res.status(409).json({ message: "Bukti gagal disimpan. Periksa status pesanan." });
+  }
+
+  return res.json({ received: true, status: updated.status });
 });
 
 app.get("/api/payments/status", requireUser, async (req, res) => {
   const orderId = String(req.query.orderId || "");
-  if (!orderId) return res.status(400).json({ message: "Nomor pesanan wajib diisi." });
+  if (!isUuid(orderId)) {
+    return res.status(400).json({ message: "Nomor pesanan tidak valid." });
+  }
 
   const { data: order, error } = await supabaseAdmin
-    .from("orders").select("order_id,amount,status").eq("order_id", orderId).eq("user_id", req.user.id).maybeSingle();
-  if (error || !order) return res.status(404).json({ message: "Pesanan tidak ditemukan." });
+    .from("orders")
+    .select("id,total_amount,status")
+    .eq("id", orderId)
+    .eq("buyer_id", req.user.id)
+    .maybeSingle();
 
-  // Periksa status langsung ke Midtrans agar tombol cek status tidak hanya
-  // bergantung pada keterlambatan webhook.
-  try {
-    const paymentStatus = await coreApi.transaction.status(order.order_id);
-    if (Number(paymentStatus.gross_amount) !== Number(order.amount)) {
-      return res.status(409).json({ message: "Nominal transaksi tidak cocok." });
-    }
-
-    const verifiedStatus = mapMidtransStatus(paymentStatus);
-    if (verifiedStatus !== order.status) {
-      const { error: updateError } = await supabaseAdmin
-        .from("orders")
-        .update({
-          status: verifiedStatus,
-          midtrans_transaction_id: paymentStatus.transaction_id || null
-        })
-        .eq("order_id", order.order_id)
-        .eq("user_id", req.user.id);
-      if (updateError) throw updateError;
-      order.status = verifiedStatus;
-    }
-  } catch (statusError) {
-    console.error("Midtrans status check error:", statusError.message);
-    // Status tersimpan tetap ditampilkan; jangan pernah mengubah pending menjadi paid
-    // hanya karena pemeriksaan ke Midtrans sedang gagal.
+  if (error || !order) {
+    return res.status(404).json({ message: "Pesanan tidak ditemukan." });
   }
 
-  return res.json({ orderId: order.order_id, amount: order.amount, status: order.status });
+  return res.json({
+    orderId: order.id,
+    amount: Number(order.total_amount),
+    status: order.status
+  });
 });
 
-app.post("/api/payments/webhook", async (req, res) => {
-  try {
-    const body = req.body || {};
-    const signature = crypto.createHash("sha512")
-      .update(String(body.order_id) + String(body.status_code) + String(body.gross_amount) + process.env.MIDTRANS_SERVER_KEY)
-      .digest("hex");
-    if (!body.signature_key || signature !== body.signature_key) {
-      return res.status(401).json({ message: "Signature tidak valid." });
-    }
+app.get("/api/admin/orders", requireUser, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from("orders")
+    .select("id,buyer_id,total_amount,item_name,status,proof_path,created_at")
+    .order("created_at", { ascending: false })
+    .limit(100);
 
-    const { data: order, error } = await supabaseAdmin
-      .from("orders").select("order_id,amount,status").eq("order_id", body.order_id).maybeSingle();
-    if (error || !order) return res.status(404).json({ message: "Pesanan tidak ditemukan." });
-
-    if (Number(body.gross_amount) !== Number(order.amount)) {
-      return res.status(400).json({ message: "Nominal notifikasi tidak cocok." });
-    }
-
-    // Midtrans hanya dianggap lunas jika notifikasi menyatakan status sukses
-    // dan nominal cocok dengan pesanan yang tersimpan di server.
-    const status = body.status_code === "200" || body.status_code === 200
-      ? mapMidtransStatus(body)
-      : "pending";
-    const update = { status, midtrans_transaction_id: body.transaction_id || null };
-    const { error: updateError } = await supabaseAdmin.from("orders").update(update).eq("order_id", body.order_id);
-    if (updateError) throw updateError;
-    return res.json({ received: true });
-  } catch (error) {
-    console.error("Webhook error:", error.message);
-    return res.status(500).json({ message: "Webhook gagal diproses." });
+  if (error) {
+    console.error("Load admin orders error:", error.message);
+    return res.status(500).json({ message: "Daftar pesanan gagal dimuat." });
   }
+
+  const orders = await Promise.all((data || []).map(async order => {
+    let proofUrl = null;
+    if (order.proof_path) {
+      const { data: signed, error: signedError } = await supabaseAdmin
+        .storage.from("payment-proofs")
+        .createSignedUrl(order.proof_path, 300);
+      if (!signedError) proofUrl = signed?.signedUrl || null;
+    }
+
+    return {
+      order_id: order.id,
+      buyer_id: order.buyer_id,
+      amount: Number(order.total_amount),
+      item_name: order.item_name || "Pesanan DX STORE",
+      status: order.status,
+      created_at: order.created_at,
+      proof_url: proofUrl
+    };
+  }));
+
+  return res.json({ orders });
 });
 
-app.listen(port, () => console.log("DX STORE payment API listening on", port));
+app.patch("/api/admin/orders/:orderId", requireUser, requireAdmin, async (req, res) => {
+  const orderId = req.params.orderId;
+  const status = req.body?.status;
+
+  if (!isUuid(orderId) || !["paid", "rejected"].includes(status)) {
+    return res.status(400).json({ message: "Perubahan status tidak valid." });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("orders")
+    .update({ status })
+    .eq("id", orderId)
+    .eq("status", "review")
+    .select("id,status")
+    .maybeSingle();
+
+  if (error || !data) {
+    return res.status(409).json({ message: "Pesanan tidak ditemukan atau sudah diproses." });
+  }
+
+  return res.json({ order_id: data.id, status: data.status });
+});
+
+app.listen(port, () => {
+  console.log("DX STORE manual QRIS API listening on", port);
+});

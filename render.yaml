@@ -13,11 +13,5 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
-      - key: MIDTRANS_SERVER_KEY
-        sync: false
-      - key: MIDTRANS_CLIENT_KEY
-        sync: false
-      - key: MIDTRANS_IS_PRODUCTION
-        value: "false"
       - key: FRONTEND_ORIGIN
         value: https://drs-giveaway.github.io

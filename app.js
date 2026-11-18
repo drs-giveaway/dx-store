@@ -316,18 +316,23 @@ function createDXCheckoutModal() {
           <strong id="dxCheckoutExpiry">-</strong>
         </div>
       </div>
-      <p class="dx-checkout-note" id="dxCheckoutMessage" aria-live="polite">QRIS dinamis akan diminta dari server pembayaran. QRIS cetak/static tidak digunakan untuk nominal otomatis.</p>
+      <p class="dx-checkout-note" id="dxCheckoutMessage" aria-live="polite">QRIS DANA Bisnis statis. Masukkan nominal yang tertera saat membayar; admin akan memeriksa pembayaran secara manual.</p>
+      <div class="dx-checkout-proof" style="margin:16px 0;display:grid;gap:10px">
+        <label for="dxPaymentProof">Unggah bukti pembayaran (JPG/PNG, maks. 4 MB)</label>
+        <input id="dxPaymentProof" type="file" accept="image/jpeg,image/png" disabled>
+        <button type="button" class="dx-button" id="dxSubmitProof" disabled>Kirim Bukti Pembayaran</button>
+      </div>
       <div class="dx-checkout-actions">
-        <button type="button" class="dx-button" id="dxCreatePayment">Buat Pembayaran QRIS</button>
-        <button type="button" class="dx-button dx-checkout-secondary" id="dxCheckPayment" disabled>↻ Cek Status Pembayaran</button>
+        <button type="button" class="dx-button" id="dxCreatePayment">Buat Pesanan</button>
+        <button type="button" class="dx-button dx-checkout-secondary" id="dxCheckPayment" disabled>↻ Cek Status Pesanan</button>
       </div>
       <div class="dx-checkout-instructions">
         <strong>Petunjuk Pembayaran</strong>
         <ol>
-          <li>Buat transaksi QRIS untuk mendapatkan kode pembayaran.</li>
+          <li>Periksa total pesanan yang tertera.</li>
           <li>Buka aplikasi pembayaran yang mendukung QRIS.</li>
-          <li>Scan QR dan pastikan nominalnya sesuai.</li>
-          <li>Status LUNAS hanya ditampilkan setelah dikonfirmasi server pembayaran.</li>
+          <li>Scan QRIS DANA Bisnis dan masukkan nominal yang sama persis.</li>
+          <li>Unggah bukti pembayaran. Pesanan lunas setelah admin memeriksa dana masuk.</li>
         </ol>
       </div>
       <button type="button" class="dx-checkout-close-link">Tutup</button>
@@ -377,46 +382,89 @@ function openDXCheckout(type, item) {
   $("dxCheckoutAmount").textContent = formatPrice(amount);
   $("dxCheckoutExpiry").textContent = "-";
   $("dxCheckoutStatus").textContent = "Menunggu pembuatan transaksi";
-  $("dxCheckoutQr").innerHTML = '<div class="dx-checkout-qr-placeholder">QRIS<br>AKAN MUNCUL<br>SETELAH TRANSAKSI DIBUAT</div>';
-  $("dxCheckoutMessage").textContent = "Nominal mengikuti harga item yang dipilih. QRIS dinamis dibuat oleh backend Midtrans.";
+  $("dxCheckoutQr").innerHTML = '<div class="dx-checkout-qr-placeholder">QRIS DANA BISNIS<br>AKAN MUNCUL SETELAH PESANAN DIBUAT</div>';
+  $("dxCheckoutMessage").textContent = "Pembayaran QRIS manual. Admin akan memeriksa bukti pembayaran.";
   $("dxCreatePayment").disabled = false;
   $("dxCheckPayment").disabled = true;
+  $("dxPaymentProof").value = "";
+  $("dxPaymentProof").disabled = true;
+  $("dxSubmitProof").disabled = true;
+  $("dxSubmitProof").textContent = "Kirim Bukti Pembayaran";
   $("dxCreatePayment").onclick = createDXPayment;
   $("dxCheckPayment").onclick = checkDXPaymentStatus;
+  $("dxSubmitProof").onclick = submitDXPaymentProof;
   modal.classList.add("active");
 }
 
 async function createDXPayment() {
   const modal = $("dxCheckoutModal");
   const base = DX_CONFIG.paymentApiUrl;
-  if (!base) {
-    $("dxCheckoutMessage").textContent = "Backend pembayaran belum dikonfigurasi. QRIS belum dapat dibuat dan pembayaran belum bisa diterima melalui website.";
-    return;
-  }
+  if (!base) { $("dxCheckoutMessage").textContent = "Server pesanan belum dikonfigurasi."; return; }
   const button = $("dxCreatePayment");
   button.disabled = true;
-  button.textContent = "Membuat transaksi...";
+  button.textContent = "Membuat pesanan...";
   try {
-    const response = await fetch(new URL("/api/payments/create", base), {
+    const session = (await dxSupabase.auth.getSession()).data.session;
+    if (!session?.access_token) throw new Error("Silakan masuk terlebih dahulu.");
+    const response = await fetch(new URL("api/payments/create", base + "/"), {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (await dxSupabase.auth.getSession()).data.session?.access_token },
+      headers: { "Content-Type": "application/json", "apikey": DX_CONFIG.supabaseKey, "Authorization": "Bearer " + session.access_token },
       body: JSON.stringify({ itemType: modal.dataset.itemType, itemId: modal.dataset.itemId })
     });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.message || "Transaksi gagal dibuat.");
-    if (!result.orderId || !result.qrUrl || !Number.isFinite(Number(result.amount))) throw new Error("Respons server pembayaran tidak lengkap.");
+    if (!response.ok) throw new Error(result.message || "Pesanan gagal dibuat.");
+    if (!result.orderId || !Number.isFinite(Number(result.amount))) throw new Error("Data pesanan dari server tidak lengkap.");
     modal.dataset.orderId = result.orderId;
     $("dxCheckoutAmount").textContent = formatPrice(result.amount);
-    $("dxCheckoutStatus").textContent = "Menunggu Pembayaran...";
-    $("dxCheckoutQr").innerHTML = '<img src="' + safeText(safeImageUrl(result.qrUrl)) + '" alt="QRIS pembayaran DX STORE">';
-    $("dxCheckoutExpiry").textContent = result.expiresAt ? new Date(result.expiresAt).toLocaleString("id-ID") : "Sesuai batas waktu transaksi";
-    $("dxCheckoutMessage").textContent = "Scan QRIS dan bayar sesuai nominal yang tertera.";
+    $("dxCheckoutStatus").textContent = "Menunggu pembayaran";
+    $("dxCheckoutQr").innerHTML = '<img src="payment-qris.png" alt="QRIS resmi DANA Bisnis DX STORE">';
+    $("dxCheckoutExpiry").textContent = "Tidak berlaku sebagai QRIS dinamis";
+    $("dxCheckoutMessage").textContent = "Bayar tepat " + formatPrice(result.amount) + " melalui aplikasi apa pun yang mendukung QRIS. QRIS ini statis, jadi nominal harus dimasukkan sendiri. Setelah membayar, unggah bukti pembayaran.";
+    $("dxPaymentProof").disabled = false;
+    $("dxSubmitProof").disabled = false;
     $("dxCheckPayment").disabled = false;
+    button.disabled = true;
+    button.textContent = "Pesanan Dibuat";
   } catch (error) {
     $("dxCheckoutMessage").textContent = getDXError(error);
-  } finally {
     button.disabled = false;
-    button.textContent = "Buat Pembayaran QRIS";
+    button.textContent = "Buat Pesanan";
+  }
+}
+
+async function submitDXPaymentProof() {
+  const modal = $("dxCheckoutModal");
+  const file = $("dxPaymentProof")?.files?.[0];
+  const orderId = modal.dataset.orderId;
+  if (!orderId) { $("dxCheckoutMessage").textContent = "Buat pesanan terlebih dahulu."; return; }
+  if (!file || !["image/jpeg", "image/png"].includes(file.type) || file.size > 4 * 1024 * 1024) {
+    $("dxCheckoutMessage").textContent = "Pilih bukti JPG/PNG dengan ukuran maksimal 4 MB.";
+    return;
+  }
+  const button = $("dxSubmitProof");
+  button.disabled = true; button.textContent = "Mengirim bukti...";
+  try {
+    const session = (await dxSupabase.auth.getSession()).data.session;
+    if (!session?.access_token) throw new Error("Sesi login berakhir. Silakan masuk kembali.");
+    const ext = file.type === "image/png" ? "png" : "jpg";
+    const path = currentUser.id + "/" + orderId + "." + ext;
+    const upload = await dxSupabase.storage.from("payment-proofs").upload(path, file, { upsert: true, contentType: file.type });
+    if (upload.error) throw upload.error;
+    const response = await fetch(new URL("api/payments/submit-proof", DX_CONFIG.paymentApiUrl + "/"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": DX_CONFIG.supabaseKey, "Authorization": "Bearer " + session.access_token },
+      body: JSON.stringify({ orderId, proofPath: path })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || "Bukti pembayaran gagal dikirim.");
+    $("dxCheckoutStatus").textContent = "Menunggu pemeriksaan admin";
+    $("dxCheckoutMessage").textContent = "Bukti diterima. Pesanan belum lunas sampai admin memeriksa dana masuk.";
+    $("dxPaymentProof").disabled = true;
+  } catch (error) {
+    $("dxCheckoutMessage").textContent = getDXError(error);
+    button.disabled = false;
+  } finally {
+    button.textContent = button.disabled ? "Bukti Terkirim" : "Kirim Bukti Pembayaran";
   }
 }
 
@@ -425,25 +473,23 @@ async function checkDXPaymentStatus() {
   const base = DX_CONFIG.paymentApiUrl;
   if (!base || !modal.dataset.orderId) return;
   const button = $("dxCheckPayment");
-  button.disabled = true;
-  button.textContent = "Memeriksa...";
+  button.disabled = true; button.textContent = "Memeriksa...";
   try {
-    const response = await fetch(new URL("/api/payments/status?orderId=" + encodeURIComponent(modal.dataset.orderId), base), {
-      headers: { "Authorization": "Bearer " + (await dxSupabase.auth.getSession()).data.session?.access_token }
+    const session = (await dxSupabase.auth.getSession()).data.session;
+    const response = await fetch(new URL("api/payments/status?orderId=" + encodeURIComponent(modal.dataset.orderId), base + "/"), {
+      headers: { "apikey": DX_CONFIG.supabaseKey, "Authorization": "Bearer " + session?.access_token }
     });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.message || "Status pembayaran gagal diperiksa.");
-    const labels = { paid: "LUNAS", pending: "Menunggu Pembayaran...", expired: "Kedaluwarsa", failed: "Gagal" };
-    $("dxCheckoutStatus").textContent = labels[result.status] || "Status belum diketahui";
+    if (!response.ok) throw new Error(result.message || "Status pesanan gagal diperiksa.");
+    const labels = { pending: "Menunggu pembayaran", review: "Menunggu pemeriksaan admin", paid: "LUNAS", rejected: "Bukti ditolak" };
+    $("dxCheckoutStatus").textContent = labels[result.status] || result.status;
     $("dxCheckoutMessage").textContent = result.status === "paid"
-      ? "Pembayaran telah dikonfirmasi oleh server pembayaran."
-      : "Status terbaru: " + $("dxCheckoutStatus").textContent;
-  } catch (error) {
-    $("dxCheckoutMessage").textContent = getDXError(error);
-  } finally {
-    button.disabled = false;
-    button.textContent = "↻ Cek Status Pembayaran";
-  }
+      ? "Pembayaran telah diverifikasi oleh admin."
+      : result.status === "rejected"
+        ? "Bukti pembayaran ditolak. Hubungi admin DX STORE."
+        : "Status terbaru: " + $("dxCheckoutStatus").textContent;
+  } catch (error) { $("dxCheckoutMessage").textContent = getDXError(error); }
+  finally { button.disabled = false; button.textContent = "↻ Cek Status Pesanan"; }
 }
 
 async function loadDXStore() {
@@ -856,6 +902,10 @@ function createDXAdminPanel() {
     <div id="dxAdminList">
       Memuat data...
     </div>
+    <hr style="border-color:#263c60;margin:25px 0;">
+    <h3>Pesanan &amp; Verifikasi Pembayaran QRIS</h3>
+    <button type="button" id="dxRefreshPaymentOrders">Muat Ulang Pesanan</button>
+    <div id="dxPaymentOrders">Memuat pesanan...</div>
   `;
 
   main.prepend(panel);
@@ -931,6 +981,11 @@ function createDXAdminPanel() {
   });
 
   $("dxAdminLogout").addEventListener("click", handleDXLogout);
+  $("dxRefreshPaymentOrders").addEventListener("click", loadDXPaymentOrders);
+  $("dxPaymentOrders").addEventListener("click", event => {
+    const button = event.target.closest("[data-dx-order][data-dx-decision]");
+    if (button) reviewDXPayment(button.dataset.dxOrder, button.dataset.dxDecision);
+  });
   $("dxCancelEdit").addEventListener("click", resetDXAdminForm);
   $("dxAdminForm").addEventListener("submit", saveDXAdminItem);
 
@@ -1031,6 +1086,53 @@ async function loadDXAdminList() {
       </article>
     `;
   }).join("");
+}
+
+async function loadDXPaymentOrders() {
+  const container = $("dxPaymentOrders");
+  if (!container || !currentUser || !(await checkDXAdmin())) return;
+  container.textContent = "Memuat pesanan...";
+  try {
+    const session = (await dxSupabase.auth.getSession()).data.session;
+    const response = await fetch(new URL("/api/admin/orders", DX_CONFIG.paymentApiUrl), {
+      headers: { "apikey": DX_CONFIG.supabaseKey, "Authorization": "Bearer " + session?.access_token }
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || "Pesanan gagal dimuat.");
+    if (!result.orders?.length) { container.textContent = "Belum ada pesanan."; return; }
+    container.innerHTML = result.orders.map(order => `
+      <article>
+        <h4>${safeText(order.item_name)} — ${safeText(order.order_id)}</h4>
+        <p>Nominal: <strong>${formatPrice(order.amount)}</strong></p>
+        <p>Status: <strong>${safeText(order.status)}</strong></p>
+        <p>Dibuat: ${new Date(order.created_at).toLocaleString("id-ID")}</p>
+        ${order.proof_url ? `<p><a href="${safeText(order.proof_url)}" target="_blank" rel="noopener">Lihat bukti pembayaran</a></p>` : "<p>Belum ada bukti pembayaran.</p>"}
+        ${order.status === "review" ? `
+          <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="paid">Setujui — sudah cek dana masuk</button>
+          <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Tolak bukti</button>
+        ` : ""}
+      </article>
+    `).join("");
+  } catch (error) { container.textContent = getDXError(error); }
+}
+
+async function reviewDXPayment(orderId, status) {
+  if (!currentUser || !(await checkDXAdmin())) { alert("Akses admin diperlukan."); return; }
+  const message = status === "paid"
+    ? "Pastikan dana benar-benar sudah masuk ke DANA Bisnis sebelum menyetujui. Lanjutkan?"
+    : "Tolak bukti pembayaran ini?";
+  if (!confirm(message)) return;
+  try {
+    const session = (await dxSupabase.auth.getSession()).data.session;
+    const response = await fetch(new URL("/api/admin/orders/" + encodeURIComponent(orderId), DX_CONFIG.paymentApiUrl), {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session?.access_token },
+      body: JSON.stringify({ status })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || "Status pesanan gagal diperbarui.");
+    await loadDXPaymentOrders();
+  } catch (error) { alert(getDXError(error)); }
 }
 
 /* SIMPAN DATA */
@@ -1325,6 +1427,7 @@ async function handleAuthSubmit(event) {
       if (panel) {
         panel.style.display = "block";
         await loadDXAdminList();
+        await loadDXPaymentOrders();
         panel.scrollIntoView({
           behavior: "smooth",
           block: "start"
@@ -1381,6 +1484,7 @@ async function refreshDXUser() {
     if (panel) panel.style.display = "block";
 
     await loadDXAdminList();
+    await loadDXPaymentOrders();
   } else {
     const panel = $("dxAdminPanel");
     if (panel) panel.style.display = "none";
