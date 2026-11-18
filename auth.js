@@ -3,6 +3,13 @@
   const client = window.supabase?.createClient(config.supabaseUrl, config.supabaseKey);
   const $ = id => document.getElementById(id);
   let mode = "login";
+  const countrySelect = $("countrySelect");
+  const supportedCountries = ["ID","MY","SG","US","JP","TH","PH","AU","GB","DE","FR","IN","KR","BR","CA","CN"];
+  const savedCountry = localStorage.getItem("dx-country") || "ID";
+  if (countrySelect) {
+    countrySelect.value = supportedCountries.includes(savedCountry) ? savedCountry : "ID";
+    countrySelect.addEventListener("change", () => localStorage.setItem("dx-country", countrySelect.value));
+  }
   if (!client) { $("message").textContent = "Koneksi layanan belum tersedia. Muat ulang halaman."; return; }
 
   client.auth.getSession().then(({ data }) => {
