@@ -106,6 +106,7 @@
       }).join("");
     }
     loadSellerListings();
+    dxSupabase?.auth.onAuthStateChange(() => setTimeout(loadSellerListings, 0));
     $("dxSellerForm").addEventListener("submit", async event => {
       event.preventDefault();
       const message = $("dxSellerMessage");
