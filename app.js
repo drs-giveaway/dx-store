@@ -628,6 +628,7 @@ function updateDXHeaderAuth() {
 let dxPurchaseToastRows = [];
 let dxPurchaseToastIndex = 0;
 let dxPurchaseToastTimer = null;
+let dxPurchaseToastDismissed = false;
 
 async function loadDXRecentPurchaseActivity() {
   const host = document.getElementById("dxPurchaseActivity");
@@ -664,7 +665,7 @@ async function loadDXRecentPurchaseActivity() {
 function renderDXPurchaseToast() {
   const host = document.getElementById("dxPurchaseActivity");
   const row = dxPurchaseToastRows[dxPurchaseToastIndex];
-  if (!host || !row) return;
+  if (!host || !row || dxPurchaseToastDismissed) return;
   const detail = row.kind === "purchase"
     ? `<strong>${safeText(row.name)}</strong><p>Baru membeli ${safeText(row.item)}</p><small>${safeText(row.time)} · Pembelian tercatat</small>`
     : `<strong>${safeText(row.name)}</strong><p>${safeText(row.item)}</p><small>DX STORE · Marketplace digital</small>`;
@@ -672,7 +673,7 @@ function renderDXPurchaseToast() {
     <span class="dx-toast-mark">DX</span><div class="dx-toast-copy">${detail}</div>
     <button class="dx-toast-close" type="button" aria-label="Tutup notifikasi">×</button>
   </div>`;
-  host.querySelector(".dx-toast-close")?.addEventListener("click", () => { host.hidden = true; });
+  host.querySelector(".dx-toast-close")?.addEventListener("click", () => { dxPurchaseToastDismissed = true; host.hidden = true; });
 }
 
 
