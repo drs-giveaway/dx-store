@@ -116,7 +116,11 @@ const DX_TRANSLATIONS = {
   },
   de: {"Beranda":"Startseite","Produk Digital":"Digitale Produkte","Akun Game":"Spielkonten","Masuk / Daftar":"Anmelden / Registrieren","Keluar":"Abmelden","Jelajahi Produk":"Produkte entdecken","Lihat Akun Game":"Spielkonten ansehen","Marketplace Akun Game":"Marktplatz für Spielkonten","Cari produk atau akun game...":"Produkte oder Spielkonten suchen...","Lihat Produk":"Produkt ansehen","Lihat Akun":"Konto ansehen","Sedang Dipesan":"Ausstehend","Habis Terjual":"Ausverkauft"},
   fr: {"Beranda":"Accueil","Produk Digital":"Produits numériques","Akun Game":"Comptes de jeu","Masuk / Daftar":"Connexion / Inscription","Keluar":"Déconnexion","Jelajahi Produk":"Explorer les produits","Lihat Akun Game":"Voir les comptes de jeu","Marketplace Akun Game":"Marché des comptes de jeu","Cari produk atau akun game...":"Rechercher des produits ou comptes de jeu...","Lihat Produk":"Voir le produit","Lihat Akun":"Voir le compte","Sedang Dipesan":"En attente","Habis Terjual":"Épuisé"},
-  zh: {"Beranda":"首页","Produk Digital":"数字商品","Akun Game":"游戏账号","Masuk / Daftar":"登录 / 注册","Keluar":"退出登录","Jelajahi Produk":"浏览商品","Lihat Akun Game":"浏览游戏账号","Marketplace Akun Game":"游戏账号市场","Cari produk atau akun game...":"搜索商品或游戏账号...","Lihat Produk":"查看商品","Lihat Akun":"查看账号","Sedang Dipesan":"预订中","Habis Terjual":"已售罄"}
+  zh: {"Beranda":"首页","Produk Digital":"数字商品","Akun Game":"游戏账号","Masuk / Daftar":"登录 / 注册","Keluar":"退出登录","Jelajahi Produk":"浏览商品","Lihat Akun Game":"浏览游戏账号","Marketplace Akun Game":"游戏账号市场","Cari produk atau akun game...":"搜索商品或游戏账号...","Lihat Produk":"查看商品","Lihat Akun":"查看账号","Sedang Dipesan":"预订中","Habis Terjual":"已售罄"},
+  ko: {"Beranda":"홈","Produk Digital":"디지털 상품","Akun Game":"게임 계정","Masuk / Daftar":"로그인 / 가입","Keluar":"로그아웃","Jelajahi Produk":"상품 둘러보기","Lihat Akun Game":"게임 계정 보기","Marketplace Akun Game":"게임 계정 마켓","Cari produk atau akun game...":"상품 또는 게임 계정 검색...","Lihat Produk":"상품 보기","Lihat Akun":"계정 보기","Sedang Dipesan":"예약 중","Habis Terjual":"품절"},
+  th: {"Beranda":"หน้าหลัก","Produk Digital":"สินค้าดิจิทัล","Akun Game":"บัญชีเกม","Masuk / Daftar":"เข้าสู่ระบบ / สมัครสมาชิก","Keluar":"ออกจากระบบ","Jelajahi Produk":"เลือกชมสินค้า","Lihat Akun Game":"ดูบัญชีเกม","Marketplace Akun Game":"ตลาดบัญชีเกม","Cari produk atau akun game...":"ค้นหาสินค้าหรือบัญชีเกม...","Lihat Produk":"ดูสินค้า","Lihat Akun":"ดูบัญชี","Sedang Dipesan":"รอดำเนินการ","Habis Terjual":"ขายหมดแล้ว"},
+  pt: {"Beranda":"Início","Produk Digital":"Produtos digitais","Akun Game":"Contas de jogos","Masuk / Daftar":"Entrar / Cadastrar","Keluar":"Sair","Jelajahi Produk":"Explorar produtos","Lihat Akun Game":"Ver contas de jogos","Marketplace Akun Game":"Mercado de contas de jogos","Cari produk atau akun game...":"Buscar produtos ou contas de jogos...","Lihat Produk":"Ver produto","Lihat Akun":"Ver conta","Sedang Dipesan":"Pendente","Habis Terjual":"Esgotado"},
+  hi: {"Beranda":"होम","Produk Digital":"डिजिटल उत्पाद","Akun Game":"गेम खाते","Masuk / Daftar":"लॉगिन / रजिस्टर","Keluar":"लॉग आउट","Jelajahi Produk":"उत्पाद देखें","Lihat Akun Game":"गेम खाते देखें","Marketplace Akun Game":"गेम अकाउंट मार्केटप्लेस","Cari produk atau akun game...":"उत्पाद या गेम खाता खोजें...","Lihat Produk":"उत्पाद देखें","Lihat Akun":"खाता देखें","Sedang Dipesan":"लंबित","Habis Terjual":"बिक गया"}
 };
 
 function getDXCountry() {
@@ -127,24 +131,20 @@ function getDXCountry() {
 function applyDXLanguage() {
   const country = getDXCountry();
   const language = country.language.split("-")[0];
-  const dictionary = language === "ms" ? DX_TRANSLATIONS.ms :
-    language === "ja" ? DX_TRANSLATIONS.ja :
-    language === "de" ? DX_TRANSLATIONS.de :
-    language === "fr" ? DX_TRANSLATIONS.fr :
-    language === "zh" ? DX_TRANSLATIONS.zh :
-    language === "id" ? null : DX_TRANSLATIONS.en;
+  const dictionary = DX_TRANSLATIONS[language] || (language === "id" ? null : DX_TRANSLATIONS.en);
   if (!dictionary) return;
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(node => {
-    const raw = node.nodeValue;
+    if (node.__dxOriginalText === undefined) node.__dxOriginalText = node.nodeValue;
+    const raw = node.__dxOriginalText;
     const trimmed = raw.trim();
-    if (dictionary[trimmed]) node.nodeValue = raw.replace(trimmed, dictionary[trimmed]);
+    node.nodeValue = dictionary && dictionary[trimmed] ? raw.replace(trimmed, dictionary[trimmed]) : raw;
   });
   document.querySelectorAll("[placeholder]").forEach(el => {
-    const translated = dictionary[el.placeholder];
-    if (translated) el.placeholder = translated;
+    if (el.dataset.dxOriginalPlaceholder === undefined) el.dataset.dxOriginalPlaceholder = el.placeholder;
+    el.placeholder = dictionary?.[el.dataset.dxOriginalPlaceholder] || el.dataset.dxOriginalPlaceholder;
   });
 }
 
@@ -618,6 +618,7 @@ function openDXCheckout(type, item) {
   const amount = Number(item.price);
   modal.dataset.itemType = type;
   modal.dataset.itemId = String(item.id);
+  modal.dataset.itemAmount = String(Number(item.price) || 0);
   modal.dataset.orderId = "";
   $("dxCheckoutItem").textContent = itemName;
   $("dxCheckoutAmount").textContent = formatPrice(amount);
