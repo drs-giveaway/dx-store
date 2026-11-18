@@ -1415,6 +1415,11 @@ function mountDXMascotVoice() {
       }
     });
     document.documentElement.dataset.dxMascotVoiceBound = "1";
+    document.addEventListener("pointerdown", () => {
+      if (DX_MASCOT_VOICE.welcomed) return;
+      DX_MASCOT_VOICE.welcomed = true;
+      showDXMascotMessage("welcome");
+    }, { once: true, passive: true });
   }
   if (!window.dxMascotOrderEventsBound) {
     window.addEventListener("dx:order-update", event => {
