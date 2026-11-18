@@ -554,7 +554,7 @@ function updateDXDashboardVisibility() {
           <div id="dxAssistantMessages" class="dx-assistant-messages" aria-live="polite"></div>
           <div class="dx-assistant-suggestions"><button type="button" data-dx-ask="Bagaimana cara membeli produk?">🛍️ Cara membeli</button><button type="button" data-dx-ask="Bagaimana cara membayar pesanan?">💳 Pembayaran</button><button type="button" data-dx-ask="Bagaimana cara melaporkan masalah?">🎧 Pusat bantuan</button></div>
           <form id="dxAssistantForm" class="dx-assistant-form"><input id="dxAssistantInput" type="text" maxlength="500" placeholder="Tulis pesan untuk DX..." autocomplete="off" aria-label="Pesan untuk DX"><button type="submit" aria-label="Kirim pesan">➤</button></form>
-          <small class="dx-assistant-note" id="dxAssistantStatus">DX AI menghubungkan layanan percakapan.</small>
+          <small class="dx-assistant-note" id="dxAssistantStatus">AI generatif menunggu konfigurasi layanan API.</small>
         </article>
         <div class="dx-profile-actions"><button type="button" id="dxOpenAdmin" hidden>Kelola Website</button><button type="button" id="dxAccountLogout">Keluar dari Akun</button></div>
         <p class="dx-profile-version">DX STORE · DIGITAL MARKETPLACE</p>
@@ -1201,7 +1201,7 @@ async function submitDXSupportTicket(event){
 async function loadDXMyTickets(){
  const host=$("dxMyTickets");if(!host||!currentUser||!dxSupabase)return;
  host.textContent="Memuat laporan...";
- const {data,error}=await dxSupabase.from("support_tickets").select("id,category,subject,message,status,admin_reply,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(30);
+ const {data,error}=await dxSupabase.from("support_tickets").select("id,category,subject,message,status,admin_reply,image_path,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(30);
  if(error){host.textContent="Laporan gagal dimuat: "+getDXError(error);return;}
  const cards=await Promise.all((data||[]).map(async t=>{let imageLink="";if(t.image_path){const {data:signed}=await dxSupabase.storage.from("support-attachments").createSignedUrl(t.image_path,300);if(signed?.signedUrl)imageLink=`<p><a href="${safeText(signed.signedUrl)}" target="_blank" rel="noopener">Lihat lampiran</a></p>`;}return `<article class="dx-ticket-card"><b>${safeText(t.subject)}</b><p>${safeText(t.category)} · ${safeText(t.status)}</p><small>No. tiket: ${safeText(t.id)}</small><p>${safeText(t.message)}</p>${imageLink}${t.admin_reply?`<p><b>Balasan admin:</b> ${safeText(t.admin_reply)}</p>`:"<p>Menunggu balasan admin.</p>"}</article>`;}));host.innerHTML=cards.join("")||"Belum ada laporan.";
 }
