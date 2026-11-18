@@ -900,6 +900,10 @@ function createDXAdminPanel() {
     <div id="dxAdminList">
       Memuat data...
     </div>
+    <hr style="border-color:#263c60;margin:25px 0;">
+    <h3>Pesanan &amp; Verifikasi Pembayaran QRIS</h3>
+    <button type="button" id="dxRefreshPaymentOrders">Muat Ulang Pesanan</button>
+    <div id="dxPaymentOrders">Memuat pesanan...</div>
   `;
 
   main.prepend(panel);
@@ -975,6 +979,11 @@ function createDXAdminPanel() {
   });
 
   $("dxAdminLogout").addEventListener("click", handleDXLogout);
+  $("dxRefreshPaymentOrders").addEventListener("click", loadDXPaymentOrders);
+  $("dxPaymentOrders").addEventListener("click", event => {
+    const button = event.target.closest("[data-dx-order][data-dx-decision]");
+    if (button) reviewDXPayment(button.dataset.dxOrder, button.dataset.dxDecision);
+  });
   $("dxCancelEdit").addEventListener("click", resetDXAdminForm);
   $("dxAdminForm").addEventListener("submit", saveDXAdminItem);
 
@@ -1075,6 +1084,53 @@ async function loadDXAdminList() {
       </article>
     `;
   }).join("");
+}
+
+async function loadDXPaymentOrders() {
+  const container = $("dxPaymentOrders");
+  if (!container || !currentUser || !(await checkDXAdmin())) return;
+  container.textContent = "Memuat pesanan...";
+  try {
+    const session = (await dxSupabase.auth.getSession()).data.session;
+    const response = await fetch(new URL("/api/admin/orders", DX_CONFIG.paymentApiUrl), {
+      headers: { "Authorization": "Bearer " + session?.access_token }
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || "Pesanan gagal dimuat.");
+    if (!result.orders?.length) { container.textContent = "Belum ada pesanan."; return; }
+    container.innerHTML = result.orders.map(order => `
+      <article>
+        <h4>${safeText(order.item_name)} — ${safeText(order.order_id)}</h4>
+        <p>Nominal: <strong>${formatPrice(order.amount)}</strong></p>
+        <p>Status: <strong>${safeText(order.status)}</strong></p>
+        <p>Dibuat: ${new Date(order.created_at).toLocaleString("id-ID")}</p>
+        ${order.proof_url ? `<p><a href="${safeText(order.proof_url)}" target="_blank" rel="noopener">Lihat bukti pembayaran</a></p>` : "<p>Belum ada bukti pembayaran.</p>"}
+        ${order.status === "review" ? `
+          <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="paid">Setujui — sudah cek dana masuk</button>
+          <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Tolak bukti</button>
+        ` : ""}
+      </article>
+    `).join("");
+  } catch (error) { container.textContent = getDXError(error); }
+}
+
+async function reviewDXPayment(orderId, status) {
+  if (!currentUser || !(await checkDXAdmin())) { alert("Akses admin diperlukan."); return; }
+  const message = status === "paid"
+    ? "Pastikan dana benar-benar sudah masuk ke DANA Bisnis sebelum menyetujui. Lanjutkan?"
+    : "Tolak bukti pembayaran ini?";
+  if (!confirm(message)) return;
+  try {
+    const session = (await dxSupabase.auth.getSession()).data.session;
+    const response = await fetch(new URL("/api/admin/orders/" + encodeURIComponent(orderId), DX_CONFIG.paymentApiUrl), {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session?.access_token },
+      body: JSON.stringify({ status })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || "Status pesanan gagal diperbarui.");
+    await loadDXPaymentOrders();
+  } catch (error) { alert(getDXError(error)); }
 }
 
 /* SIMPAN DATA */
@@ -1369,6 +1425,7 @@ async function handleAuthSubmit(event) {
       if (panel) {
         panel.style.display = "block";
         await loadDXAdminList();
+        await loadDXPaymentOrders();
         panel.scrollIntoView({
           behavior: "smooth",
           block: "start"
@@ -1425,6 +1482,7 @@ async function refreshDXUser() {
     if (panel) panel.style.display = "block";
 
     await loadDXAdminList();
+    await loadDXPaymentOrders();
   } else {
     const panel = $("dxAdminPanel");
     if (panel) panel.style.display = "none";
