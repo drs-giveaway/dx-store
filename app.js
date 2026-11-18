@@ -1410,43 +1410,47 @@ function answerDXMascotQuestion(question) {
   showDXMascotMessage("answer", answer);
 }
 function mountDXMascotVoice() {
+  // Otomatis tampil dan berbicara setelah interaksi pertama sesuai aturan autoplay browser.
   const hosts = [document.querySelector(".dx-mascot-widget"), $("dxDashboard")].filter(Boolean);
   hosts.forEach((host, index) => {
     const id = index === 0 ? "dxMascotVoiceHome" : "dxMascotVoiceDashboard";
     if (document.getElementById(id)) return;
     const panel = document.createElement("div");
     panel.id = id;
-    panel.style.cssText = "position:relative;z-index:2;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin:12px auto 4px;max-width:420px";
-    panel.innerHTML = '<button type="button" data-dx-mascot-action="speak" style="border:1px solid #51e5ff88;border-radius:10px;background:#102b50;color:#eaf8ff;padding:9px 12px;font-weight:800;font-size:12px">🔊 Dengarkan DX-01</button><button type="button" data-dx-mascot-action="ask" style="border:1px solid #8b78ff88;border-radius:10px;background:#211c4b;color:#f1edff;padding:9px 12px;font-weight:800;font-size:12px">💬 Tanya DX-01</button><button type="button" data-dx-mascot-action="toggle" style="border:1px solid #ffffff30;border-radius:10px;background:#101a31;color:#d8e7ff;padding:9px 12px;font-weight:800;font-size:12px"></button>';
-    const toggle = panel.querySelector('[data-dx-mascot-action="toggle"]');
-    toggle.textContent = DX_MASCOT_VOICE.enabled ? "Suara: Aktif" : "Suara: Mati";
+    panel.style.cssText = "display:flex;justify-content:center;align-items:center;gap:8px;margin:10px auto 4px;max-width:420px";
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.dataset.dxMascotAction = "toggle";
+    toggle.textContent = DX_MASCOT_VOICE.enabled ? "🔊 Suara DX-01 aktif" : "🔇 Suara DX-01 mati";
+    toggle.setAttribute("aria-pressed", DX_MASCOT_VOICE.enabled ? "true" : "false");
+    toggle.style.cssText = "border:1px solid #51e5ff88;border-radius:10px;background:#102b50;color:#eaf8ff;padding:8px 11px;font-weight:800;font-size:11px";
+    panel.appendChild(toggle);
     host.appendChild(panel);
   });
   if (!document.documentElement.dataset.dxMascotVoiceBound) {
+    const unlockAndWelcome = () => {
+      if (DX_MASCOT_VOICE.welcomed) return;
+      DX_MASCOT_VOICE.welcomed = true;
+      if (DX_MASCOT_VOICE.enabled) showDXMascotMessage("welcome");
+    };
+    document.addEventListener("pointerdown", unlockAndWelcome, { once: true, capture: true, passive: true });
+    document.addEventListener("keydown", unlockAndWelcome, { once: true, capture: true });
     document.addEventListener("click", event => {
-      const button = event.target.closest("[data-dx-mascot-action]");
+      const button = event.target.closest("[data-dx-mascot-action='toggle']");
       if (!button) return;
-      const action = button.dataset.dxMascotAction;
-      if (action === "toggle") {
-        DX_MASCOT_VOICE.enabled = !DX_MASCOT_VOICE.enabled;
-        localStorage.setItem("dx-mascot-voice", DX_MASCOT_VOICE.enabled ? "on" : "off");
-        if (!DX_MASCOT_VOICE.enabled && "speechSynthesis" in window) window.speechSynthesis.cancel();
-        document.querySelectorAll('[data-dx-mascot-action="toggle"]').forEach(el => el.textContent = DX_MASCOT_VOICE.enabled ? "Suara: Aktif" : "Suara: Mati");
-        if (DX_MASCOT_VOICE.enabled) showDXMascotMessage("welcome");
-      } else if (action === "speak") {
-        showDXMascotMessage(DX_MASCOT_VOICE.welcomed ? "help" : "welcome");
+      DX_MASCOT_VOICE.enabled = !DX_MASCOT_VOICE.enabled;
+      localStorage.setItem("dx-mascot-voice", DX_MASCOT_VOICE.enabled ? "on" : "off");
+      if (!DX_MASCOT_VOICE.enabled && "speechSynthesis" in window) window.speechSynthesis.cancel();
+      document.querySelectorAll("[data-dx-mascot-action='toggle']").forEach(el => {
+        el.textContent = DX_MASCOT_VOICE.enabled ? "🔊 Suara DX-01 aktif" : "🔇 Suara DX-01 mati";
+        el.setAttribute("aria-pressed", DX_MASCOT_VOICE.enabled ? "true" : "false");
+      });
+      if (DX_MASCOT_VOICE.enabled) {
         DX_MASCOT_VOICE.welcomed = true;
-      } else if (action === "ask") {
-        const question = window.prompt("Apa yang ingin kamu tanyakan kepada DX-01?");
-        if (question?.trim()) answerDXMascotQuestion(question.trim());
+        showDXMascotMessage("welcome");
       }
     });
     document.documentElement.dataset.dxMascotVoiceBound = "1";
-    document.addEventListener("pointerdown", () => {
-      if (DX_MASCOT_VOICE.welcomed) return;
-      DX_MASCOT_VOICE.welcomed = true;
-      showDXMascotMessage("welcome");
-    }, { once: true, passive: true });
   }
   if (!window.dxMascotOrderEventsBound) {
     window.addEventListener("dx:order-update", event => {
