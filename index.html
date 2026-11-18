@@ -675,46 +675,7 @@
     </div>
   </footer>
 
-  <!-- LOGIN MODAL -->
-  <div class="dx-modal" id="authModal">
-    <div class="dx-modal-box">
-
-      <button
-        class="dx-close"
-        onclick="closeAuth()"
-        aria-label="Tutup">
-        &times;
-      </button>
-
-      <h2>Welcome to DX STORE</h2>
-      <p>Masuk atau daftar untuk melanjutkan.</p>
-
-      <form id="authForm">
-        <input
-          type="email"
-          id="authEmail"
-          placeholder="Alamat email"
-          autocomplete="email"
-          required
-        >
-
-        <input
-          type="password"
-          id="authPassword"
-          placeholder="Password"
-          autocomplete="current-password"
-          required
-        >
-
-        <button type="submit" class="dx-button">
-          Masuk / Daftar
-        </button>
-      </form>
-
-      <p id="authMessage" class="auth-message"></p>
-
-    </div>
-  </div>
+  <!-- Login terpusat di login.html; tidak ada modal login duplikat. -->
 
   <!-- JAVASCRIPT -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
