@@ -75,9 +75,98 @@ const DX_COUNTRIES = {
   CN: { name: "China", language: "zh-CN", currency: "CNY", locale: "zh-CN", timezone: "Asia/Shanghai" }
 };
 
+let dxExchangeRates = { IDR: 1 };
+let dxExchangeRateReady = false;
+let dxExchangeRatePromise = null;
+
+const DX_TRANSLATIONS = {
+  en: {
+    "Beranda":"Home","Produk Digital":"Digital Products","Akun Game":"Game Accounts",
+    "Masuk / Daftar":"Sign in / Register","Keluar":"Sign out","Jelajahi Produk":"Explore Products",
+    "Lihat Akun Game":"Browse Game Accounts","READY TO LEVEL UP?":"READY TO LEVEL UP?",
+    "Temukan berbagai produk digital dan akun game pilihan dengan pengalaman marketplace yang mudah dan nyaman.":"Discover selected digital products and game accounts in one easy marketplace.",
+    "Jelajahi berbagai produk digital pilihan dari DX STORE.":"Explore selected digital products from DX STORE.",
+    "Jelajahi pilihan akun game yang tersedia.":"Explore available game accounts.",
+    "Cari produk atau akun game...":"Search products or game accounts...",
+    "Marketplace Akun Game":"Game Account Marketplace","Produk digital akan ditampilkan di sini.":"Digital products will appear here.",
+    "Akun game akan ditampilkan di sini.":"Game accounts will appear here.","Memuat produk...":"Loading products...",
+    "Memuat akun game...":"Loading game accounts...","Lihat Produk":"View Product","Lihat Akun":"View Account",
+    "Sedang Dipesan":"Pending","Habis Terjual":"Sold Out","Sampai jumpa!":"See you again!"
+  },
+  ms: {
+    "Beranda":"Laman Utama","Produk Digital":"Produk Digital","Akun Game":"Akaun Permainan",
+    "Masuk / Daftar":"Log masuk / Daftar","Keluar":"Log keluar","Jelajahi Produk":"Terokai Produk",
+    "Lihat Akun Game":"Lihat Akaun Permainan","Temukan berbagai produk digital dan akun game pilihan dengan pengalaman marketplace yang mudah dan nyaman.":"Temui produk digital dan akaun permainan pilihan dalam satu pasaran yang mudah digunakan.",
+    "Jelajahi berbagai produk digital pilihan dari DX STORE.":"Terokai pelbagai produk digital pilihan daripada DX STORE.",
+    "Jelajahi pilihan akun game yang tersedia.":"Terokai pilihan akaun permainan yang tersedia.",
+    "Cari produk atau akun game...":"Cari produk atau akaun permainan...",
+    "Marketplace Akun Game":"Pasaran Akaun Permainan","Produk digital akan ditampilkan di sini.":"Produk digital akan dipaparkan di sini.",
+    "Akun game akan ditampilkan di sini.":"Akaun permainan akan dipaparkan di sini.","Memuat produk...":"Memuatkan produk...",
+    "Memuat akun game...":"Memuatkan akaun permainan...","Lihat Produk":"Lihat Produk","Lihat Akun":"Lihat Akaun",
+    "Sedang Dipesan":"Dalam Tempahan","Habis Terjual":"Habis Dijual"
+  },
+  ja: {
+    "Beranda":"ホーム","Produk Digital":"デジタル商品","Akun Game":"ゲームアカウント",
+    "Masuk / Daftar":"ログイン / 登録","Keluar":"ログアウト","Jelajahi Produk":"商品を見る",
+    "Lihat Akun Game":"ゲームアカウントを見る","Marketplace Akun Game":"ゲームアカウントマーケット",
+    "Cari produk atau akun game...":"商品またはゲームアカウントを検索...",
+    "Jelajahi berbagai produk digital pilihan dari DX STORE.":"DX STOREの厳選デジタル商品をご覧ください。",
+    "Jelajahi pilihan akun game yang tersedia.":"利用可能なゲームアカウントをご覧ください。",
+    "Lihat Produk":"商品を見る","Lihat Akun":"アカウントを見る","Sedang Dipesan":"予約中","Habis Terjual":"売り切れ"
+  },
+  de: {"Beranda":"Startseite","Produk Digital":"Digitale Produkte","Akun Game":"Spielkonten","Masuk / Daftar":"Anmelden / Registrieren","Keluar":"Abmelden","Jelajahi Produk":"Produkte entdecken","Lihat Akun Game":"Spielkonten ansehen","Marketplace Akun Game":"Marktplatz für Spielkonten","Cari produk atau akun game...":"Produkte oder Spielkonten suchen...","Lihat Produk":"Produkt ansehen","Lihat Akun":"Konto ansehen","Sedang Dipesan":"Ausstehend","Habis Terjual":"Ausverkauft"},
+  fr: {"Beranda":"Accueil","Produk Digital":"Produits numériques","Akun Game":"Comptes de jeu","Masuk / Daftar":"Connexion / Inscription","Keluar":"Déconnexion","Jelajahi Produk":"Explorer les produits","Lihat Akun Game":"Voir les comptes de jeu","Marketplace Akun Game":"Marché des comptes de jeu","Cari produk atau akun game...":"Rechercher des produits ou comptes de jeu...","Lihat Produk":"Voir le produit","Lihat Akun":"Voir le compte","Sedang Dipesan":"En attente","Habis Terjual":"Épuisé"},
+  zh: {"Beranda":"首页","Produk Digital":"数字商品","Akun Game":"游戏账号","Masuk / Daftar":"登录 / 注册","Keluar":"退出登录","Jelajahi Produk":"浏览商品","Lihat Akun Game":"浏览游戏账号","Marketplace Akun Game":"游戏账号市场","Cari produk atau akun game...":"搜索商品或游戏账号...","Lihat Produk":"查看商品","Lihat Akun":"查看账号","Sedang Dipesan":"预订中","Habis Terjual":"已售罄"}
+};
+
 function getDXCountry() {
   const code = localStorage.getItem("dx-country") || "ID";
   return DX_COUNTRIES[code] ? { code, ...DX_COUNTRIES[code] } : { code: "ID", ...DX_COUNTRIES.ID };
+}
+
+function applyDXLanguage() {
+  const country = getDXCountry();
+  const language = country.language.split("-")[0];
+  const dictionary = language === "ms" ? DX_TRANSLATIONS.ms :
+    language === "ja" ? DX_TRANSLATIONS.ja :
+    language === "de" ? DX_TRANSLATIONS.de :
+    language === "fr" ? DX_TRANSLATIONS.fr :
+    language === "zh" ? DX_TRANSLATIONS.zh :
+    language === "id" ? null : DX_TRANSLATIONS.en;
+  if (!dictionary) return;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node => {
+    const raw = node.nodeValue;
+    const trimmed = raw.trim();
+    if (dictionary[trimmed]) node.nodeValue = raw.replace(trimmed, dictionary[trimmed]);
+  });
+  document.querySelectorAll("[placeholder]").forEach(el => {
+    const translated = dictionary[el.placeholder];
+    if (translated) el.placeholder = translated;
+  });
+}
+
+async function loadDXExchangeRates() {
+  if (dxExchangeRatePromise) return dxExchangeRatePromise;
+  dxExchangeRatePromise = (async () => {
+    try {
+      const response = await fetch("https://open.er-api.com/v6/latest/IDR", { cache: "no-store" });
+      if (!response.ok) throw new Error("Kurs mata uang tidak tersedia");
+      const data = await response.json();
+      if (data.result !== "success" || !data.rates || !Number.isFinite(data.rates.USD)) throw new Error("Data kurs tidak valid");
+      dxExchangeRates = data.rates;
+      dxExchangeRateReady = true;
+      document.dispatchEvent(new CustomEvent("dx-exchange-rates-ready"));
+      return true;
+    } catch (error) {
+      console.warn("DX STORE: kurs mata uang belum dapat dimuat.", error);
+      dxExchangeRatePromise = null;
+      return false;
+    }
+  })();
+  return dxExchangeRatePromise;
 }
 
 function setDXCountry(code) {
@@ -86,18 +175,35 @@ function setDXCountry(code) {
   document.documentElement.lang = DX_COUNTRIES[code].language;
   const selector = $("dxCountry");
   if (selector && selector.value !== code) selector.value = code;
+  applyDXLanguage();
   document.dispatchEvent(new CustomEvent("dx-country-change", { detail: { code, ...DX_COUNTRIES[code] } }));
+  loadDXExchangeRates().then(() => {
+    if (dxExchangeRateReady) {
+      loadProducts();
+      loadAccountListings();
+      const amount = $("dxCheckoutAmount");
+      if (amount && $("dxCheckoutModal")?.classList.contains("active")) {
+        const item = $("dxCheckoutModal").dataset.itemAmount;
+        if (item) amount.textContent = formatPrice(Number(item));
+      }
+    }
+  });
 }
 
 function formatPrice(value) {
   const country = getDXCountry();
-  const formatter = new Intl.NumberFormat(country.locale, {
+  const baseAmount = Number(value) || 0;
+  if (country.currency !== "IDR" && !dxExchangeRateReady) {
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(baseAmount) + " · kurs memuat";
+  }
+  const rate = Number(dxExchangeRates[country.currency] || (country.currency === "IDR" ? 1 : 0));
+  if (!rate) return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(baseAmount) + " · kurs tidak tersedia";
+  const converted = baseAmount * rate;
+  return new Intl.NumberFormat(country.locale, {
     style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0
-  });
-  const amount = formatter.format(Number(value) || 0);
-  return country.currency === "IDR" ? amount : amount + " (IDR)";
+    currency: country.currency,
+    maximumFractionDigits: ["IDR","JPY","KRW"].includes(country.currency) ? 0 : 2
+  }).format(converted);
 }
 
 function formatDXRupiahInput(value) {
