@@ -1224,7 +1224,7 @@ async function saveDXStoreSettings(event){
 async function loadDXStoreAvailability(){
  const banner=$("dxStoreNoticeBanner");if(!banner||!dxSupabase)return;
  const {data,error}=await dxSupabase.from("store_settings").select("is_open,maintenance_mode,opening_time,closing_time,timezone,notice").eq("id",true).maybeSingle();if(error||!data){banner.hidden=true;return;}
- banner.hidden=false;banner.textContent=(data.notice?data.notice+" · ":"")+(data.is_open&&!data.maintenance_mode?"Toko menerima pesanan.":"Toko sedang tidak menerima pesanan.")+" Jam operasional "+String(data.opening_time).slice(0,5)+"–"+String(data.closing_time).slice(0,5)+" ("+data.timezone+").";
+ const parts=new Intl.DateTimeFormat("en-GB",{timeZone:data.timezone||"Asia/Jakarta",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());const now=Number(parts.find(p=>p.type==="hour")?.value||0)*60+Number(parts.find(p=>p.type==="minute")?.value||0);const [oh,om]=String(data.opening_time).slice(0,5).split(":").map(Number);const [ch,cm]=String(data.closing_time).slice(0,5).split(":").map(Number);const open=oh*60+om,close=ch*60+cm;const inHours=open<=close?now>=open&&now<close:now>=open||now<close;const active=data.is_open&&!data.maintenance_mode&&inHours;banner.hidden=false;banner.textContent=(data.notice?data.notice+" · ":"")+(active?"Toko menerima pesanan.":"Toko sedang tidak menerima pesanan.")+" Jam operasional "+String(data.opening_time).slice(0,5)+"–"+String(data.closing_time).slice(0,5)+" ("+data.timezone+").";
 }
 async function loadDXAdminOverview(){
  const host=$("dxAdminOverview");if(!host||!currentUser||!(await checkDXAdmin()))return;
@@ -1933,16 +1933,18 @@ function createDXAdminPanel() {
   const adminAccessButton = $("dxOpenAdmin");
   if (adminAccessButton) {
     adminAccessButton.hidden = false;
-    adminAccessButton.addEventListener("click", () => {
-      window.dxAdminPanelExpanded = !window.dxAdminPanelExpanded;
-      panel.style.display = window.dxAdminPanelExpanded ? "block" : "none";
-      adminAccessButton.textContent = window.dxAdminPanelExpanded ? "Tutup Kelola Website" : "Kelola Website";
-      if (window.dxAdminPanelExpanded) {
-        loadDXAdminList();
-        loadDXPaymentOrders();
-        panel.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    });
+    if (!adminAccessButton.dataset.bound) {
+      adminAccessButton.addEventListener("click", () => {
+        window.dxAdminPanelExpanded = !window.dxAdminPanelExpanded;
+        panel.style.display = window.dxAdminPanelExpanded ? "block" : "none";
+        adminAccessButton.textContent = window.dxAdminPanelExpanded ? "Tutup Kelola Website" : "Kelola Website";
+        if (window.dxAdminPanelExpanded) {
+          loadDXAdminList(); loadDXPaymentOrders(); loadDXStoreSettings(); loadDXAdminTickets(); loadDXAdminOverview(); loadDXAdminUsers();
+          panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+      adminAccessButton.dataset.bound = "1";
+    }
   }
 
   if (!$("dxAdminStyles")) {
