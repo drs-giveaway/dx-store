@@ -335,6 +335,10 @@ function setDXCountry(code) {
   if (dashboardCurrency) dashboardCurrency.textContent = DX_COUNTRIES[code].currency + " · " + DX_COUNTRIES[code].name;
   applyDXLanguage();
   document.dispatchEvent(new CustomEvent("dx-country-change", { detail: { code, ...DX_COUNTRIES[code] } }));
+  // Katalog tidak boleh bergantung pada layanan kurs eksternal.
+  // Muat data segera; jika kurs tersedia, perbarui tampilan harga setelahnya.
+  loadProducts();
+  loadAccountListings();
   loadDXExchangeRates().then(() => {
     if (dxExchangeRateReady) {
       loadProducts();
@@ -2448,6 +2452,9 @@ async function initializeDXStore() {
     countrySelect.addEventListener("change", () => setDXCountry(countrySelect.value));
   }
   setDXCountry(getDXCountry().code);
+  // Tampilkan produk dan akun meskipun API kurs sedang gagal/tidak tersedia.
+  loadProducts();
+  loadAccountListings();
   loadDXExchangeRates().then(() => {
     if (dxExchangeRateReady) { loadProducts(); loadAccountListings(); }
   });
