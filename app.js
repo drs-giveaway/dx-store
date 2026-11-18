@@ -1351,8 +1351,8 @@ function speakDXMascot(message, options = {}) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(String(message));
     utterance.lang = DX_MASCOT_LANG[getDXCountry().code] || "id-ID";
-    utterance.rate = options.rate || 1;
-    utterance.pitch = 1.04;
+    utterance.rate = options.rate ?? 0.93;
+    utterance.pitch = options.pitch ?? 0.96;
     const voices = window.speechSynthesis.getVoices();
     const prefix = utterance.lang.split("-")[0].toLowerCase();
     const voice = voices.find(item => item.lang?.toLowerCase() === utterance.lang.toLowerCase()) || voices.find(item => item.lang?.toLowerCase().startsWith(prefix));
