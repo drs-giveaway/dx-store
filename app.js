@@ -438,11 +438,21 @@ let dxActiveView = "home";
 if (!window.dxViewNavigationBound) {
   window.dxViewNavigationBound = true;
   document.addEventListener("click", event => {
+    const viewButton = event.target.closest("#dxBottomNav [data-dx-view], #dxDashboard [data-dx-view]");
+    if (viewButton) {
+      if (!currentUser) return;
+      event.preventDefault();
+      event.stopPropagation();
+      showDXView(viewButton.dataset.dxView);
+      return;
+    }
     const link = event.target.closest('a[href="#home"],a[href="#products"],a[href="#accounts"]');
     if (!link || !currentUser) return;
     event.preventDefault();
+    event.stopPropagation();
     const href = link.getAttribute("href");
     showDXView(href === "#products" ? "products" : href === "#accounts" ? "accounts" : "home");
+    document.getElementById("dxNavLinks")?.classList.remove("open");
   }, true);
 }
 function showDXView(view) {
@@ -511,8 +521,6 @@ function updateDXDashboardVisibility() {
     bottom.setAttribute("aria-label","Navigasi utama");
     bottom.innerHTML = '<button type="button" data-dx-view="home"><span>⌂</span><small>Beranda</small></button><button type="button" data-dx-view="products"><span>▣</span><small>Produk</small></button><button type="button" data-dx-view="accounts"><span>🎮</span><small>Akun Game</small></button><button type="button" data-dx-view="profile"><span>◎</span><small>Akun</small></button>';
     document.body.appendChild(bottom);
-    bottom.querySelectorAll("[data-dx-view]").forEach(item => item.addEventListener("click", () => showDXView(item.dataset.dxView)));
-    dashboard.querySelectorAll(".dx-dana-shortcuts [data-dx-view]").forEach(item => item.addEventListener("click", () => showDXView(item.dataset.dxView)));
   }
   bottom.hidden = !visible;
   if (visible) showDXView(dxActiveView);
