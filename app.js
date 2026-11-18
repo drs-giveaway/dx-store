@@ -210,7 +210,7 @@ async function loadProducts() {
   const { data, error } = await dxSupabase
     .from("products")
     .select("*")
-    .in("status", ["active", "reserved", "sold_out"])
+    .eq("status", "active")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -238,9 +238,9 @@ async function loadProducts() {
           <h3>${safeText(item.name)}</h3>
           <p>${safeText(item.description || "")}</p>
           <strong>${formatPrice(item.price)}</strong>
-          ${item.status === "reserved" ? '<span class="dx-stock-status">PENDING — SEDANG DIPESAN</span>' : item.status === "sold_out" ? '<span class="dx-stock-status dx-sold-out">SOLD OUT</span>' : ''}
-          <button class="dx-button" type="button" ${item.status !== "active" ? "disabled" : ""} onclick="selectItem('product','${safeText(item.id)}')">
-            ${item.status === "reserved" ? "Sedang Dipesan" : item.status === "sold_out" ? "Habis Terjual" : "Lihat Produk"}
+          ${item.sale_status === "pending" ? '<span class="dx-stock-status">PENDING — SEDANG DIPESAN</span>' : item.sale_status === "sold_out" ? '<span class="dx-stock-status dx-sold-out">SOLD OUT</span>' : ''}
+          <button class="dx-button" type="button" ${item.sale_status !== "available" ? "disabled" : ""} onclick="selectItem('product','${safeText(item.id)}')">
+            ${item.sale_status === "pending" ? "Sedang Dipesan" : item.sale_status === "sold_out" ? "Habis Terjual" : "Lihat Produk"}
           </button>
         </div>
       </article>
@@ -257,7 +257,7 @@ async function loadAccountListings() {
   const { data, error } = await dxSupabase
     .from("account_listings")
     .select("*")
-    .in("status", ["active", "reserved", "sold_out"])
+    .eq("status", "active")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -285,9 +285,9 @@ async function loadAccountListings() {
           <h3>${safeText(item.title)}</h3>
           <p>${safeText(item.description || "")}</p>
           <strong>${formatPrice(item.price)}</strong>
-          ${item.status === "reserved" ? '<span class="dx-stock-status">PENDING — SEDANG DIPESAN</span>' : item.status === "sold_out" ? '<span class="dx-stock-status dx-sold-out">SOLD OUT</span>' : ''}
-          <button class="dx-button" type="button" ${item.status !== "active" ? "disabled" : ""} onclick="selectItem('account','${safeText(item.id)}')">
-            ${item.status === "reserved" ? "Sedang Dipesan" : item.status === "sold_out" ? "Habis Terjual" : "Lihat Akun"}
+          ${item.sale_status === "pending" ? '<span class="dx-stock-status">PENDING — SEDANG DIPESAN</span>' : item.sale_status === "sold_out" ? '<span class="dx-stock-status dx-sold-out">SOLD OUT</span>' : ''}
+          <button class="dx-button" type="button" ${item.sale_status !== "available" ? "disabled" : ""} onclick="selectItem('account','${safeText(item.id)}')">
+            ${item.sale_status === "pending" ? "Sedang Dipesan" : item.sale_status === "sold_out" ? "Habis Terjual" : "Lihat Akun"}
           </button>
         </div>
       </article>
@@ -325,9 +325,9 @@ function selectItem(type, id) {
       modal.querySelector("#dxDetailDescription").textContent = data.description || "Belum ada deskripsi tambahan.";
       modal.querySelector("#dxDetailPrice").textContent = formatPrice(data.price);
       modal.querySelector("#dxDetailPhoto").innerHTML = image ? '<img src="' + safeText(image) + '" alt="' + safeText(name) + '">' : '<span>DX STORE</span>';
-      const unavailable = data.status !== "active";
+      const unavailable = data.status !== "active" || (data.sale_status || "available") !== "available";
       modal.querySelector("#dxDetailOrder").disabled = unavailable;
-      modal.querySelector("#dxDetailOrder").textContent = data.status === "reserved" ? "PENDING — SEDANG DIPESAN" : data.status === "sold_out" ? "SOLD OUT" : "Lanjutkan";
+      modal.querySelector("#dxDetailOrder").textContent = data.sale_status === "pending" ? "PENDING — SEDANG DIPESAN" : data.sale_status === "sold_out" ? "SOLD OUT" : "Lanjutkan";
       modal.querySelector("#dxDetailOrder").onclick = () => {
         if (unavailable) return;
         modal.classList.remove("active");
