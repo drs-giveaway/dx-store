@@ -1074,9 +1074,9 @@ async function loadDXAdminList() {
         <p>Harga: ${formatPrice(item.price)}</p>
         <p>Status: ${safeText(item.status || (dxAdminType === "products" ? "active" : "pending"))}</p>
 
-        ${dxAdminType === "account_listings" && item.status === "pending"
-          ? `<button type="button" onclick="reviewDXAccountListing('${safeText(item.id)}', 'active')">Setujui / Terbitkan</button>
-             <button type="button" onclick="reviewDXAccountListing('${safeText(item.id)}', 'rejected')">Tolak</button>`
+        ${item.status === "pending"
+          ? `<button type="button" onclick="reviewDXListing('${dxAdminType}', '${safeText(item.id)}', 'active')">Setujui / Terbitkan</button>
+             <button type="button" onclick="reviewDXListing('${dxAdminType}', '${safeText(item.id)}', 'rejected')">Tolak</button>`
           : ""}
 
         <button
@@ -1231,18 +1231,21 @@ async function saveDXAdminItem(event) {
 
 /* VERIFIKASI AKUN GAME OLEH ADMIN */
 
-async function reviewDXAccountListing(id, status) {
+async function reviewDXListing(table, id, status) {
   if (!currentUser || !(await checkDXAdmin())) {
     alert("Akses ditolak. Khusus administrator.");
     return;
   }
 
+  if (!["products", "account_listings"].includes(table)) return;
   if (!["active", "rejected"].includes(status)) return;
+
   const label = status === "active" ? "menyetujui dan menerbitkan" : "menolak";
-  if (!confirm("Yakin ingin " + label + " akun game ini?")) return;
+  const itemLabel = table === "products" ? "produk digital" : "akun game";
+  if (!confirm("Yakin ingin " + label + " " + itemLabel + " ini?")) return;
 
   const { error } = await dxSupabase
-    .from("account_listings")
+    .from(table)
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", id);
 
@@ -1252,8 +1255,8 @@ async function reviewDXAccountListing(id, status) {
   }
 
   showDXAdminMessage(status === "active"
-    ? "Akun game berhasil disetujui dan diterbitkan."
-    : "Pengajuan akun game ditolak.");
+    ? itemLabel + " berhasil disetujui dan diterbitkan."
+    : "Pengajuan " + itemLabel + " ditolak.");
   await loadDXAdminList();
   await loadDXStore();
 }
