@@ -2001,8 +2001,8 @@ async function saveDXAdminItem(event) {
     return;
   }
 
-  if (!name || !Number.isFinite(price) || price < 0) {
-    showDXAdminMessage("Nama dan harga harus diisi dengan benar.");
+  if (!name || !Number.isFinite(price) || price <= 0) {
+    showDXAdminMessage("Nama harus diisi dan harga harus lebih dari Rp0.");
     return;
   }
 
@@ -2060,9 +2060,9 @@ async function saveDXAdminItem(event) {
         .update(payload)
         .eq("id", editId);
     } else {
+      // Semua produk wajib memiliki pemilik; akun pengguna tetap menunggu moderasi.
+      payload.seller_id = currentUser.id;
       if (isAccount) {
-        // Kiriman akun game menunggu pemeriksaan admin.
-        payload.seller_id = currentUser.id;
         payload.status = "pending";
       } else {
         // Produk digital yang dibuat admin langsung aktif.
