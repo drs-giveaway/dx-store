@@ -158,12 +158,16 @@
     });
   }
 
-  const observer = new MutationObserver(() => installAdminUpload());
+  // Amati perubahan DOM agar form admin yang muncul belakangan tetap terpasang,
+  // tanpa polling setiap detik yang membebani perangkat pengguna.
+  const observer = new MutationObserver(() => {
+    installSellerForm();
+    installAdminUpload();
+  });
   function start() {
     installSellerForm();
     installAdminUpload();
-    if ($("dxAdminPanel")) observer.observe($("dxAdminPanel"), { childList: true, subtree: true });
-    setInterval(() => { installSellerForm(); installAdminUpload(); }, 1000);
+    if (document.body) observer.observe(document.body, { childList: true, subtree: true });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
