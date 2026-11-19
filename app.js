@@ -856,135 +856,79 @@ function renderDXPurchaseToast() {
 }
 
 
+async function fetchDXPublicRows(table) {
+  if (!["products", "account_listings"].includes(table)) throw new Error("Tabel katalog tidak valid.");
+  let sdkError = null;
+  if (dxSupabase) {
+    try {
+      const { data, error } = await dxSupabase.from(table).select("*").eq("status", "active").order("created_at", { ascending: false });
+      if (!error && Array.isArray(data)) return data;
+      sdkError = error;
+    } catch (error) { sdkError = error; }
+  }
+  try {
+    const response = await fetch(`${DX_CONFIG.supabaseUrl}/rest/v1/${table}?select=*&status=eq.active&order=created_at.desc`, {
+      headers: { apikey: DX_CONFIG.supabaseKey, Authorization: `Bearer ${DX_CONFIG.supabaseKey}` },
+      cache: "no-store"
+    });
+    if (!response.ok) throw new Error(`REST HTTP ${response.status}`);
+    const rows = await response.json();
+    if (!Array.isArray(rows)) throw new Error("Format data katalog tidak valid.");
+    return rows;
+  } catch (restError) {
+    console.error("Katalog gagal dimuat melalui SDK dan REST:", sdkError, restError);
+    throw restError;
+  }
+}
+
 async function loadProducts() {
   const grid = $("productGrid");
   if (!grid) return;
-
   grid.innerHTML = "<p>Memuat produk...</p>";
-
-  let data = null;
-  let error = null;
-  if (dxSupabase) {
-    ({ data, error } = await dxSupabase
-      .from("products")
-      .select("*")
-      .eq("status", "active")
-      .order("created_at", { ascending: false }));
-  } else {
-    try {
-      const response = await fetch(`${DX_CONFIG.supabaseUrl}/rest/v1/products?select=*&status=eq.active&order=created_at.desc`, {
-        headers: {
-          apikey: DX_CONFIG.supabaseKey,
-          Authorization: `Bearer ${DX_CONFIG.supabaseKey}`
-        }
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      data = await response.json();
-    } catch (fetchError) {
-      error = fetchError;
-    }
-  }
-
-  if (error) {
-    console.error("Gagal memuat produk:", error);
-    grid.innerHTML = "<p>Produk gagal dimuat.</p>";
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    grid.innerHTML = "<p>Belum ada produk digital.</p>";
-    return;
-  }
-
-  grid.innerHTML = data.map((item) => {
-    const image = safeImageUrl(item.image_url);
-
-    return `
-      <article class="product-card">
-        ${
-          image
-            ? `<img src="${safeText(image)}" alt="${safeText(item.name)}">`
-            : ""
-        }
+  try {
+    const data = await fetchDXPublicRows("products");
+    if (!data.length) { grid.innerHTML = "<p>Belum ada produk digital.</p>"; return; }
+    grid.innerHTML = data.map(item => {
+      const image = safeImageUrl(item.image_url);
+      return `<article class="product-card">
+        ${image ? `<img src="${safeText(image)}" alt="${safeText(item.name)}" loading="lazy" onerror="this.alt='Foto produk tidak dapat dimuat';this.removeAttribute('src');this.classList.add('dx-image-error')">` : '<div class="dx-product-image-placeholder">Foto produk belum tersedia</div>'}
         <div class="product-info">
-          <h3>${safeText(item.name)}</h3>
-          <p>${safeText(item.description || "")}</p>
+          <h3>${safeText(item.name)}</h3><p>${safeText(item.description || "")}</p>
           <strong>${formatPrice(item.price)}</strong>
           ${Number(item.warranty_days ?? 7) > 0 ? `<p class="dx-product-warranty">🛡️ Garansi ${Number(item.warranty_days ?? 7)} hari</p>` : '<p class="dx-product-warranty">Tanpa garansi</p>'}
           ${item.sale_status === "pending" ? '<span class="dx-stock-status">PENDING — SEDANG DIPESAN</span>' : item.sale_status === "sold_out" ? '<span class="dx-stock-status dx-sold-out">SOLD OUT</span>' : ''}
-          <button class="dx-button" type="button" ${item.sale_status !== "available" ? "disabled" : ""} onclick="selectItem('product','${safeText(item.id)}')">
-            ${item.sale_status === "pending" ? "Sedang Dipesan" : item.sale_status === "sold_out" ? "Habis Terjual" : "Lihat Produk"}
-          </button>
-        </div>
-      </article>
-    `;
-  }).join("");
-  applyDXLanguage();
+          <button class="dx-button" type="button" ${item.sale_status !== "available" ? "disabled" : ""} onclick="selectItem('product','${safeText(item.id)}')">${item.sale_status === "pending" ? "Sedang Dipesan" : item.sale_status === "sold_out" ? "Habis Terjual" : "Lihat Produk"}</button>
+        </div></article>`;
+    }).join("");
+    applyDXLanguage();
+  } catch (error) {
+    grid.innerHTML = "<p>Produk gagal dimuat. Silakan muat ulang halaman.</p>";
+    console.error("Gagal memuat produk:", error);
+  }
 }
 
 async function loadAccountListings() {
   const grid = $("accountGrid");
   if (!grid) return;
-
   grid.innerHTML = "<p>Memuat akun game...</p>";
-
-  let data = null;
-  let error = null;
-  if (dxSupabase) {
-    ({ data, error } = await dxSupabase
-      .from("account_listings")
-      .select("*")
-      .eq("status", "active")
-      .order("created_at", { ascending: false }));
-  } else {
-    try {
-      const response = await fetch(`${DX_CONFIG.supabaseUrl}/rest/v1/account_listings?select=*&status=eq.active&order=created_at.desc`, {
-        headers: {
-          apikey: DX_CONFIG.supabaseKey,
-          Authorization: `Bearer ${DX_CONFIG.supabaseKey}`
-        }
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      data = await response.json();
-    } catch (fetchError) {
-      error = fetchError;
-    }
-  }
-
-  if (error) {
-    console.error("Gagal memuat akun:", error);
-    grid.innerHTML = "<p>Akun game gagal dimuat.</p>";
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    grid.innerHTML = "<p>Belum ada akun game.</p>";
-    return;
-  }
-
-  grid.innerHTML = data.map((item) => {
-    const image = safeImageUrl(item.image_url);
-
-    return `
-      <article class="product-card">
-        ${
-          image
-            ? `<img src="${safeText(image)}" alt="${safeText(item.title)}">`
-            : ""
-        }
-        <div class="product-info">
-          <h3>${safeText(item.title)}</h3>
-          <p>${safeText(item.description || "")}</p>
+  try {
+    const data = await fetchDXPublicRows("account_listings");
+    if (!data.length) { grid.innerHTML = "<p>Belum ada akun game yang disetujui admin.</p>"; return; }
+    grid.innerHTML = data.map(item => {
+      const image = safeImageUrl(item.image_url);
+      return `<article class="product-card">
+        ${image ? `<img src="${safeText(image)}" alt="${safeText(item.title)}" loading="lazy" onerror="this.alt='Foto akun tidak dapat dimuat';this.removeAttribute('src');this.classList.add('dx-image-error')">` : '<div class="dx-product-image-placeholder">Foto akun belum tersedia</div>'}
+        <div class="product-info"><h3>${safeText(item.title)}</h3><p>${safeText(item.description || "")}</p>
           <strong>${formatPrice(item.price)}</strong>
           ${item.sale_status === "pending" ? '<span class="dx-stock-status">PENDING — SEDANG DIPESAN</span>' : item.sale_status === "sold_out" ? '<span class="dx-stock-status dx-sold-out">SOLD OUT</span>' : ''}
-          <button class="dx-button" type="button" ${item.sale_status !== "available" ? "disabled" : ""} onclick="selectItem('account','${safeText(item.id)}')">
-            ${item.sale_status === "pending" ? "Sedang Dipesan" : item.sale_status === "sold_out" ? "Habis Terjual" : "Lihat Akun"}
-          </button>
-        </div>
-      </article>
-    `;
-  }).join("");
-  applyDXLanguage();
+          <button class="dx-button" type="button" ${item.sale_status !== "available" ? "disabled" : ""} onclick="selectItem('account','${safeText(item.id)}')">${item.sale_status === "pending" ? "Sedang Dipesan" : item.sale_status === "sold_out" ? "Habis Terjual" : "Lihat Akun"}</button>
+        </div></article>`;
+    }).join("");
+    applyDXLanguage();
+  } catch (error) {
+    grid.innerHTML = "<p>Akun game gagal dimuat. Silakan muat ulang halaman.</p>";
+    console.error("Gagal memuat akun:", error);
+  }
 }
 
 function selectItem(type, id) {
