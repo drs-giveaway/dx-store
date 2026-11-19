@@ -1189,27 +1189,48 @@ async function submitDXPaymentProof() {
 
 async function checkDXPaymentStatus() {
   const modal = $("dxCheckoutModal");
-  const base = DX_CONFIG.paymentApiUrl;
-  if (!base || !modal.dataset.orderId) return;
+  const base = DX_CONFIG?.paymentApiUrl;
+  const orderId = modal?.dataset?.orderId;
   const button = $("dxCheckPayment");
-  button.disabled = true; button.textContent = "Memeriksa...";
+  const message = $("dxCheckoutMessage");
+  if (!base) { if (message) message.textContent = "Server pemeriksaan pesanan belum dikonfigurasi. Muat ulang halaman."; return; }
+  if (!orderId) { if (message) message.textContent = "ID pesanan belum tersedia. Tekan Buat Pesanan terlebih dahulu."; return; }
+  if (!button) return;
+  button.disabled = true;
+  button.textContent = "Memeriksa...";
+  if (message) message.textContent = "Menghubungi server untuk mengambil status terbaru...";
   try {
-    const session = (await dxSupabase.auth.getSession()).data.session;
-    const response = await fetch(new URL("api/payments/status?orderId=" + encodeURIComponent(modal.dataset.orderId), base + "/"), {
-      headers: { "apikey": DX_CONFIG.supabaseKey, "Authorization": "Bearer " + session?.access_token }
+    const { data, error: sessionError } = await dxSupabase.auth.getSession();
+    if (sessionError) throw sessionError;
+    const token = data?.session?.access_token;
+    if (!token) throw new Error("Sesi login tidak ditemukan. Silakan masuk kembali.");
+    const url = new URL("api/payments/status", base.endsWith("/") ? base : base + "/");
+    url.searchParams.set("orderId", orderId);
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      cache: "no-store",
+      headers: { "apikey": DX_CONFIG.supabaseKey, "Authorization": "Bearer " + token, "Accept": "application/json" }
     });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.message || "Status pesanan gagal diperiksa.");
+    const raw = await response.text();
+    let result = {};
+    try { result = raw ? JSON.parse(raw) : {}; } catch { throw new Error("Server mengirim jawaban yang tidak dapat dibaca (HTTP " + response.status + ")."); }
+    if (!response.ok) throw new Error(result.message || "Pemeriksaan status gagal (HTTP " + response.status + ").");
+    if (!result.status) throw new Error("Server tidak mengirim status pesanan. Coba muat ulang halaman.");
     const labels = { pending: "Menunggu pembayaran", review: "Menunggu pemeriksaan admin", paid: "LUNAS", rejected: "Bukti ditolak" };
-    $("dxCheckoutStatus").textContent = labels[result.status] || result.status;
-    window.dispatchEvent(new CustomEvent("dx:order-update", { detail: { status: result.status } }));
-    $("dxCheckoutMessage").textContent = result.status === "paid"
+    const statusText = labels[result.status] || result.status;
+    $("dxCheckoutStatus").textContent = statusText;
+    window.dispatchEvent(new CustomEvent("dx:order-update", { detail: { status: result.status, orderId } }));
+    if (message) message.textContent = result.status === "paid"
       ? "Pembayaran telah diverifikasi oleh admin."
       : result.status === "rejected"
         ? "Bukti pembayaran ditolak. Hubungi admin DX STORE."
-        : "Status terbaru: " + $("dxCheckoutStatus").textContent;
-  } catch (error) { $("dxCheckoutMessage").textContent = getDXError(error); }
-  finally { button.disabled = false; button.textContent = "↻ Cek Status Pesanan"; }
+        : "Status terbaru berhasil dimuat: " + statusText + ".";
+  } catch (error) {
+    if (message) message.textContent = "Status belum berhasil diperiksa: " + getDXError(error);
+  } finally {
+    button.disabled = false;
+    button.textContent = "↻ Cek Status Pesanan";
+  }
 }
 
 function subscribeDXProductUpdates() {
