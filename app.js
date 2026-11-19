@@ -2130,6 +2130,8 @@ async function saveDXAdminItem(event) {
       imageUrl = publicData?.publicUrl || "";
       if (!imageUrl) throw new Error("URL foto tidak berhasil dibuat.");
       $("dxImage").value = imageUrl;
+      // Simpan URL hasil upload terbaru ke payload sebelum INSERT/UPDATE.
+      payload.image_url = imageUrl;
     }
 
     let result;
