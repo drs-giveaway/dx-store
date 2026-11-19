@@ -458,14 +458,14 @@ if (!window.dxViewNavigationBound) {
     }
     const viewButton = event.target.closest("#dxBottomNav [data-dx-view], #dxDashboard [data-dx-view]");
     if (viewButton) {
-      if (!currentUser) return;
+      // Navigasi katalog publik dapat digunakan tanpa login.
       event.preventDefault();
       event.stopPropagation();
       showDXView(viewButton.dataset.dxView);
       return;
     }
     const link = event.target.closest('a[href="#home"],a[href="#products"],a[href="#accounts"]');
-    if (!link || !currentUser) return;
+    if (!link) return;
     event.preventDefault();
     event.stopPropagation();
     const href = link.getAttribute("href");
