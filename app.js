@@ -562,14 +562,6 @@ function updateDXDashboardVisibility() {
           <label for="dxSupportImage">Lampiran gambar (opsional, JPG/PNG/WEBP maks. 5 MB)</label><input id="dxSupportImage" type="file" accept="image/jpeg,image/png,image/webp">
           <button type="submit" id="dxSupportSubmit" class="dx-profile-primary">Kirim Laporan</button><p id="dxSupportFeedback" role="status" aria-live="polite"></p></form>
           <h4>Laporan Saya</h4><div id="dxMyTickets">Memuat laporan...</div></section></details>
-        <article class="dx-profile-card dx-profile-ai">
-          <div class="dx-profile-card-head dx-chat-head"><div class="dx-chat-brand"><span class="dx-ai-mark">DX</span><div><small>ASISTEN DIGITAL DX</small><h3>DX Assistant</h3><p><i class="dx-online-dot"></i> Pendamping digital DX STORE</p></div></div><button type="button" id="dxAssistantClear" class="dx-chat-clear">Percakapan baru</button></div>
-          <div class="dx-chat-welcome"><span class="dx-chat-spark">✦</span><div><strong>Halo! Saya DX 👋</strong><p>Saya bisa bantu menjelaskan produk, pesanan, garansi produk resmi, pembayaran, dan pengaturan akun.</p></div></div>
-          <div id="dxAssistantMessages" class="dx-assistant-messages" aria-live="polite"></div>
-          <div class="dx-assistant-suggestions"><button type="button" data-dx-ask="Bagaimana cara membeli produk?">🛍️ Cara membeli</button><button type="button" data-dx-ask="Bagaimana cara membayar pesanan?">💳 Pembayaran</button><button type="button" data-dx-ask="Bagaimana cara melaporkan masalah?">🎧 Pusat bantuan</button></div>
-          <form id="dxAssistantForm" class="dx-assistant-form"><input id="dxAssistantInput" type="text" maxlength="500" placeholder="Tulis pesan untuk DX..." autocomplete="off" aria-label="Pesan untuk DX"><button type="submit" aria-label="Kirim pesan">➤</button></form>
-          <small class="dx-assistant-note" id="dxAssistantStatus">Asisten DX siap. Fitur AI generatif memerlukan konfigurasi layanan.</small>
-        </article>
         <section id="dxAdminAccessCard" class="dx-admin-access" hidden><div class="dx-admin-access-icon">⚙</div><div class="dx-admin-access-copy"><small>KHUSUS ADMINISTRATOR</small><strong>Pengaturan Website</strong><p>Kelola tampilan toko, produk, pesanan, pengguna, dan laporan dari satu tempat.</p></div><button type="button" id="dxOpenAdmin" hidden><span>⚙</span> Buka Pengaturan Website <b>›</b></button></section><div class="dx-profile-actions"><button type="button" id="dxAccountLogout">Keluar dari Akun</button></div>
         <p class="dx-profile-version">DX STORE · DIGITAL MARKETPLACE</p>
       </section>
@@ -694,45 +686,6 @@ function updateDXDashboardVisibility() {
       if (action === "orders") { $("dxOrderAccordion").open = true; $("dxOrderHistory")?.scrollIntoView({behavior:"smooth",block:"start"}); loadDXOrderHistory(); }
       if (action === "help") { $("dxHelpAccordion").open = true; $("dxHelpCenter")?.scrollIntoView({behavior:"smooth",block:"start"}); }
       if (action === "edit") { $("dxProfileEditAccordion").open = true; $("dxProfileEdit")?.scrollIntoView({behavior:"smooth",block:"start"}); }
-    });
-    button.dataset.bound = "1";
-  });
-  const assistantClear = $("dxAssistantClear");
-  if (assistantClear && !assistantClear.dataset.bound) {
-    assistantClear.addEventListener("click", () => {
-      const messages = $("dxAssistantMessages");
-      if (messages) messages.replaceChildren();
-      addDXAssistantMessage("Percakapan baru dimulai. Ada yang bisa DX bantu?", "assistant");
-      if ($("dxAssistantStatus")) $("dxAssistantStatus").textContent = "Siap membantu.";
-    });
-    assistantClear.dataset.bound = "1";
-  }
-  const assistantMessages = $("dxAssistantMessages");
-  if (assistantMessages && !assistantMessages.dataset.initialized) {
-    addDXAssistantMessage("Halo! Pilih topik di bawah atau tulis pertanyaanmu. DX siap membantu.", "assistant");
-    assistantMessages.dataset.initialized = "1";
-  }
-  if (!$("dxAssistantForm")?.dataset.bound) {
-    const form = $("dxAssistantForm");
-    if (form) {
-      form.addEventListener("submit", event => {
-        event.preventDefault();
-        const input = $("dxAssistantInput");
-        const question = input?.value.trim();
-        if (!question) return;
-        addDXAssistantMessage(question, "user");
-        input.value = "";
-        askDXAssistant(question);
-      });
-      form.dataset.bound = "1";
-    }
-  }
-  document.querySelectorAll("[data-dx-ask]").forEach(button => {
-    if (button.dataset.bound) return;
-    button.addEventListener("click", () => {
-      const question = button.dataset.dxAsk;
-      addDXAssistantMessage(question, "user");
-      askDXAssistant(question);
     });
     button.dataset.bound = "1";
   });
@@ -1392,41 +1345,6 @@ async function loadDXAdminUsers(){
  if(error){host.textContent=getDXError(error);return;}
  host.innerHTML=(data||[]).map(u=>`<article class="dx-ticket-card"><b>${safeText(u.display_name||"Pengguna")}</b><p>${safeText(u.role)}</p><small>${safeText(u.id)}</small></article>`).join("")||"Belum ada pengguna.";
 }
-async function askDXAssistant(question){
- const status=$("dxAssistantStatus");if(status)status.textContent="DX sedang menyiapkan jawaban...";
- try{const {data,error}=await dxSupabase.functions.invoke("dx-ai",{body:{message:question}});if(error)throw error;if(!data?.reply)throw new Error("Jawaban AI kosong.");showDXAssistantReply(data.reply);if(status)status.textContent="DX AI aktif.";}
- catch(error){showDXAssistantReply(getDXAssistantAnswer(question)+"\n\nCatatan: AI generatif belum terkonfigurasi; ini jawaban panduan otomatis.");if(status)status.textContent="Mode panduan otomatis — konfigurasi API AI diperlukan.";}
-}
-
-/* DX PROFILE ASSISTANT — panduan interaktif fitur toko */
-function addDXAssistantMessage(message, role) {
-  const host = $("dxAssistantMessages");
-  if (!host) return;
-  const bubble = document.createElement("div");
-  bubble.className = "dx-assistant-bubble " + (role === "user" ? "dx-assistant-user" : "dx-assistant-bot");
-  const label = document.createElement("strong");
-  label.textContent = role === "user" ? "Anda" : "DX";
-  const paragraph = document.createElement("p");
-  paragraph.textContent = message;
-  bubble.append(label, paragraph);
-  host.appendChild(bubble);
-  host.scrollTop = host.scrollHeight;
-}
-function showDXAssistantReply(message) { addDXAssistantMessage(message, "assistant"); }
-function getDXAssistantAnswer(question) {
-  const q = question.toLowerCase();
-  if (/beli|pesan|order|checkout/.test(q)) return "Pilih produk atau akun game yang tersedia, buka detailnya, lalu tekan tombol pesan/beli. Ikuti instruksi checkout sampai pesanan tercatat. Barang berstatus PENDING sedang menunggu verifikasi.";
-  if (/bayar|qris|pembayaran|transfer/.test(q)) return "Buka detail pesanan dan ikuti instruksi pembayaran yang ditampilkan. Pastikan nominal sesuai total pesanan. Simpan bukti pembayaran bila diminta dan jangan kirim data rahasia seperti PIN atau kata sandi.";
-  if (/pending|menunggu|status/.test(q)) return "Status PENDING berarti pesanan masih menunggu pemeriksaan atau konfirmasi pembayaran. Periksa detail pesanan secara berkala. Jika terlalu lama, hubungi admin melalui Pusat Bantuan.";
-  if (/sold.?out|habis|terjual/.test(q)) return "SOLD OUT berarti barang sudah terjual dan tidak dapat dipesan kembali.";
-  if (/akun|profil|nama|email/.test(q)) return "Di halaman Profil Saya, kamu dapat mengubah nama tampilan. Email akun ditampilkan sebagai informasi dan tidak dapat diubah dari halaman ini.";
-  if (/negara|mata uang|bahasa|currency/.test(q)) return "Gunakan pilihan Negara, Mata Uang & Bahasa pada pengaturan akun atau pilihan negara di bagian atas halaman. Pilihan negara menentukan bahasa dan mata uang tampilan.";
-  if (/lapor|masalah|komplain|bantuan|admin/.test(q)) return "Buka Pusat Bantuan, pilih kategori yang sesuai, tulis judul dan kronologi masalah, lalu kirim laporan. Sertakan nomor pesanan jika berkaitan dengan transaksi.";
-  if (/jual|pasang|listing/.test(q)) return "Masuk ke menu Akun Game atau bagian penjualan, lalu isi data akun yang ingin ditawarkan. Pastikan informasi yang dimasukkan benar dan tidak membagikan kata sandi akun pribadi.";
-  if (/keluar|logout/.test(q)) return "Tekan tombol Keluar dari Akun di bagian bawah halaman Profil Saya. DX STORE akan mengakhiri sesi akunmu.";
-  return "Saya bisa membantu pertanyaan seputar pembelian, pembayaran QRIS, status pesanan, barang SOLD OUT, profil, pengaturan negara, dan laporan masalah. Coba tulis pertanyaan yang lebih spesifik atau gunakan Pusat Bantuan untuk pemeriksaan oleh admin.";
-}
-
 /* =========================================
    DX STORE - BAGIAN 3 DARI 5
    LOGIN, REGISTRASI DAN CEK ADMIN
