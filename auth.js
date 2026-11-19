@@ -75,9 +75,7 @@
 
   if (!client) { $("message").textContent = "Koneksi layanan belum tersedia. Muat ulang halaman."; return; }
 
-  client.auth.getSession().then(({ data }) => {
-    if (data?.session) window.location.replace("index.html");
-  });
+  // Keep this page open even when an older session exists, so users can choose register or login.
 
   $("switchMode").addEventListener("click", () => {
     mode = mode === "login" ? "register" : "login";
