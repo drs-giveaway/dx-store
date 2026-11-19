@@ -483,11 +483,13 @@ function showDXView(view) {
   dxActiveView = view;
   const dashboard = $("dxDashboard"), home = $("home"), products = $("products"), accounts = $("accounts");
   const cta = document.querySelector(".dx-cta");
-  if (dashboard) dashboard.hidden = !["home","profile"].includes(view);
-  if (home) home.hidden = true;
-  if (products) products.hidden = !["home", "products"].includes(view);
+  const signedIn = !!currentUser;
+  if (dashboard) dashboard.hidden = !signedIn || !["home","profile"].includes(view);
+  // Pengunjung melihat hero saat memilih Beranda; setelah masuk, beranda memakai dashboard.
+  if (home) home.hidden = signedIn || view !== "home";
+  if (products) products.hidden = view === "accounts" || (!signedIn && view === "home");
   if (accounts) accounts.hidden = view !== "accounts";
-  if (cta) cta.hidden = true;
+  if (cta) cta.hidden = signedIn || view !== "home";
   const panel = $("dxProfilePanel"); if (panel) panel.hidden = view !== "profile";
   const adminPanel = $("dxAdminPanel");
   if (adminPanel && !window.dxAdminPanelExpanded) adminPanel.style.display = "none";
