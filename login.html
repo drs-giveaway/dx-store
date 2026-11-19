@@ -45,6 +45,45 @@
  .form-side{padding:25px 18px}
 }
 
+
+/* Hard layout lock: prevent inherited/browser styles from compressing auth controls */
+.form-side label,
+#loginForm label {
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:8px!important;
+  width:100%!important;
+  min-width:0!important;
+  white-space:normal!important;
+}
+#loginForm {
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  gap:14px!important;
+  width:100%!important;
+  min-width:0!important;
+}
+#loginForm input,
+#countrySelect {
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  min-height:50px!important;
+  box-sizing:border-box!important;
+}
+#submitButton,.switch {
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-height:48px!important;
+  box-sizing:border-box!important;
+  white-space:normal!important;
+}
+
 </style>
 </head>
 <body>
