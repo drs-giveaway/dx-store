@@ -429,7 +429,7 @@ function showDXAdminMessage(message) {
 /* MODAL LOGIN */
 
 function openAuth() {
-  window.location.href = "login.html";
+  window.location.href = "login.html?v=67";
 }
 
 function closeAuth() {
@@ -2286,7 +2286,7 @@ async function handleDXLogout() {
 
     updateDXHeaderAuth();
 
-    window.location.replace("login.html");
+    window.location.replace("login.html?v=67");
   } catch (error) {
     window.dxLogoutInProgress = false;
     if (logoutButton) {
