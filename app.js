@@ -474,7 +474,12 @@ if (!window.dxViewNavigationBound) {
   }, true);
 }
 function showDXView(view) {
-  if (!currentUser || !["home","products","accounts","profile"].includes(view)) return;
+  if (!["home","products","accounts","profile"].includes(view)) return;
+  // Pengunjung boleh menjelajahi katalog tanpa login; profil tetap memerlukan akun.
+  if (view === "profile" && !currentUser) {
+    openAuth();
+    return;
+  }
   dxActiveView = view;
   const dashboard = $("dxDashboard"), home = $("home"), products = $("products"), accounts = $("accounts");
   const cta = document.querySelector(".dx-cta");
