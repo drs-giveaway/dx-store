@@ -1732,12 +1732,13 @@ function createDXAdminPanel() {
       </div>
 
       <div style="margin-bottom:12px;">
-        <label for="dxImage">URL gambar</label>
-        <input
-          id="dxImage"
-          type="url"
-          placeholder="https://contoh.com/gambar.jpg"
-        >
+        <label for="dxImageFile">Foto produk (JPG, PNG, WEBP · maks. 5 MB)</label>
+        <input id="dxImageFile" type="file" accept="image/jpeg,image/png,image/webp">
+        <div id="dxImagePreview" style="display:none;margin-top:10px;">
+          <img id="dxImagePreviewImg" alt="Pratinjau foto" style="width:100%;max-width:240px;max-height:170px;object-fit:cover;border-radius:12px;border:1px solid #345276;">
+        </div>
+        <input id="dxImage" type="url" placeholder="URL gambar alternatif (opsional)" aria-label="URL gambar alternatif" style="margin-top:8px;">
+        <small style="display:block;color:#9aa9c4;margin-top:5px;">Foto dari perangkat akan diunggah otomatis saat data disimpan.</small>
       </div>
 
       <button type="submit" id="dxSaveButton">
@@ -1878,6 +1879,25 @@ function createDXAdminPanel() {
     const button = event.target.closest("[data-dx-order][data-dx-decision]");
     if (button) reviewDXPayment(button.dataset.dxOrder, button.dataset.dxDecision);
   });
+  $("dxImageFile")?.addEventListener("change", () => {
+    const file = $("dxImageFile").files?.[0];
+    const preview = $("dxImagePreview");
+    const previewImage = $("dxImagePreviewImg");
+    if (!file || !preview || !previewImage) {
+      if (preview) preview.style.display = "none";
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      $("dxImageFile").value = "";
+      preview.style.display = "none";
+      showDXAdminMessage("Foto harus JPG, PNG, atau WEBP dengan ukuran maksimal 5 MB.");
+      return;
+    }
+    if (previewImage.dataset.objectUrl) URL.revokeObjectURL(previewImage.dataset.objectUrl);
+    previewImage.dataset.objectUrl = URL.createObjectURL(file);
+    previewImage.src = previewImage.dataset.objectUrl;
+    preview.style.display = "block";
+  });
   $("dxCancelEdit").addEventListener("click", resetDXAdminForm);
   $("dxAdminForm").addEventListener("submit", saveDXAdminItem);
 
@@ -1914,6 +1934,7 @@ function resetDXAdminForm() {
 
   form.reset();
   $("dxEditId").value = "";
+  if ($("dxImagePreview")) $("dxImagePreview").style.display = "none";
   $("dxCancelEdit").style.display = "none";
 
   updateDXAdminFormLabels();
@@ -2054,7 +2075,13 @@ async function saveDXAdminItem(event) {
   const name = $("dxName").value.trim();
   const description = $("dxDescription").value.trim();
   const price = parseDXRupiahInput($("dxPrice").value);
-  const imageUrl = $("dxImage").value.trim();
+  let imageUrl = $("dxImage").value.trim();
+  const imageFile = $("dxImageFile")?.files?.[0] || null;
+
+  if (imageFile && (!["image/jpeg", "image/png", "image/webp"].includes(imageFile.type) || imageFile.size > 5 * 1024 * 1024)) {
+    showDXAdminMessage("Foto harus JPG, PNG, atau WEBP dengan ukuran maksimal 5 MB.");
+    return;
+  }
 
   if (!name || !Number.isFinite(price) || price < 0) {
     showDXAdminMessage("Nama dan harga harus diisi dengan benar.");
@@ -2092,6 +2119,19 @@ async function saveDXAdminItem(event) {
   saveButton.textContent = "Menyimpan...";
 
   try {
+    if (imageFile) {
+      const extension = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" })[imageFile.type];
+      const objectPath = currentUser.id + "/admin/" + crypto.randomUUID() + "." + extension;
+      const { error: uploadError } = await dxSupabase.storage
+        .from("marketplace-images")
+        .upload(objectPath, imageFile, { contentType: imageFile.type, cacheControl: "3600", upsert: false });
+      if (uploadError) throw uploadError;
+      const { data: publicData } = dxSupabase.storage.from("marketplace-images").getPublicUrl(objectPath);
+      imageUrl = publicData?.publicUrl || "";
+      if (!imageUrl) throw new Error("URL foto tidak berhasil dibuat.");
+      $("dxImage").value = imageUrl;
+    }
+
     let result;
 
     if (editId) {
