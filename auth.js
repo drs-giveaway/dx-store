@@ -62,12 +62,12 @@
     if (mascotListen) mascotListen.textContent = "↻ Ulangi sapaan DX-01";
   }
   mascotListen?.addEventListener("click", speakMascotGreeting);
-  document.addEventListener("pointerdown", () => {
+  $("loginForm")?.addEventListener("focusin", () => {
     if (!mascotHasGreeted) speakMascotGreeting();
-  }, { once: true, capture: true });
-  document.addEventListener("keydown", () => {
+  }, { once: true });
+  $("switchMode")?.addEventListener("click", () => {
     if (!mascotHasGreeted) speakMascotGreeting();
-  }, { once: true, capture: true });
+  });
   countrySelect?.addEventListener("change", () => {
     if (mascotSpeech) mascotSpeech.textContent = "Bahasa suara maskot telah disesuaikan dengan negara pilihan.";
   });
