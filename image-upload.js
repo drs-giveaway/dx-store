@@ -62,6 +62,18 @@
     style.textContent = "#dxSellerForm input,#dxSellerForm textarea{display:block;width:100%;padding:11px;margin-top:6px;border:1px solid #334b70;border-radius:8px;background:#0b1426;color:white}#dxSellerForm label{color:#cbd5e1;font-size:14px}";
     document.head.appendChild(style);
     section.querySelector(".dx-container")?.appendChild(wrap);
+
+    // Form jual akun hanya untuk pengguna yang sudah masuk.
+    // Jangan tampilkan form atau status "Belum ada listing" di halaman publik/login.
+    function syncSellerFormVisibility() {
+      wrap.hidden = !currentUser;
+      if (!currentUser) {
+        const host = $("dxSellerMyListings");
+        if (host) host.innerHTML = "";
+      }
+    }
+    syncSellerFormVisibility();
+
     if (typeof installDXRupiahInput === "function") installDXRupiahInput($("dxSellerPrice"));
     const imageInput = $("dxSellerImage");
     const preview = $("dxSellerImagePreview");
@@ -106,7 +118,13 @@
       }).join("");
     }
     loadSellerListings();
-    dxSupabase?.auth.onAuthStateChange(() => setTimeout(loadSellerListings, 0));
+    dxSupabase?.auth.onAuthStateChange((_event, session) => {
+      // Tunggu app.js memperbarui currentUser dari sesi terbaru.
+      setTimeout(() => {
+        syncSellerFormVisibility();
+        loadSellerListings();
+      }, 0);
+    });
     $("dxSellerForm").addEventListener("submit", async event => {
       event.preventDefault();
       const message = $("dxSellerMessage");
