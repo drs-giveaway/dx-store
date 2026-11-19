@@ -574,7 +574,6 @@ function updateDXDashboardVisibility() {
     `;
     main.insertBefore(dashboard, hero);
   }
-  mountDXMascotVoice();
   const storeBanner = $("dxStoreNoticeBanner");
   if (storeBanner && storeBanner.parentElement !== main) main.insertBefore(storeBanner, dashboard);
   const visible = !!currentUser;
@@ -1405,129 +1404,7 @@ async /* Obsolete duplicate removed: refreshDXUser */
 
 
 
-/* DX-01 VOICE ASSISTANT */
-const DX_MASCOT_LINES = {
-  ID: {welcome:"Halo! Aku DX-01, maskot resmi DX STORE. Selamat datang! Aku siap membantu kamu menjelajahi produk dan akun game.",help:"Kamu bisa menjelajahi Produk Digital atau Akun Game dari navigasi. Buka menu Akun untuk pengaturan akun. Jika perlu bantuan, hubungi pusat bantuan DX STORE.",order:"Pesananmu berhasil dibuat. Silakan lanjutkan pembayaran dan kirim bukti pembayaran. Pesanan menunggu pemeriksaan admin.",proof:"Bukti pembayaran berhasil dikirim dan sedang menunggu pemeriksaan admin.",paid:"Pembayaranmu telah diverifikasi. Terima kasih telah menggunakan DX STORE.",rejected:"Bukti pembayaran belum dapat diterima. Silakan periksa keterangan pada pesanan atau hubungi admin.",unknown:"Aku belum memahami pertanyaan itu. Coba tanyakan tentang cara mencari produk, membuat pesanan, pembayaran, atau pengaturan akun."},
-  MY: {welcome:"Helo! Saya DX-01, maskot rasmi DX STORE. Selamat datang! Saya sedia membantu anda meneroka produk dan akaun permainan.",help:"Anda boleh meneroka Produk Digital atau Akaun Permainan melalui navigasi. Buka menu Akaun untuk tetapan akaun. Untuk bantuan, hubungi pusat bantuan DX STORE.",order:"Tempahan anda berjaya dibuat. Sila teruskan pembayaran dan hantar bukti pembayaran. Tempahan sedang menunggu semakan admin.",proof:"Bukti pembayaran berjaya dihantar dan sedang menunggu semakan admin.",paid:"Pembayaran anda telah disahkan. Terima kasih kerana menggunakan DX STORE.",rejected:"Bukti pembayaran belum dapat diterima. Sila semak maklumat tempahan atau hubungi admin.",unknown:"Saya belum memahami soalan itu. Cuba tanya tentang produk, tempahan, pembayaran atau tetapan akaun."},
-  JP: {welcome:"こんにちは！DX STOREの公式マスコット、DX-01です。ご来店ありがとうございます。商品やゲームアカウント探しをお手伝いします。",help:"ナビゲーションからデジタル商品またはゲームアカウントをご覧ください。アカウントメニューから設定を開けます。",order:"注文が作成されました。お支払いのうえ、支払い証明を送信してください。管理者の確認待ちです。",proof:"支払い証明が送信されました。管理者による確認をお待ちください。",paid:"お支払いが確認されました。DX STOREをご利用いただきありがとうございます。",rejected:"支払い証明を確認できませんでした。注文情報をご確認ください。",unknown:"商品、注文、支払い、アカウント設定について質問してください。"},
-  TH: {welcome:"สวัสดี! ฉันคือ DX-01 มาสคอตของ DX STORE ยินดีต้อนรับ ฉันพร้อมช่วยคุณค้นหาสินค้าและบัญชีเกม",help:"เลือกสินค้าดิจิทัลหรือบัญชีเกมจากเมนู และเปิดเมนูบัญชีเพื่อดูการตั้งค่า",order:"สร้างคำสั่งซื้อแล้ว กรุณาชำระเงินและส่งหลักฐานการชำระเงินเพื่อรอผู้ดูแลตรวจสอบ",proof:"ส่งหลักฐานการชำระเงินแล้ว กำลังรอผู้ดูแลตรวจสอบ",paid:"ยืนยันการชำระเงินแล้ว ขอบคุณที่ใช้ DX STORE",rejected:"ยังไม่สามารถยืนยันหลักฐานการชำระเงินได้ กรุณาตรวจสอบคำสั่งซื้อ",unknown:"ลองถามเกี่ยวกับสินค้า คำสั่งซื้อ การชำระเงิน หรือการตั้งค่าบัญชี"},
-  DE: {welcome:"Hallo! Ich bin DX-01, das offizielle Maskottchen von DX STORE. Willkommen! Ich helfe dir, digitale Produkte und Spielkonten zu finden.",help:"Wähle Digitale Produkte oder Spielkonten in der Navigation. Unter Konto findest du deine Kontoeinstellungen und Hilfe.",order:"Deine Bestellung wurde erstellt. Bitte bezahle und sende deinen Zahlungsnachweis. Die Bestellung wartet auf die Prüfung durch den Administrator.",proof:"Dein Zahlungsnachweis wurde gesendet und wartet auf die Prüfung.",paid:"Deine Zahlung wurde bestätigt. Vielen Dank für deinen Einkauf bei DX STORE.",rejected:"Der Zahlungsnachweis konnte nicht bestätigt werden. Bitte prüfe deine Bestelldaten oder kontaktiere den Administrator.",unknown:"Frage mich nach Produkten, Bestellungen, Zahlungen oder Kontoeinstellungen."},
-  FR: {welcome:"Bonjour ! Je suis DX-01, la mascotte officielle de DX STORE. Bienvenue ! Je peux vous aider à découvrir les produits numériques et les comptes de jeux.",help:"Choisissez Produits numériques ou Comptes de jeux dans la navigation. Le menu Compte contient les paramètres et l'aide.",order:"Votre commande a été créée. Veuillez effectuer le paiement et envoyer votre justificatif. La commande attend la vérification de l'administrateur.",proof:"Votre justificatif de paiement a été envoyé et attend sa vérification.",paid:"Votre paiement a été vérifié. Merci d'utiliser DX STORE.",rejected:"Le justificatif de paiement n'a pas pu être accepté. Veuillez vérifier votre commande ou contacter l'administrateur.",unknown:"Posez-moi une question sur les produits, les commandes, les paiements ou les paramètres du compte."},
-  IN: {welcome:"नमस्ते! मैं DX STORE का आधिकारिक मास्कॉट DX-01 हूँ। स्वागत है! मैं डिजिटल उत्पाद और गेम खाते खोजने में आपकी मदद कर सकता हूँ।",help:"नेविगेशन से डिजिटल उत्पाद या गेम खाते चुनें। खाता मेनू में खाते की सेटिंग और सहायता उपलब्ध है।",order:"आपका ऑर्डर बन गया है। कृपया भुगतान करें और भुगतान का प्रमाण भेजें। ऑर्डर एडमिन की जाँच की प्रतीक्षा में है।",proof:"आपका भुगतान प्रमाण भेज दिया गया है और एडमिन की जाँच की प्रतीक्षा में है।",paid:"आपका भुगतान सत्यापित हो गया है। DX STORE का उपयोग करने के लिए धन्यवाद।",rejected:"भुगतान प्रमाण स्वीकार नहीं किया जा सका। कृपया ऑर्डर की जानकारी जाँचें या एडमिन से संपर्क करें।",unknown:"उत्पाद, ऑर्डर, भुगतान या खाता सेटिंग के बारे में पूछें।"},
-  KR: {welcome:"안녕하세요! 저는 DX STORE의 공식 마스코트 DX-01입니다. 환영합니다! 디지털 상품과 게임 계정을 찾도록 도와드릴게요.",help:"메뉴에서 디지털 상품 또는 게임 계정을 선택하세요. 계정 메뉴에서 설정과 도움말을 확인할 수 있습니다.",order:"주문이 생성되었습니다. 결제를 완료하고 결제 증빙을 제출해 주세요. 관리자 확인을 기다리고 있습니다.",proof:"결제 증빙이 제출되었으며 관리자 확인을 기다리고 있습니다.",paid:"결제가 확인되었습니다. DX STORE를 이용해 주셔서 감사합니다.",rejected:"결제 증빙을 확인할 수 없습니다. 주문 정보를 확인하거나 관리자에게 문의해 주세요.",unknown:"상품, 주문, 결제 또는 계정 설정에 관해 질문해 주세요."},
-  BR: {welcome:"Olá! Sou DX-01, o mascote oficial da DX STORE. Boas-vindas! Posso ajudar você a encontrar produtos digitais e contas de jogos.",help:"Escolha Produtos Digitais ou Contas de Jogos na navegação. Abra Conta para acessar as configurações e a ajuda.",order:"Seu pedido foi criado. Faça o pagamento e envie o comprovante. O pedido aguarda a análise do administrador.",proof:"Seu comprovante foi enviado e aguarda a análise do administrador.",paid:"Seu pagamento foi confirmado. Obrigado por usar a DX STORE.",rejected:"Não foi possível aceitar o comprovante. Verifique os dados do pedido ou fale com o administrador.",unknown:"Pergunte sobre produtos, pedidos, pagamentos ou configurações da conta."},
-  SG: {welcome:"Hello! I'm DX-01, the official DX STORE mascot. Welcome! I can help you explore digital products and game accounts.",help:"Browse Digital Products or Game Accounts from the navigation. Open Account for settings and support.",order:"Your order has been created. Please complete payment and submit your payment proof. It is waiting for admin review.",proof:"Your payment proof was submitted and is waiting for admin review.",paid:"Your payment has been verified. Thank you for using DX STORE.",rejected:"Your payment proof could not be accepted. Please review your order or contact the admin.",unknown:"Ask me about products, orders, payments, or account settings."},
-  US: {welcome:"Hello! I'm DX-01, the official DX STORE mascot. Welcome! I can help you explore digital products and game accounts.",help:"Browse Digital Products or Game Accounts from the navigation. Open Account for settings and support.",order:"Your order has been created. Please complete payment and submit your payment proof. It is waiting for admin review.",proof:"Your payment proof was submitted and is waiting for admin review.",paid:"Your payment has been verified. Thank you for using DX STORE.",rejected:"Your payment proof could not be accepted. Please review your order or contact the admin.",unknown:"Ask me about products, orders, payments, or account settings."},
-  PH: {welcome:"Hello! I'm DX-01, the official DX STORE mascot. Welcome! I can help you explore digital products and game accounts.",help:"Browse Digital Products or Game Accounts from the navigation. Open Account for settings and support.",order:"Your order has been created. Please complete payment and submit your payment proof. It is waiting for admin review.",proof:"Your payment proof was submitted and is waiting for admin review.",paid:"Your payment has been verified. Thank you for using DX STORE.",rejected:"Your payment proof could not be accepted. Please review your order or contact the admin.",unknown:"Ask me about products, orders, payments, or account settings."},
-  AU: {welcome:"Hello! I'm DX-01, the official DX STORE mascot. Welcome! I can help you explore digital products and game accounts.",help:"Browse Digital Products or Game Accounts from the navigation. Open Account for settings and support.",order:"Your order has been created. Please complete payment and submit your payment proof. It is waiting for admin review.",proof:"Your payment proof was submitted and is waiting for admin review.",paid:"Your payment has been verified. Thank you for using DX STORE.",rejected:"Your payment proof could not be accepted. Please review your order or contact the admin.",unknown:"Ask me about products, orders, payments, or account settings."},
-  GB: {welcome:"Hello! I'm DX-01, the official DX STORE mascot. Welcome! I can help you explore digital products and game accounts.",help:"Browse Digital Products or Game Accounts from the navigation. Open Account for settings and support.",order:"Your order has been created. Please complete payment and submit your payment proof. It is waiting for admin review.",proof:"Your payment proof was submitted and is waiting for admin review.",paid:"Your payment has been verified. Thank you for using DX STORE.",rejected:"Your payment proof could not be accepted. Please review your order or contact the admin.",unknown:"Ask me about products, orders, payments, or account settings."},
-  CA: {welcome:"Hello! I'm DX-01, the official DX STORE mascot. Welcome! I can help you explore digital products and game accounts.",help:"Browse Digital Products or Game Accounts from the navigation. Open Account for settings and support.",order:"Your order has been created. Please complete payment and submit your payment proof. It is waiting for admin review.",proof:"Your payment proof was submitted and is waiting for admin review.",paid:"Your payment has been verified. Thank you for using DX STORE.",rejected:"Your payment proof could not be accepted. Please review your order or contact the admin.",unknown:"Ask me about products, orders, payments, or account settings."},
-  CN: {welcome:"你好！我是DX STORE的官方吉祥物DX-01。欢迎来到DX STORE，我可以帮助你浏览商品和游戏账号。",help:"请从导航中选择数字商品或游戏账号。打开账户菜单可以查看账户设置。",order:"订单已创建。请完成付款并提交付款凭证，订单正在等待管理员审核。",proof:"付款凭证已提交，正在等待管理员审核。",paid:"付款已确认。感谢使用DX STORE。",rejected:"付款凭证暂未通过，请检查订单信息。",unknown:"你可以询问商品、订单、付款或账户设置。"}
-};
-const DX_MASCOT_LANG = {ID:"id-ID",MY:"ms-MY",SG:"en-SG",US:"en-US",JP:"ja-JP",TH:"th-TH",PH:"en-PH",AU:"en-AU",GB:"en-GB",DE:"de-DE",FR:"fr-FR",IN:"hi-IN",KR:"ko-KR",BR:"pt-BR",CA:"en-CA",CN:"zh-CN"};
-function getDXMascotLine(type) {
-  const code = getDXCountry().code;
-  const fallback = {
-    welcome:"Hello! I'm DX-01, the official DX STORE mascot. Welcome! I can help you explore digital products and game accounts.",
-    help:"Browse Digital Products or Game Accounts from the navigation. Open Account for account settings. Contact DX STORE support if you need help.",
-    order:"Your order has been created. Please complete payment and submit your payment proof. The order is waiting for admin review.",
-    proof:"Your payment proof was submitted and is waiting for admin review.",
-    paid:"Your payment has been verified. Thank you for using DX STORE.",
-    rejected:"Your payment proof could not be accepted. Please review your order details or contact the admin.",
-    unknown:"I didn't understand that question. Ask me about products, orders, payments, or account settings."
-  };
-  const translated = DX_MASCOT_LINES[code] || {};
-  return translated[type] || fallback[type] || fallback.unknown;
-}
-function showDXMascotMessage(type, customMessage) {
-  const message = customMessage || getDXMascotLine(type);
-  let bubble = document.getElementById("dxMascotSpeechBubble");
-  if (!bubble) {
-    bubble = document.createElement("div");
-    bubble.id = "dxMascotSpeechBubble";
-    bubble.setAttribute("role", "status");
-    bubble.setAttribute("aria-live", "polite");
-    bubble.style.cssText = "position:fixed;z-index:700;right:16px;bottom:112px;display:flex;align-items:center;gap:11px;width:min(360px,calc(100vw - 32px));min-height:104px;padding:10px 13px;border:1px solid #51e5ff88;border-radius:16px;background:rgba(10,20,42,.92);backdrop-filter:blur(12px);box-shadow:0 8px 28px #0007;color:#f4f8ff;font:500 13px/1.55 Inter,sans-serif";
-    const avatar = document.createElement("img");
-    avatar.src = "./39976-removebg-preview.png";
-    avatar.alt = "Maskot DX-01";
-    avatar.style.cssText = "display:block;flex:0 0 76px;width:76px;height:84px;object-fit:contain;object-position:center;filter:drop-shadow(0 0 10px #26cfff88)";
-    avatar.onerror = () => { avatar.style.display = "none"; };
-    const content = document.createElement("div");
-    content.style.cssText = "min-width:0;flex:1";
-    const name = document.createElement("div");
-    name.textContent = "DX-01";
-    name.style.cssText = "margin-bottom:4px;color:#65eaff;font-size:11px;font-weight:900;letter-spacing:1.2px";
-    const words = document.createElement("div");
-    words.id = "dxMascotSpeechText";
-    words.style.cssText = "font-size:13px;line-height:1.5;color:#f4f8ff";
-    content.append(name, words);
-    bubble.append(avatar, content);
-    document.body.appendChild(bubble);
-  }
-  const words = bubble.querySelector("#dxMascotSpeechText");
-  if (words) words.textContent = message;
-  bubble.hidden = false;
-  clearTimeout(window.dxMascotBubbleTimer);
-  window.dxMascotBubbleTimer = setTimeout(() => { bubble.hidden = true; }, 7000);
-}
-function answerDXMascotQuestion(question) {
-  const q = String(question || "").toLocaleLowerCase();
-  let answer = getDXMascotLine("unknown");
-  if (/produk|barang|digital|game|akun|cari|lihat|browse|product|account/.test(q)) answer = getDXMascotLine("help");
-  else if (/pesan|order|beli|buat|checkout|reserv/.test(q)) answer = getDXMascotLine("order");
-  else if (/bayar|pembayaran|qris|transfer|payment/.test(q)) answer = getDXMascotLine("proof");
-  else if (/lunas|verifikasi|verified|paid/.test(q)) answer = getDXMascotLine("paid");
-  else if (/akun|profil|negara|mata uang|bahasa|setting|pengaturan/.test(q)) answer = getDXMascotLine("help");
-  showDXMascotMessage("answer", answer);
-}
-function mountDXMascotVoice() {
-  // Maskot tetap menampilkan pesan teks; fitur audio dan tombol suara dihapus.
-  localStorage.removeItem("dx-mascot-voice");
-  if (!document.documentElement.dataset.dxMascotTextBound) {
-    let welcomed = false;
-    const welcome = () => {
-      if (welcomed) return;
-      welcomed = true;
-      showDXMascotMessage("welcome");
-    };
-    document.addEventListener("pointerdown", welcome, { once: true, capture: true, passive: true });
-    document.addEventListener("keydown", welcome, { once: true, capture: true });
-    window.addEventListener("dx:order-update", event => {
-      const status = event.detail?.status;
-      const type = status === "paid" || status === "completed" ? "paid" : status === "rejected" ? "rejected" : status === "proof" ? "proof" : "order";
-      showDXMascotMessage(type);
-    });
-    document.documentElement.dataset.dxMascotTextBound = "1";
-  }
-}
-window.dxMascotSpeak = (message) => showDXMascotMessage("answer", String(message || ""));
-
-/* SALAM PERPISAHAN MASKOT DX-01 */
-function showDXMascotFarewell() {
-  const country = getDXCountry();
-  const messages = {
-    ID:"Sampai jumpa! Terima kasih sudah berkunjung ke DX STORE. Semoga harimu menyenangkan!",
-    MY:"Jumpa lagi! Terima kasih kerana mengunjungi DX STORE. Semoga hari anda menyenangkan!",
-    JP:"またお会いしましょう！DX STOREをご利用いただき、ありがとうございます。",
-    TH:"แล้วพบกันใหม่นะ! ขอบคุณที่แวะมา DX STORE",
-    DE:"Bis zum nächsten Mal! Danke für deinen Besuch bei DX STORE.",
-    FR:"À bientôt ! Merci de votre visite sur DX STORE.",
-    BR:"Até a próxima! Obrigado por visitar a DX STORE.",
-    CN:"再见！感谢您访问 DX STORE。"
-  };
-  const message = messages[country.code] || "See you next time! Thanks for visiting DX STORE.";
-  let bubble = document.getElementById("dxMascotFarewell");
-  if (!bubble) {
-    bubble = document.createElement("div");
-    bubble.id = "dxMascotFarewell";
-    bubble.setAttribute("role","status");
-    bubble.style.cssText = "position:fixed;z-index:99999;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px));padding:22px 24px;border:1px solid #51e5ff99;border-radius:18px;background:linear-gradient(145deg,#13284a,#171333);box-shadow:0 18px 70px #000b,0 0 28px #278fff55;color:#f4f8ff;text-align:center;font:600 15px/1.65 Inter,sans-serif";
-    document.body.appendChild(bubble);
-  }
-  bubble.textContent = "DX-01 · " + message;
-  return new Promise(resolve => setTimeout(() => { bubble.remove(); resolve(); }, 1800));
-}
+/* Audio dan seluruh sistem pesan otomatis maskot dinonaktifkan. */
 
 /* KELUAR DARI AKUN */
 
@@ -2429,11 +2306,6 @@ async function handleDXLogout() {
 
     updateDXHeaderAuth();
 
-    // Salam perpisahan DX-01 ditampilkan dan dibacakan sebelum kembali ke login.
-    if (typeof showDXMascotFarewell === "function") {
-      await showDXMascotFarewell();
-    }
-
     window.location.replace("login.html");
   } catch (error) {
     window.dxLogoutInProgress = false;
@@ -2472,7 +2344,6 @@ async function initializeDXStore() {
   }
 
   setupDXAuthSwitch();
-  mountDXMascotVoice();
   const countrySelect = $("dxCountry");
   if (countrySelect) {
     countrySelect.value = getDXCountry().code;
