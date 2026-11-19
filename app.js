@@ -487,7 +487,7 @@ function showDXView(view) {
   if (dashboard) dashboard.hidden = !signedIn || !["home","profile"].includes(view);
   // Pengunjung melihat hero saat memilih Beranda; setelah masuk, beranda memakai dashboard.
   if (home) home.hidden = signedIn || view !== "home";
-  if (products) products.hidden = view === "accounts" || (!signedIn && view === "home");
+  if (products) products.hidden = view === "accounts" || view === "profile" || (!signedIn && view === "home");
   if (accounts) accounts.hidden = view !== "accounts";
   if (cta) cta.hidden = signedIn || view !== "home";
   const panel = $("dxProfilePanel"); if (panel) panel.hidden = view !== "profile";
