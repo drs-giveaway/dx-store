@@ -22,33 +22,13 @@
     const form = $("dxAdminForm");
     if (!form || form.dataset.imageUploadReady) return;
     const urlInput = $("dxImage");
-    if (!urlInput) return;
+    const fileInput = $("dxImageFile");
+    if (!urlInput || !fileInput) return;
+
+    // app.js sudah menyediakan picker dan menangani upload + penyimpanan URL.
+    // Jangan membuat input file kedua atau mengunggah gambar dua kali.
     urlInput.type = "hidden";
-    const wrap = document.createElement("div");
-    wrap.style.margin = "12px 0";
-    wrap.innerHTML = '<label for="dxImageFile">Foto produk / akun (JPG, PNG, WEBP, maks. 5 MB)</label><input id="dxImageFile" type="file" accept="image/jpeg,image/png,image/webp" style="display:block;width:100%;margin-top:8px;color:white"><small id="dxImagePreviewText">Pilih gambar dari galeri HP.</small>';
-    urlInput.parentElement.insertBefore(wrap, urlInput);
     form.dataset.imageUploadReady = "1";
-    form.addEventListener("submit", async event => {
-      const file = $("dxImageFile")?.files?.[0];
-      if (!file) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      const button = $("dxSaveButton");
-      button.disabled = true;
-      button.textContent = "Mengunggah gambar...";
-      try {
-        const url = await uploadImage(file, currentUser.id, "admin");
-        urlInput.value = url;
-        await saveDXAdminItem({ preventDefault() {} });
-        $("dxImageFile").value = "";
-      } catch (error) {
-        showDXAdminMessage("Upload gagal: " + getDXError(error));
-      } finally {
-        button.disabled = false;
-        updateDXAdminFormLabels();
-      }
-    }, true);
   }
 
   function installSellerForm() {
