@@ -480,7 +480,7 @@ function showDXView(view) {
   const cta = document.querySelector(".dx-cta");
   if (dashboard) dashboard.hidden = !["home","profile"].includes(view);
   if (home) home.hidden = true;
-  if (products) products.hidden = view !== "products";
+  if (products) products.hidden = !["home", "products"].includes(view);
   if (accounts) accounts.hidden = view !== "accounts";
   if (cta) cta.hidden = true;
   const panel = $("dxProfilePanel"); if (panel) panel.hidden = view !== "profile";
