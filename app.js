@@ -1273,7 +1273,25 @@ async function checkDXPaymentStatus() {
   finally { button.disabled = false; button.textContent = "↻ Cek Status Pesanan"; }
 }
 
+function subscribeDXProductUpdates() {
+  if (!dxSupabase || window.__dxProductRealtimeChannel) return;
+
+  window.__dxProductRealtimeChannel = dxSupabase
+    .channel("dx-public-product-catalog")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "products" },
+      () => loadProducts()
+    )
+    .subscribe((status) => {
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        console.warn("Pembaruan katalog realtime belum tersambung:", status);
+      }
+    });
+}
+
 async function loadDXStore() {
+  subscribeDXProductUpdates();
   await Promise.all([
     loadProducts(),
     loadAccountListings()
