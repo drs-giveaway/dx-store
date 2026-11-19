@@ -1396,19 +1396,11 @@ async function checkDXAdmin() {
 
 /* PROSES LOGIN DAN REGISTRASI */
 
-async /* Obsolete duplicate removed: handleAuthSubmit */
-
 /* PERBARUI STATUS LOGIN */
-
-async /* Obsolete duplicate removed: refreshDXUser */
-
-
 
 /* Audio dan seluruh sistem pesan otomatis maskot dinonaktifkan. */
 
 /* KELUAR DARI AKUN */
-
-async /* Obsolete duplicate removed: handleDXLogout */
 
 /* NAVIGASI */
 
@@ -1560,24 +1552,8 @@ function createDXAdminPanel() {
   else main.appendChild(panel);
   installDXRupiahInput($("dxPrice"));
 
-  const adminAccessButton = $("dxOpenAdmin");
   const adminAccessCard = $("dxAdminAccessCard");
   if (adminAccessCard) adminAccessCard.hidden = currentProfile?.role !== "admin";
-  if (adminAccessButton) {
-    adminAccessButton.hidden = false;
-    if (!adminAccessButton.dataset.bound) {
-      adminAccessButton.addEventListener("click", () => {
-        window.dxAdminPanelExpanded = !window.dxAdminPanelExpanded;
-        panel.style.display = window.dxAdminPanelExpanded ? "block" : "none";
-        adminAccessButton.textContent = window.dxAdminPanelExpanded ? "Tutup Kelola Website" : "Kelola Website";
-        if (window.dxAdminPanelExpanded) {
-          loadDXAdminList(); loadDXPaymentOrders(); loadDXStoreSettings(); loadDXAdminTickets(); loadDXAdminOverview(); loadDXAdminUsers();
-          panel.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      });
-      adminAccessButton.dataset.bound = "1";
-    }
-  }
 
   if (!$("dxAdminStyles")) {
     const style = document.createElement("style");
