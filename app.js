@@ -75,6 +75,8 @@ const DX_COUNTRIES = {
   CN: { name: "China", language: "zh-CN", currency: "CNY", locale: "zh-CN", timezone: "Asia/Shanghai" }
 };
 
+const DX_COUNTRY_FLAGS = { ID:"🇮🇩", MY:"🇲🇾", SG:"🇸🇬", US:"🇺🇸", JP:"🇯🇵", TH:"🇹🇭", PH:"🇵🇭", AU:"🇦🇺", GB:"🇬🇧", DE:"🇩🇪", FR:"🇫🇷", IN:"🇮🇳", KR:"🇰🇷", BR:"🇧🇷", CA:"🇨🇦", CN:"🇨🇳" };
+
 let dxExchangeRates = { IDR: 1 };
 let dxExchangeRateReady = false;
 let dxExchangeRatePromise = null;
@@ -126,7 +128,7 @@ const DX_TRANSLATIONS = {
 
 Object.assign(DX_TRANSLATIONS.en, {
   "Halo,":"Hello,","Semua kebutuhan digitalmu dalam satu tempat.":"All your digital needs in one place.",
-  "NEGARA & MATA UANG":"COUNTRY & CURRENCY","Marketplace Digital":"Digital Marketplace",
+  "NEGARA":"COUNTRY & CURRENCY","Marketplace Digital":"Digital Marketplace",
   "Jelajahi layanan":"Explore services","Produk":"Products","Cari":"Search","Jual Akun":"Sell Account","Akun":"Account",
   "Pengaturan Akun":"Account Settings","Ubah negara dan mata uang melalui pilihan di bagian atas.":"Change your country and currency using the selector above.",
   "Belum ada produk digital.":"No digital products yet.","Belum ada akun game.":"No game accounts yet.",
@@ -148,7 +150,7 @@ Object.assign(DX_TRANSLATIONS.en, {
 });
 Object.assign(DX_TRANSLATIONS.ms, {
   "Halo,":"Helo,","Semua kebutuhan digitalmu dalam satu tempat.":"Semua keperluan digital anda di satu tempat.",
-  "NEGARA & MATA UANG":"NEGARA & MATA WANG","Marketplace Digital":"Pasaran Digital",
+  "NEGARA":"NEGARA & MATA WANG","Marketplace Digital":"Pasaran Digital",
   "Jelajahi layanan":"Terokai perkhidmatan","Produk":"Produk","Cari":"Cari","Jual Akun":"Jual Akaun","Akun":"Akaun",
   "Pengaturan Akun":"Tetapan Akaun","Ubah negara dan mata uang melalui pilihan di bagian atas.":"Tukar negara dan mata wang melalui pilihan di atas.",
   "Belum ada produk digital.":"Belum ada produk digital.","Belum ada akun game.":"Belum ada akaun permainan.",
@@ -159,7 +161,7 @@ Object.assign(DX_TRANSLATIONS.ms, {
 });
 Object.assign(DX_TRANSLATIONS.ja, {
   "Halo,":"こんにちは、","Semua kebutuhan digitalmu dalam satu tempat.":"デジタルに必要なものをすべてここで。",
-  "NEGARA & MATA UANG":"国と言語・通貨","Marketplace Digital":"デジタルマーケット",
+  "NEGARA":"国と言語・通貨","Marketplace Digital":"デジタルマーケット",
   "Jelajahi layanan":"サービスを見る","Produk":"商品","Cari":"検索","Jual Akun":"アカウントを販売","Akun":"アカウント",
   "Pengaturan Akun":"アカウント設定","Belum ada produk digital.":"デジタル商品はまだありません。",
   "Belum ada akun game.":"ゲームアカウントはまだありません。","Lanjutkan":"続行","Tutup":"閉じる",
@@ -170,7 +172,7 @@ Object.assign(DX_TRANSLATIONS.ja, {
 
 Object.assign(DX_TRANSLATIONS.de, {
   "Halo,":"Hallo,","Semua kebutuhan digitalmu dalam satu tempat.":"Alle digitalen Bedürfnisse an einem Ort.",
-  "NEGARA & MATA UANG":"LAND & WÄHRUNG","Marketplace Digital":"Digitaler Marktplatz","Jelajahi layanan":"Dienste entdecken",
+  "NEGARA":"LAND & WÄHRUNG","Marketplace Digital":"Digitaler Marktplatz","Jelajahi layanan":"Dienste entdecken",
   "Produk":"Produkte","Cari":"Suchen","Jual Akun":"Konto verkaufen","Akun":"Konto",
   "Pengaturan Akun":"Kontoeinstellungen","Ubah negara dan mata uang melalui pilihan di bagian atas.":"Land und Währung über die Auswahl oben ändern.",
   "Belum ada produk digital.":"Noch keine digitalen Produkte.","Belum ada akun game.":"Noch keine Spielkonten.",
@@ -182,7 +184,7 @@ Object.assign(DX_TRANSLATIONS.de, {
 });
 Object.assign(DX_TRANSLATIONS.fr, {
   "Halo,":"Bonjour,","Semua kebutuhan digitalmu dalam satu tempat.":"Tous vos besoins numériques au même endroit.",
-  "NEGARA & MATA UANG":"PAYS ET DEVISE","Marketplace Digital":"Marché numérique","Jelajahi layanan":"Découvrir les services",
+  "NEGARA":"PAYS ET DEVISE","Marketplace Digital":"Marché numérique","Jelajahi layanan":"Découvrir les services",
   "Produk":"Produits","Cari":"Rechercher","Jual Akun":"Vendre un compte","Akun":"Compte",
   "Pengaturan Akun":"Paramètres du compte","Ubah negara dan mata uang melalui pilihan di bagian atas.":"Modifiez le pays et la devise avec le sélecteur ci-dessus.",
   "Belum ada produk digital.":"Aucun produit numérique pour le moment.","Belum ada akun game.":"Aucun compte de jeu pour le moment.",
@@ -194,7 +196,7 @@ Object.assign(DX_TRANSLATIONS.fr, {
 });
 Object.assign(DX_TRANSLATIONS.zh, {
   "Halo,":"你好，","Semua kebutuhan digitalmu dalam satu tempat.":"您的数字需求，一站满足。",
-  "NEGARA & MATA UANG":"国家与货币","Marketplace Digital":"数字商品市场","Jelajahi layanan":"探索服务",
+  "NEGARA":"国家与货币","Marketplace Digital":"数字商品市场","Jelajahi layanan":"探索服务",
   "Produk":"商品","Cari":"搜索","Jual Akun":"出售账号","Akun":"账号",
   "Pengaturan Akun":"账号设置","Ubah negara dan mata uang melalui pilihan di bagian atas.":"使用上方选项更改国家和货币。",
   "Belum ada produk digital.":"暂无数字商品。","Belum ada akun game.":"暂无游戏账号。",
@@ -206,7 +208,7 @@ Object.assign(DX_TRANSLATIONS.zh, {
 });
 Object.assign(DX_TRANSLATIONS.ko, {
   "Halo,":"안녕하세요,","Semua kebutuhan digitalmu dalam satu tempat.":"모든 디지털 서비스를 한곳에서 만나보세요.",
-  "NEGARA & MATA UANG":"국가 및 통화","Marketplace Digital":"디지털 마켓플레이스","Jelajahi layanan":"서비스 둘러보기",
+  "NEGARA":"국가 및 통화","Marketplace Digital":"디지털 마켓플레이스","Jelajahi layanan":"서비스 둘러보기",
   "Produk":"상품","Cari":"검색","Jual Akun":"계정 판매","Akun":"계정",
   "Pengaturan Akun":"계정 설정","Ubah negara dan mata uang melalui pilihan di bagian atas.":"위 선택 메뉴에서 국가와 통화를 변경하세요.",
   "Belum ada produk digital.":"아직 디지털 상품이 없습니다.","Belum ada akun game.":"아직 게임 계정이 없습니다.",
@@ -218,7 +220,7 @@ Object.assign(DX_TRANSLATIONS.ko, {
 });
 Object.assign(DX_TRANSLATIONS.th, {
   "Halo,":"สวัสดี,","Semua kebutuhan digitalmu dalam satu tempat.":"ทุกสิ่งที่คุณต้องการด้านดิจิทัลในที่เดียว",
-  "NEGARA & MATA UANG":"ประเทศและสกุลเงิน","Marketplace Digital":"ตลาดสินค้าดิจิทัล","Jelajahi layanan":"สำรวจบริการ",
+  "NEGARA":"ประเทศและสกุลเงิน","Marketplace Digital":"ตลาดสินค้าดิจิทัล","Jelajahi layanan":"สำรวจบริการ",
   "Produk":"สินค้า","Cari":"ค้นหา","Jual Akun":"ขายบัญชี","Akun":"บัญชี",
   "Pengaturan Akun":"ตั้งค่าบัญชี","Ubah negara dan mata uang melalui pilihan di bagian atas.":"เปลี่ยนประเทศและสกุลเงินจากเมนูด้านบน",
   "Belum ada produk digital.":"ยังไม่มีสินค้าดิจิทัล","Belum ada akun game.":"ยังไม่มีบัญชีเกม",
@@ -230,7 +232,7 @@ Object.assign(DX_TRANSLATIONS.th, {
 });
 Object.assign(DX_TRANSLATIONS.pt, {
   "Halo,":"Olá,","Semua kebutuhan digitalmu dalam satu tempat.":"Todas as suas necessidades digitais em um só lugar.",
-  "NEGARA & MATA UANG":"PAÍS E MOEDA","Marketplace Digital":"Mercado digital","Jelajahi layanan":"Explorar serviços",
+  "NEGARA":"PAÍS E MOEDA","Marketplace Digital":"Mercado digital","Jelajahi layanan":"Explorar serviços",
   "Produk":"Produtos","Cari":"Pesquisar","Jual Akun":"Vender conta","Akun":"Conta",
   "Pengaturan Akun":"Configurações da conta","Ubah negara dan mata uang melalui pilihan di bagian atas.":"Altere o país e a moeda usando a opção acima.",
   "Belum ada produk digital.":"Ainda não há produtos digitais.","Belum ada akun game.":"Ainda não há contas de jogos.",
@@ -242,7 +244,7 @@ Object.assign(DX_TRANSLATIONS.pt, {
 });
 Object.assign(DX_TRANSLATIONS.hi, {
   "Halo,":"नमस्ते,","Semua kebutuhan digitalmu dalam satu tempat.":"आपकी सभी डिजिटल ज़रूरतें एक ही जगह।",
-  "NEGARA & MATA UANG":"देश और मुद्रा","Marketplace Digital":"डिजिटल मार्केटप्लेस","Jelajahi layanan":"सेवाएँ देखें",
+  "NEGARA":"देश और मुद्रा","Marketplace Digital":"डिजिटल मार्केटप्लेस","Jelajahi layanan":"सेवाएँ देखें",
   "Produk":"उत्पाद","Cari":"खोजें","Jual Akun":"खाता बेचें","Akun":"खाता",
   "Pengaturan Akun":"खाता सेटिंग","Ubah negara dan mata uang melalui pilihan di bagian atas.":"ऊपर दिए विकल्प से देश और मुद्रा बदलें।",
   "Belum ada produk digital.":"अभी कोई डिजिटल उत्पाद नहीं है।","Belum ada akun game.":"अभी कोई गेम खाता नहीं है।",
@@ -332,7 +334,7 @@ function setDXCountry(code) {
   const selector = $("dxCountry");
   if (selector && selector.value !== code) selector.value = code;
   const dashboardCurrency = $("dxDashboardCurrency");
-  if (dashboardCurrency) dashboardCurrency.textContent = DX_COUNTRIES[code].currency + " · " + DX_COUNTRIES[code].name;
+  if (dashboardCurrency) dashboardCurrency.textContent = (DX_COUNTRY_FLAGS[code] || "🌐") + " " + code;
   applyDXLanguage();
   document.dispatchEvent(new CustomEvent("dx-country-change", { detail: { code, ...DX_COUNTRIES[code] } }));
   // Katalog tidak boleh bergantung pada layanan kurs eksternal.
@@ -520,7 +522,7 @@ function updateDXDashboardVisibility() {
         <div class="dx-dana-cardtop"><span>DX STORE</span><span>●●●●  DX-01</span></div>
         <div class="dx-dana-cardtitle">Marketplace Digital</div>
         <p>Temukan produk digital dan akun game pilihan dengan proses pemesanan yang mudah.</p>
-        <div class="dx-dana-cardfoot"><span>NEGARA & MATA UANG</span><strong id="dxDashboardCurrency">IDR · Indonesia</strong></div>
+        <div class="dx-dana-cardfoot"><span>NEGARA</span><strong id="dxDashboardCurrency">IDR · Indonesia</strong></div>
       </div>
       <div class="dx-dana-shortcuts">
         <button type="button" data-dx-view="products"><span>▣</span><strong>Produk</strong></button>
@@ -587,7 +589,7 @@ function updateDXDashboardVisibility() {
   const nameNode = $("dxDashboardName");
   if (nameNode) nameNode.textContent = name;
   const currencyNode = $("dxDashboardCurrency");
-  if (currencyNode) currencyNode.textContent = getDXCountry().currency + " · " + getDXCountry().name;
+  if (currencyNode) currencyNode.textContent = (DX_COUNTRY_FLAGS[getDXCountry().code] || "🌐") + " " + getDXCountry().code;
   const accountEmail = $("dxAccountEmail");
   if (accountEmail) accountEmail.textContent = currentUser?.email || "Akun Anda";
   const profileName = currentUser?.user_metadata?.display_name || currentUser?.email?.split("@")[0] || "Pengguna";
@@ -660,7 +662,7 @@ function updateDXDashboardVisibility() {
   if ($("dxProfileNameInput") && document.activeElement !== $("dxProfileNameInput")) $("dxProfileNameInput").value = profileName;
   if ($("dxProfileEmailInput")) $("dxProfileEmailInput").value = currentUser?.email || "";
   if ($("dxProfileMember")) $("dxProfileMember").textContent = currentProfile?.created_at ? "Bergabung " + new Date(currentProfile.created_at).toLocaleDateString(getDXCountry().locale, {day:"numeric",month:"long",year:"numeric"}) : "Anggota DX STORE";
-  if ($("dxProfileCountry")) $("dxProfileCountry").textContent = getDXCountry().name + " · " + getDXCountry().currency;
+  if ($("dxProfileCountry")) $("dxProfileCountry").textContent = (DX_COUNTRY_FLAGS[getDXCountry().code] || "🌐") + " " + getDXCountry().code;
   const saveProfileButton = $("dxSaveProfile");
   if (saveProfileButton && !saveProfileButton.dataset.bound) {
     saveProfileButton.addEventListener("click", async () => {
@@ -763,7 +765,7 @@ function updateDXHeaderAuth() {
     countrySelect.setAttribute("aria-label", "Pilih negara");
     countrySelect.title = "Ubah negara";
     countrySelect.style.cssText = "min-height:38px;width:82px;max-width:82px;padding:0 6px;border:1px solid rgba(81,229,255,.45);border-radius:10px;background:#101b32;color:#eaf5ff;font:700 12px Inter,sans-serif";
-    const countryFlags = { ID:"🇮🇩", MY:"🇲🇾", SG:"🇸🇬", US:"🇺🇸", JP:"🇯🇵", TH:"🇹🇭", PH:"🇵🇭", AU:"🇦🇺", GB:"🇬🇧", DE:"🇩🇪", FR:"🇫🇷", IN:"🇮🇳", KR:"🇰🇷", BR:"🇧🇷", CA:"🇨🇦", CN:"🇨🇳" };
+    const countryFlags = DX_COUNTRY_FLAGS;
     Object.entries(DX_COUNTRIES).forEach(([code]) => {
       const option = document.createElement("option");
       option.value = code;
