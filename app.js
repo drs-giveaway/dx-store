@@ -862,7 +862,7 @@ async function fetchDXPublicRows(table) {
   if (dxSupabase) {
     try {
       const { data, error } = await dxSupabase.from(table).select("*").eq("status", "active").order("created_at", { ascending: false });
-      if (!error && Array.isArray(data)) return data;
+      if (!error && Array.isArray(data) && data.length > 0) return data;
       sdkError = error;
     } catch (error) { sdkError = error; }
   }
