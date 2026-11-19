@@ -946,7 +946,7 @@ function selectItem(type, id) {
   dxSupabase.from(table).select("*").eq("id", id).maybeSingle()
     .then(({ data, error }) => {
       if (error || !data) {
-        alert("Data tidak ditemukan.");
+        dxAlert("Data tidak ditemukan.");
         return;
       }
 
@@ -1298,7 +1298,7 @@ async function loadDXAdminTickets(){
 async function updateDXAdminTicket(id){
  if(!currentUser||!(await checkDXAdmin()))return;
  const patch={admin_reply:$("dxReply-"+id)?.value.trim()||null,status:$("dxTicketStatus-"+id)?.value,updated_at:new Date().toISOString()};
- const {error}=await dxSupabase.from("support_tickets").update(patch).eq("id",id);if(error){alert(getDXError(error));return;}await loadDXAdminTickets();
+ const {error}=await dxSupabase.from("support_tickets").update(patch).eq("id",id);if(error){dxAlert(getDXError(error));return;}await loadDXAdminTickets();
 }
 async function loadDXStoreSettings(){
  if(!currentUser||!(await checkDXAdmin()))return;
@@ -1789,7 +1789,7 @@ async function loadDXPaymentOrders() {
         <p>Dibuat: ${new Date(order.created_at).toLocaleString("id-ID")}</p>
         ${order.proof_url ? `<p><a href="${safeText(order.proof_url)}" target="_blank" rel="noopener">Lihat bukti pembayaran</a></p>` : "<p>Belum ada bukti pembayaran.</p>"}
         ${order.status === "review" ? `
-          <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="paid">Setujui — sudah cek dana masuk</button>
+          <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="paid">Verifikasi Pembayaran</button>
           <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Tolak bukti</button>
         ` : order.status === "pending" ? `
           <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Batalkan pesanan / lepaskan barang</button>
@@ -1799,12 +1799,58 @@ async function loadDXPaymentOrders() {
   } catch (error) { container.textContent = getDXError(error); }
 }
 
+
+/* DIALOG DX STORE — satu gaya untuk seluruh konfirmasi dan pesan */
+function dxDialog(message, options = {}) {
+  return new Promise(resolve => {
+    const old = document.getElementById("dxUnifiedDialog");
+    if (old) old.remove();
+    const isConfirm = options.confirm === true;
+    const overlay = document.createElement("div");
+    overlay.id = "dxUnifiedDialog";
+    overlay.setAttribute("role", "presentation");
+    overlay.style.cssText = "position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:20px;background:rgba(3,8,22,.78);backdrop-filter:blur(8px);";
+    const panel = document.createElement("section");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "dxUnifiedDialogTitle");
+    panel.style.cssText = "width:min(100%,420px);padding:24px;border:1px solid #31527e;border-radius:20px;background:linear-gradient(145deg,#142746,#0b1428);color:#f5f8ff;box-shadow:0 24px 80px rgba(0,0,0,.48);";
+    const title = document.createElement("h3");
+    title.id = "dxUnifiedDialogTitle";
+    title.textContent = options.title || (isConfirm ? "Konfirmasi DX STORE" : "Informasi DX STORE");
+    title.style.cssText = "margin:0 0 12px;color:#7dd3fc;font-size:19px;";
+    const body = document.createElement("p");
+    body.textContent = String(message ?? "");
+    body.style.cssText = "margin:0 0 22px;line-height:1.6;color:#dbe7fa;white-space:pre-wrap;overflow-wrap:anywhere;";
+    const actions = document.createElement("div");
+    actions.style.cssText = "display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;";
+    const finish = value => { overlay.remove(); resolve(value); };
+    if (isConfirm) {
+      const cancel = document.createElement("button");
+      cancel.type = "button"; cancel.textContent = options.cancelText || "Batal";
+      cancel.style.cssText = "padding:11px 17px;border:1px solid #496080;border-radius:11px;background:#172943;color:#e5efff;font-weight:700;";
+      cancel.addEventListener("click", () => finish(false));
+      actions.appendChild(cancel);
+    }
+    const ok = document.createElement("button");
+    ok.type = "button"; ok.textContent = options.okText || (isConfirm ? "Lanjutkan" : "Mengerti");
+    ok.style.cssText = "padding:11px 18px;border:0;border-radius:11px;background:linear-gradient(100deg,#168bd1,#6558dc);color:white;font-weight:800;";
+    ok.addEventListener("click", () => finish(true));
+    actions.appendChild(ok);
+    overlay.addEventListener("click", event => { if (event.target === overlay) finish(false); });
+    panel.append(title, body, actions); overlay.appendChild(panel); document.body.appendChild(overlay);
+    ok.focus();
+  });
+}
+function dxAlert(message, title) { return dxDialog(message, { title }); }
+function dxConfirm(message, title, okText) { return dxDialog(message, { confirm: true, title, okText }); }
+
 async function reviewDXPayment(orderId, status) {
-  if (!currentUser || !(await checkDXAdmin())) { alert("Akses admin diperlukan."); return; }
+  if (!currentUser || !(await checkDXAdmin())) { dxAlert("Akses admin diperlukan."); return; }
   const message = status === "paid"
     ? "Pastikan dana benar-benar sudah masuk ke DANA Bisnis sebelum menyetujui. Lanjutkan?"
     : "Tolak bukti pembayaran ini?";
-  if (!confirm(message)) return;
+  if (!(await dxConfirm(message, "Verifikasi pembayaran", status === "paid" ? "Ya, verifikasi" : "Ya, tolak"))) return;
   try {
     const session = (await dxSupabase.auth.getSession()).data.session;
     const response = await fetch(new URL("api/admin/orders/" + encodeURIComponent(orderId), DX_CONFIG.paymentApiUrl + "/"), {
@@ -1815,7 +1861,7 @@ async function reviewDXPayment(orderId, status) {
     const result = await response.json();
     if (!response.ok) throw new Error(result.message || "Status pesanan gagal diperbarui.");
     await loadDXPaymentOrders();
-  } catch (error) { alert(getDXError(error)); }
+  } catch (error) { dxAlert(getDXError(error)); }
 }
 
 /* SIMPAN DATA */
@@ -1939,7 +1985,7 @@ async function saveDXAdminItem(event) {
 
 async function reviewDXListing(table, id, status) {
   if (!currentUser || !(await checkDXAdmin())) {
-    alert("Akses ditolak. Khusus administrator.");
+    dxAlert("Akses ditolak. Khusus administrator.");
     return;
   }
 
@@ -1948,7 +1994,7 @@ async function reviewDXListing(table, id, status) {
 
   const label = status === "active" ? "menyetujui dan menerbitkan" : "menolak";
   const itemLabel = table === "products" ? "produk digital" : "akun game";
-  if (!confirm("Yakin ingin " + label + " " + itemLabel + " ini?")) return;
+  if (!(await dxConfirm("Yakin ingin " + label + " " + itemLabel + " ini?", "Konfirmasi listing", "Ya, lanjutkan"))) return;
 
   const { error } = await dxSupabase
     .from(table)
@@ -1956,7 +2002,7 @@ async function reviewDXListing(table, id, status) {
     .eq("id", id);
 
   if (error) {
-    alert("Gagal memverifikasi: " + getDXError(error));
+    dxAlert("Gagal memverifikasi: " + getDXError(error));
     return;
   }
 
@@ -1968,13 +2014,13 @@ async function reviewDXListing(table, id, status) {
 }
 
 async function setDXSaleStatus(table, id, status) {
-  if (!currentUser || !(await checkDXAdmin())) { alert("Akses admin diperlukan."); return; }
+  if (!currentUser || !(await checkDXAdmin())) { dxAlert("Akses admin diperlukan."); return; }
   if (!["products", "account_listings"].includes(table) || status !== "available") return;
-  if (!confirm("Aktifkan kembali barang ini agar bisa dipesan?")) return;
+  if (!(await dxConfirm("Aktifkan kembali barang ini agar bisa dipesan?", "Konfirmasi stok", "Aktifkan"))) return;
   const { error } = await dxSupabase.from(table)
     .update({ sale_status: "available", updated_at: new Date().toISOString() })
     .eq("id", id);
-  if (error) { alert("Gagal mengubah status: " + getDXError(error)); return; }
+  if (error) { dxAlert("Gagal mengubah status: " + getDXError(error)); return; }
   await loadDXAdminList();
   await loadDXStore();
 }
@@ -1983,7 +2029,7 @@ async function setDXSaleStatus(table, id, status) {
 
 async function editDXAdminItem(id) {
   if (!currentUser || !(await checkDXAdmin())) {
-    alert("Akses ditolak.");
+    dxAlert("Akses ditolak.");
     return;
   }
 
@@ -1994,7 +2040,7 @@ async function editDXAdminItem(id) {
     .maybeSingle();
 
   if (error || !data) {
-    alert("Data tidak ditemukan.");
+    dxAlert("Data tidak ditemukan.");
     return;
   }
 
@@ -2029,11 +2075,11 @@ async function editDXAdminItem(id) {
 
 async function deleteDXAdminItem(id) {
   if (!currentUser || !(await checkDXAdmin())) {
-    alert("Akses ditolak.");
+    dxAlert("Akses ditolak.");
     return;
   }
 
-  if (!confirm("Yakin ingin menghapus data ini?")) return;
+  if (!(await dxConfirm("Yakin ingin menghapus data ini?", "Konfirmasi penghapusan", "Hapus"))) return;
 
   const { error } = await dxSupabase
     .from(dxAdminType)
@@ -2041,7 +2087,7 @@ async function deleteDXAdminItem(id) {
     .eq("id", id);
 
   if (error) {
-    alert("Gagal menghapus: " + getDXError(error));
+    dxAlert("Gagal menghapus: " + getDXError(error));
     return;
   }
 
@@ -2293,7 +2339,7 @@ async function handleDXLogout() {
       logoutButton.disabled = false;
       logoutButton.textContent = "Keluar";
     }
-    alert("Gagal keluar: " + getDXError(error));
+    dxAlert("Gagal keluar: " + getDXError(error));
   }
 }
 
