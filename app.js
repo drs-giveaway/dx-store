@@ -858,15 +858,32 @@ function renderDXPurchaseToast() {
 
 async function loadProducts() {
   const grid = $("productGrid");
-  if (!grid || !dxSupabase) return;
+  if (!grid) return;
 
   grid.innerHTML = "<p>Memuat produk...</p>";
 
-  const { data, error } = await dxSupabase
-    .from("products")
-    .select("*")
-    .eq("status", "active")
-    .order("created_at", { ascending: false });
+  let data = null;
+  let error = null;
+  if (dxSupabase) {
+    ({ data, error } = await dxSupabase
+      .from("products")
+      .select("*")
+      .eq("status", "active")
+      .order("created_at", { ascending: false }));
+  } else {
+    try {
+      const response = await fetch(`${DX_CONFIG.supabaseUrl}/rest/v1/products?select=*&status=eq.active&order=created_at.desc`, {
+        headers: {
+          apikey: DX_CONFIG.supabaseKey,
+          Authorization: `Bearer ${DX_CONFIG.supabaseKey}`
+        }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      data = await response.json();
+    } catch (fetchError) {
+      error = fetchError;
+    }
+  }
 
   if (error) {
     console.error("Gagal memuat produk:", error);
@@ -907,15 +924,32 @@ async function loadProducts() {
 
 async function loadAccountListings() {
   const grid = $("accountGrid");
-  if (!grid || !dxSupabase) return;
+  if (!grid) return;
 
   grid.innerHTML = "<p>Memuat akun game...</p>";
 
-  const { data, error } = await dxSupabase
-    .from("account_listings")
-    .select("*")
-    .eq("status", "active")
-    .order("created_at", { ascending: false });
+  let data = null;
+  let error = null;
+  if (dxSupabase) {
+    ({ data, error } = await dxSupabase
+      .from("account_listings")
+      .select("*")
+      .eq("status", "active")
+      .order("created_at", { ascending: false }));
+  } else {
+    try {
+      const response = await fetch(`${DX_CONFIG.supabaseUrl}/rest/v1/account_listings?select=*&status=eq.active&order=created_at.desc`, {
+        headers: {
+          apikey: DX_CONFIG.supabaseKey,
+          Authorization: `Bearer ${DX_CONFIG.supabaseKey}`
+        }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      data = await response.json();
+    } catch (fetchError) {
+      error = fetchError;
+    }
+  }
 
   if (error) {
     console.error("Gagal memuat akun:", error);
@@ -2482,7 +2516,9 @@ async function initializeDXStore() {
   dxAuthReady = true;
 
   if (!dxSupabase) {
-    console.error("Supabase tidak tersedia.");
+    console.error("Supabase JS SDK tidak tersedia; katalog memakai REST API publik.");
+    loadProducts();
+    loadAccountListings();
     return;
   }
 
