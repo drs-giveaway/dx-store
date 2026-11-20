@@ -1307,6 +1307,48 @@ async function loadDXStore() {
 /* OBROLAN PENJUAL & PEMBELI */
 window.dxActiveChatId = null;
 window.dxChatChannel = null;
+
+async function loadDXAdminChatConversations(){
+ const box=$("dxAdminChatList");if(!box||!currentUser||!dxSupabase)return;
+ const allowed=await checkDXAdmin();if(!allowed){box.textContent="Akses khusus admin.";return;}
+ box.innerHTML='<h3>Obrolan Pengguna</h3><button type="button" id="dxAdminChatReload">Muat ulang</button><div id="dxAdminChatRows">Memuat percakapan...</div><div id="dxAdminChatThread" hidden style="margin-top:14px;border-top:1px solid #385477;padding-top:14px"><strong id="dxAdminChatTitle">Percakapan</strong><div id="dxAdminChatMessages" role="log" aria-live="polite" style="display:grid;gap:8px;max-height:360px;overflow:auto;padding:12px 0"></div><form id="dxAdminChatForm" style="display:grid;gap:8px"><label for="dxAdminChatComposer">Balas sebagai admin</label><textarea id="dxAdminChatComposer" rows="2" maxlength="2000" required></textarea><button type="submit" id="dxAdminChatSend">Kirim Balasan</button><p id="dxAdminChatFeedback" role="status"></p></form></div>';
+ $("dxAdminChatReload").addEventListener("click",loadDXAdminChatConversations);
+ const {data,error}=await dxSupabase.from("dx_conversations").select("id,buyer_id,seller_id,listing_title,listing_type,created_at,updated_at").order("created_at",{ascending:false}).limit(100);
+ const rows=$("dxAdminChatRows");
+ if(error){rows.textContent="Gagal memuat obrolan: "+getDXError(error);return;}
+ if(!data?.length){rows.textContent="Belum ada percakapan.";return;}
+ rows.innerHTML=data.map(c=>'<button type="button" data-dx-admin-chat="'+safeText(c.id)+'" style="width:100%;display:block;text-align:left;padding:12px;margin:7px 0;border:1px solid #385477;border-radius:10px;background:#0b1426;color:white"><b>'+safeText(c.listing_title)+'</b><small style="display:block;color:#aab8d0;margin-top:4px">Pembeli: '+safeText(c.buyer_id.slice(0,8))+' · Penjual: '+safeText(c.seller_id.slice(0,8))+' · '+(c.listing_type==="account"?"Akun game":"Produk digital")+'</small></button>').join("");
+ rows.querySelectorAll("[data-dx-admin-chat]").forEach(b=>b.addEventListener("click",()=>openDXAdminChatThread(b.dataset.dxAdminChat)));
+}
+async function openDXAdminChatThread(id){
+ if(!await checkDXAdmin())return;
+ const {data:conv,error}=await dxSupabase.from("dx_conversations").select("id,listing_title,buyer_id,seller_id").eq("id",id).maybeSingle();
+ if(error||!conv){dxAlert("Percakapan tidak dapat diakses.");return;}
+ window.dxAdminActiveChatId=id;
+ $("dxAdminChatThread").hidden=false;
+ $("dxAdminChatTitle").textContent=conv.listing_title+" · Admin";
+ await loadDXAdminChatMessages(id);
+ const form=$("dxAdminChatForm");
+ if(!form.dataset.bound){form.addEventListener("submit",sendDXAdminChatMessage);form.dataset.bound="1";}
+}
+async function loadDXAdminChatMessages(id){
+ const host=$("dxAdminChatMessages");if(!host)return;
+ const {data,error}=await dxSupabase.from("dx_messages").select("id,sender_id,body,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(300);
+ if(error){host.textContent="Pesan gagal dimuat: "+getDXError(error);return;}
+ if(!data?.length){host.textContent="Belum ada pesan.";return;}
+ host.innerHTML=data.map(m=>'<div style="justify-self:'+(m.sender_id===currentUser.id?"end":"start")+';max-width:88%;padding:10px 12px;border-radius:12px;background:'+(m.sender_id===currentUser.id?"#164e86":"#182844")+';color:#fff"><p style="white-space:pre-wrap;overflow-wrap:anywhere">'+safeText(m.body)+'</p><small>'+ (m.sender_id===currentUser.id?"Admin":"Pengguna")+' · '+new Date(m.created_at).toLocaleString(getDXCountry().locale||"id-ID")+'</small></div>').join("");
+ host.scrollTop=host.scrollHeight;
+}
+async function sendDXAdminChatMessage(event){
+ event.preventDefault();if(!window.dxAdminActiveChatId||!await checkDXAdmin())return;
+ const input=$("dxAdminChatComposer"),button=$("dxAdminChatSend"),feedback=$("dxAdminChatFeedback"),body=input.value.trim();
+ if(!body)return;button.disabled=true;feedback.textContent="Mengirim balasan...";
+ const {error}=await dxSupabase.from("dx_messages").insert({conversation_id:window.dxAdminActiveChatId,sender_id:currentUser.id,body});
+ button.disabled=false;
+ if(error){feedback.textContent="Balasan gagal dikirim: "+getDXError(error);return;}
+ input.value="";feedback.textContent="Balasan terkirim.";await loadDXAdminChatMessages(window.dxAdminActiveChatId);
+}
+
 async function loadDXChatConversations(){
  const host=$("dxChatConversationList"); if(!host||!currentUser||!dxSupabase)return;
  host.textContent="Memuat percakapan...";
@@ -1571,10 +1613,12 @@ function createDXAdminPanel() {
       <button type="button" id="dxAdminVerifyAccounts">Verifikasi Akun Game</button>
       <button type="button" id="dxAdminProducts">Kelola Produk</button>
       <button type="button" id="dxAdminAccounts">Kelola Akun Game</button>
+      <button type="button" id="dxAdminChats">Obrolan Pengguna</button>
     </div>
 
     <section id="dxAdminSellerApplications" style="display:none;margin:12px 0"></section>
     <section id="dxAdminVerificationList" style="display:none;margin:12px 0"></section>
+    <section id="dxAdminChatList" style="display:none;margin:12px 0"></section>
     <form id="dxAdminForm">
       <input type="hidden" id="dxEditId">
 
@@ -1735,8 +1779,9 @@ function createDXAdminPanel() {
     document.head.appendChild(style);
   }
 
-  const hideAdminListingAreas=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminVerificationList").style.display="none"; $("dxAdminForm").style.display="none"; $("dxAdminList").style.display="none"; };
+  const hideAdminListingAreas=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminVerificationList").style.display="none"; $("dxAdminChatList").style.display="none"; $("dxAdminForm").style.display="none"; $("dxAdminList").style.display="none"; };
   $("dxAdminSellers")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminSellerApplications").style.display="block"; await loadDXAdminSellerApplications(); });
+  $("dxAdminChats")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminChatList").style.display="block"; await loadDXAdminChatConversations(); });
   $("dxAdminVerifyProducts")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminVerificationList").style.display="block"; await loadDXAdminVerificationList("products"); });
   $("dxAdminVerifyAccounts")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminVerificationList").style.display="block"; await loadDXAdminVerificationList("account_listings"); });
   const showListingAdmin=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminVerificationList").style.display="none"; $("dxAdminForm").style.display="block"; $("dxAdminList").style.display="block"; };
