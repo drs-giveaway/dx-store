@@ -1730,6 +1730,37 @@ function createDXAdminPanel() {
     style.id = "dxAdminStyles";
 
     style.textContent = `
+      #dxAdminPanel { width:100%; overflow:hidden; }
+      #dxAdminPanel > h2 { font-size:clamp(20px,3vw,27px); letter-spacing:-.5px; }
+      #dxAdminPanel > p { color:#9aa9c4; line-height:1.6; }
+      #dxAdminPanel > div:first-of-type { display:grid !important; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:9px !important; }
+      #dxAdminPanel > div:first-of-type button { min-height:48px; margin:0; border:1px solid rgba(81,229,255,.18); background:linear-gradient(145deg,#172b4d,#101a31); color:#dff7ff; font-size:12px; font-weight:700; }
+      #dxAdminPanel > div:first-of-type button:hover { border-color:#51e5ff; background:#18365a; }
+      #dxAdminVerificationList { min-width:0; }
+      .dx-verify-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:4px 0 16px; }
+      .dx-verify-heading h3 { margin:0 0 5px; color:#eaf6ff; font-size:19px; }
+      .dx-verify-heading p { color:#9aa9c4; font-size:12px; }
+      .dx-verify-count { flex:none; padding:7px 11px; border:1px solid rgba(81,229,255,.3); border-radius:999px; background:rgba(39,143,255,.12); color:#7deaff; font-size:12px; font-weight:800; }
+      .dx-verify-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr)); gap:12px; }
+      .dx-verify-card { display:grid; grid-template-columns:104px minmax(0,1fr); gap:13px; min-width:0; padding:13px; border:1px solid #263f62; border-radius:15px; background:linear-gradient(145deg,#111f38,#0b1426); box-shadow:0 8px 24px rgba(0,0,0,.16); }
+      .dx-verify-image { width:104px; height:104px; object-fit:cover; border-radius:11px; background:#172844; }
+      .dx-verify-no-image { display:grid; place-items:center; padding:8px; color:#91a4c2; font-size:11px; text-align:center; }
+      .dx-verify-content { min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
+      .dx-verify-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; width:100%; }
+      .dx-verify-card-top strong { overflow-wrap:anywhere; color:#f3f8ff; }
+      .dx-verify-pending { flex:none; padding:4px 7px; border-radius:999px; background:rgba(245,158,11,.13); color:#fbbf24; font-size:10px; font-weight:800; }
+      .dx-verify-price { color:#67e8f9; font-size:15px; }
+      .dx-verify-content p { margin:0; color:#b7c6dc; font-size:12px; line-height:1.5; }
+      .dx-verify-description { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
+      .dx-verify-content small { color:#8294b2; font-size:10px; }
+      .dx-verify-actions { display:flex; flex-wrap:wrap; gap:7px; width:100%; margin-top:auto; padding-top:5px; }
+      #dxAdminPanel .dx-verify-actions button { margin:0; min-height:38px; padding:8px 12px; font-size:11px; font-weight:800; }
+      #dxAdminPanel .dx-verify-approve { background:linear-gradient(110deg,#087fbd,#2563eb); }
+      #dxAdminPanel .dx-verify-reject { background:#3a2030; border:1px solid #85465a; color:#ffb7c6; }
+      .dx-verify-empty { padding:22px 16px; border:1px dashed #385477; border-radius:14px; background:rgba(11,20,38,.65); text-align:center; }
+      .dx-verify-empty strong { color:#eaf6ff; }
+      .dx-verify-empty p { margin-top:7px; color:#9aa9c4; font-size:12px; line-height:1.6; }
+      @media(max-width:560px) { #dxAdminPanel { padding:15px !important; } .dx-verify-card { grid-template-columns:76px minmax(0,1fr); gap:10px; padding:10px; } .dx-verify-image { width:76px; height:76px; } .dx-verify-card-top { flex-direction:column; gap:5px; } #dxAdminPanel .dx-verify-actions button { flex:1; } }
       #dxAdminPanel input,
       #dxAdminPanel textarea {
         display:block;
@@ -1969,18 +2000,23 @@ async function loadDXAdminVerificationList(table) {
   box.dataset.table = table;
   box.innerHTML = '<h3 style="margin:0 0 10px">Verifikasi ' + (isProduct ? "Produk Digital" : "Akun Game") + '</h3><p>Memuat pengajuan yang menunggu pemeriksaan...</p>';
   const { data, error } = await dxSupabase.from(table).select("*").eq("status", "pending").order("created_at", { ascending: false });
-  if (error) { box.innerHTML = '<p>Daftar verifikasi gagal dimuat: ' + safeText(getDXError(error)) + '</p>'; return; }
-  if (!data?.length) { box.innerHTML = '<h3>Verifikasi ' + (isProduct ? "Produk Digital" : "Akun Game") + '</h3><p>Tidak ada ' + label + ' yang menunggu verifikasi.</p>'; return; }
-  box.innerHTML = '<h3>Verifikasi ' + (isProduct ? "Produk Digital" : "Akun Game") + '</h3>' + data.map(item => {
+  if (error) { box.innerHTML = '<div class="dx-verify-empty"><strong>Daftar verifikasi gagal dimuat</strong><p>' + safeText(getDXError(error)) + '</p></div>'; return; }
+  // Listing milik admin sendiri tidak masuk antrean pemeriksaan.
+  const reviewQueue = (data || []).filter(item => item.seller_id !== currentUser.id);
+  const ownPending = (data || []).filter(item => item.seller_id === currentUser.id).length;
+  if (!reviewQueue.length) {
+    box.innerHTML = '<header class="dx-verify-heading"><div><h3>Verifikasi ' + (isProduct ? "Produk Digital" : "Akun Game") + '</h3><p>Antrean pemeriksaan dari penjual lain</p></div><span class="dx-verify-count">0</span></header><div class="dx-verify-empty"><strong>Tidak ada pengajuan untuk diperiksa</strong><p>' + (ownPending ? "Ada " + ownPending + " listing milik akun admin. Listing tersebut tidak perlu diverifikasi oleh akun sendiri." : "Pengajuan penjual akan muncul di sini setelah dikirim.") + '</p></div>'; return;
+  }
+  box.innerHTML = '<header class="dx-verify-heading"><div><h3>Verifikasi ' + (isProduct ? "Produk Digital" : "Akun Game") + '</h3><p>Periksa detail sebelum menerbitkan listing</p></div><span class="dx-verify-count">' + reviewQueue.length + ' menunggu</span></header><div class="dx-verify-grid">' + reviewQueue.map(item => {
     const title = isProduct ? item.name : item.title;
     const imageUrl = safeImageUrl(item.image_url);
-    return '<article style="display:flex;gap:12px;padding:12px;margin:10px 0;border:1px solid #334b70;border-radius:12px;background:#0b1426">' +
-      (imageUrl ? '<img src="' + safeText(imageUrl) + '" alt="" loading="lazy" style="width:88px;height:88px;object-fit:cover;border-radius:9px;flex:0 0 88px">' : '') +
-      '<div style="min-width:0;flex:1"><strong>' + safeText(title || "Tanpa judul") + '</strong><p style="margin:5px 0">' + formatPrice(item.price) + '</p>' +
-      (isProduct ? '' : '<p style="margin:4px 0">Game: ' + safeText(item.game || "-") + '</p>') +
-      '<p style="margin:4px 0;white-space:pre-wrap">' + safeText(item.description || "Tidak ada deskripsi") + '</p>' +
-      '<small>Status: Menunggu verifikasi</small><div style="margin-top:9px"><button type="button" onclick="reviewDXListing(\'' + table + '\',\'' + safeText(item.id) + '\',\'active\')">Setujui & Terbitkan</button><button type="button" onclick="reviewDXListing(\'' + table + '\',\'' + safeText(item.id) + '\',\'rejected\')">Tolak</button></div></div></article>';
-  }).join("");
+    return '<article class="dx-verify-card">' +
+      (imageUrl ? '<img class="dx-verify-image" src="' + safeText(imageUrl) + '" alt="Foto listing" loading="lazy">' : '<div class="dx-verify-image dx-verify-no-image">Foto belum tersedia</div>') +
+      '<div class="dx-verify-content"><div class="dx-verify-card-top"><strong>' + safeText(title || "Tanpa judul") + '</strong><span class="dx-verify-pending">Menunggu</span></div><strong class="dx-verify-price">' + formatPrice(item.price) + '</strong>' +
+      (isProduct ? "" : '<p><b>Game:</b> ' + safeText(item.game || "-") + '</p>') +
+      '<p class="dx-verify-description">' + safeText(item.description || "Tidak ada deskripsi") + '</p>' +
+      '<small>Diajukan ' + (item.created_at ? new Date(item.created_at).toLocaleString(getDXCountry().locale || "id-ID") : "") + '</small><div class="dx-verify-actions"><button class="dx-verify-approve" type="button" onclick="reviewDXListing(\'' + table + '\',\'' + safeText(item.id) + '\',\'active\')">Setujui &amp; Terbitkan</button><button class="dx-verify-reject" type="button" onclick="reviewDXListing(\'' + table + '\',\'' + safeText(item.id) + '\',\'rejected\')">Tolak</button></div></div></article>';
+  }).join("") + '</div>';
 }
 
 async function loadDXAdminList() {
