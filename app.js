@@ -2045,10 +2045,10 @@ async function loadDXAdminList() {
 
   container.innerHTML = data.map((item) => {
     const title = dxAdminType === "products" ? item.name : item.title;
-    const moderation = item.status || (dxAdminType === "products" ? "active" : "pending");
+    const moderation = item.status === "pending" && item.seller_id === currentUser?.id ? "admin_owned_pending" : (item.status || (dxAdminType === "products" ? "active" : "pending"));
     const sale = item.sale_status || "available";
     const saleLabel = sale === "sold_out" ? "Sold Out" : sale === "pending" ? "Dipesan" : sale === "available" ? "Tersedia" : sale;
-    const moderationLabel = moderation === "active" ? "Aktif" : moderation === "pending" ? "Menunggu" : moderation === "rejected" ? "Ditolak" : moderation;
+    const moderationLabel = moderation === "active" ? "Aktif" : moderation === "pending" ? "Menunggu" : moderation === "rejected" ? "Ditolak" : moderation === "admin_owned_pending" ? "Listing admin · tidak perlu verifikasi" : moderation;
 
     return `
       <article class="dx-admin-data-card" style="padding:12px;margin:10px 0;border:1px solid rgba(148,163,184,.22);border-radius:12px">
