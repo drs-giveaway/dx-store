@@ -1776,38 +1776,25 @@ async function loadDXAdminList() {
   }
 
   container.innerHTML = data.map((item) => {
-    const title = dxAdminType === "products"
-      ? item.name
-      : item.title;
+    const title = dxAdminType === "products" ? item.name : item.title;
+    const moderation = item.status || (dxAdminType === "products" ? "active" : "pending");
+    const sale = item.sale_status || "available";
+    const saleLabel = sale === "sold_out" ? "Sold Out" : sale === "pending" ? "Dipesan" : sale === "available" ? "Tersedia" : sale;
+    const moderationLabel = moderation === "active" ? "Aktif" : moderation === "pending" ? "Menunggu" : moderation === "rejected" ? "Ditolak" : moderation;
 
     return `
-      <article>
-        <h4>${safeText(title)}</h4>
-
-        ${dxAdminType === "account_listings"
-          ? `<p>Game: ${safeText(item.game)}</p>`
-          : ""}
-
-        <p>Harga: ${formatPrice(item.price)}</p>
-        ${dxAdminType === "products" ? `<p>Garansi DX STORE: <strong>${Number(item.warranty_days ?? 7) > 0 ? Number(item.warranty_days ?? 7) + " hari" : "Tidak tersedia"}</strong></p>` : ""}
-        <p>Status moderasi: <strong>${safeText(item.status || (dxAdminType === "products" ? "active" : "pending"))}</strong></p>
-        <p>Status penjualan: <strong>${safeText(item.sale_status || "available")}</strong></p>
-        ${item.sale_status && item.sale_status !== "available" ? '<button type="button" onclick="setDXSaleStatus(\'' + dxAdminType + '\', \'' + safeText(item.id) + '\', \'available\')">Aktifkan Kembali / Tersedia</button>' : ""}
-
-        ${item.status === "pending"
-          ? `<button type="button" onclick="reviewDXListing('${dxAdminType}', '${safeText(item.id)}', 'active')">Setujui / Terbitkan</button>
-             <button type="button" onclick="reviewDXListing('${dxAdminType}', '${safeText(item.id)}', 'rejected')">Tolak</button>`
-          : ""}
-
-        <button
-          type="button"
-          onclick="editDXAdminItem('${safeText(item.id)}')"
-        >Edit</button>
-
-        <button
-          type="button"
-          onclick="deleteDXAdminItem('${safeText(item.id)}')"
-        >Hapus</button>
+      <article class="dx-admin-data-card" style="padding:12px;margin:10px 0;border:1px solid rgba(148,163,184,.22);border-radius:12px">
+        <strong>${safeText(title)}</strong>
+        <p style="margin:5px 0"> ${formatPrice(item.price)} </p>
+        ${dxAdminType === "account_listings" ? `<p style="margin:3px 0">Game: ${safeText(item.game)}</p>` : ""}
+        ${dxAdminType === "products" ? `<p style="margin:3px 0">Garansi: ${Number(item.warranty_days ?? 7) > 0 ? Number(item.warranty_days ?? 7) + " hari" : "Tidak tersedia"}</p>` : ""}
+        <small style="display:block;margin:5px 0;color:#94a3b8">Moderasi: ${safeText(moderationLabel)} · Penjualan: ${safeText(saleLabel)}</small>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px">
+          ${sale !== "available" ? `<button type="button" onclick="setDXSaleStatus('${dxAdminType}', '${safeText(item.id)}', 'available')">Aktifkan</button>` : ""}
+          ${moderation === "pending" ? `<button type="button" onclick="reviewDXListing('${dxAdminType}', '${safeText(item.id)}', 'active')">Setujui</button><button type="button" onclick="reviewDXListing('${dxAdminType}', '${safeText(item.id)}', 'rejected')">Tolak</button>` : ""}
+          <button type="button" onclick="editDXAdminItem('${safeText(item.id)}')">Edit</button>
+          <button type="button" onclick="deleteDXAdminItem('${safeText(item.id)}')">Hapus</button>
+        </div>
       </article>
     `;
   }).join("");
