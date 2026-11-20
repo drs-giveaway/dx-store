@@ -1491,18 +1491,15 @@ function createDXAdminPanel() {
     <p>Kelola verifikasi penjual, produk digital, dan akun game.</p>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin:20px 0;">
-      <button type="button" id="dxAdminSellers">Verifikasi Penjual</button>
-      <button type="button" id="dxAdminProducts">
-        Produk Digital
-      </button>
-
-      <button type="button" id="dxAdminAccounts">
-        Akun Game
-      </button>
-
+      <button type="button" id="dxAdminSellers">Pengajuan Penjual</button>
+      <button type="button" id="dxAdminVerifyProducts">Verifikasi Produk</button>
+      <button type="button" id="dxAdminVerifyAccounts">Verifikasi Akun Game</button>
+      <button type="button" id="dxAdminProducts">Kelola Produk</button>
+      <button type="button" id="dxAdminAccounts">Kelola Akun Game</button>
     </div>
 
     <section id="dxAdminSellerApplications" style="display:none;margin:12px 0"></section>
+    <section id="dxAdminVerificationList" style="display:none;margin:12px 0"></section>
     <form id="dxAdminForm">
       <input type="hidden" id="dxEditId">
 
@@ -1663,8 +1660,11 @@ function createDXAdminPanel() {
     document.head.appendChild(style);
   }
 
-  $("dxAdminSellers")?.addEventListener("click", async () => { $("dxAdminSellerApplications").style.display="block"; $("dxAdminForm").style.display="none"; $("dxAdminList").style.display="none"; await loadDXAdminSellerApplications(); });
-  const showListingAdmin=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminForm").style.display="block"; $("dxAdminList").style.display="block"; };
+  const hideAdminListingAreas=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminVerificationList").style.display="none"; $("dxAdminForm").style.display="none"; $("dxAdminList").style.display="none"; };
+  $("dxAdminSellers")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminSellerApplications").style.display="block"; await loadDXAdminSellerApplications(); });
+  $("dxAdminVerifyProducts")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminVerificationList").style.display="block"; await loadDXAdminVerificationList("products"); });
+  $("dxAdminVerifyAccounts")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminVerificationList").style.display="block"; await loadDXAdminVerificationList("account_listings"); });
+  const showListingAdmin=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminVerificationList").style.display="none"; $("dxAdminForm").style.display="block"; $("dxAdminList").style.display="block"; };
   $("dxAdminProducts").addEventListener("click", () => {
     showListingAdmin();
     dxAdminType = "products";
@@ -1761,8 +1761,9 @@ function resetDXAdminForm() {
 /* VERIFIKASI PENJUAL */
 async function loadDXSellerApplicationState() {
  const area=$("dxSellerArea"),form=$("dxSellerApplicationForm"),state=$("dxSellerApplicationState"); if(!area||!form||!state)return;
- area.hidden=!currentUser;
- if(!currentUser){state.textContent="Masuk ke akun DX STORE untuk mengajukan diri sebagai penjual.";form.hidden=true;return;}
+ if (!currentUser) { area.hidden=true; form.hidden=true; return; }
+ if (await checkDXAdmin()) { area.hidden=true; form.hidden=true; return; }
+ area.hidden=false;
  form.hidden=true;state.textContent="Memeriksa status pengajuan...";
  const {data,error}=await dxSupabase.from("seller_applications").select("id,store_name,status,admin_note,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
  if(error){state.textContent="Status pengajuan gagal dimuat: "+getDXError(error);return;}
@@ -1794,6 +1795,28 @@ async function reviewDXSellerApplication(id,status){
 }
 
 /* DAFTAR DATA ADMIN */
+
+async function loadDXAdminVerificationList(table) {
+  const box = $("dxAdminVerificationList");
+  if (!box || !dxSupabase || !["products", "account_listings"].includes(table)) return;
+  const isProduct = table === "products";
+  const label = isProduct ? "produk digital" : "akun game";
+  box.dataset.table = table;
+  box.innerHTML = '<h3 style="margin:0 0 10px">Verifikasi ' + (isProduct ? "Produk Digital" : "Akun Game") + '</h3><p>Memuat pengajuan yang menunggu pemeriksaan...</p>';
+  const { data, error } = await dxSupabase.from(table).select("*").eq("status", "pending").order("created_at", { ascending: false });
+  if (error) { box.innerHTML = '<p>Daftar verifikasi gagal dimuat: ' + safeText(getDXError(error)) + '</p>'; return; }
+  if (!data?.length) { box.innerHTML = '<h3>Verifikasi ' + (isProduct ? "Produk Digital" : "Akun Game") + '</h3><p>Tidak ada ' + label + ' yang menunggu verifikasi.</p>'; return; }
+  box.innerHTML = '<h3>Verifikasi ' + (isProduct ? "Produk Digital" : "Akun Game") + '</h3>' + data.map(item => {
+    const title = isProduct ? item.name : item.title;
+    const imageUrl = safeImageUrl(item.image_url);
+    return '<article style="display:flex;gap:12px;padding:12px;margin:10px 0;border:1px solid #334b70;border-radius:12px;background:#0b1426">' +
+      (imageUrl ? '<img src="' + safeText(imageUrl) + '" alt="" loading="lazy" style="width:88px;height:88px;object-fit:cover;border-radius:9px;flex:0 0 88px">' : '') +
+      '<div style="min-width:0;flex:1"><strong>' + safeText(title || "Tanpa judul") + '</strong><p style="margin:5px 0">' + formatPrice(item.price) + '</p>' +
+      (isProduct ? '' : '<p style="margin:4px 0">Game: ' + safeText(item.game || "-") + '</p>') +
+      '<p style="margin:4px 0;white-space:pre-wrap">' + safeText(item.description || "Tidak ada deskripsi") + '</p>' +
+      '<small>Status: Menunggu verifikasi</small><div style="margin-top:9px"><button type="button" onclick="reviewDXListing(\'' + table + '\',\'' + safeText(item.id) + '\',\'active\')">Setujui & Terbitkan</button><button type="button" onclick="reviewDXListing(\'' + table + '\',\'' + safeText(item.id) + '\',\'rejected\')">Tolak</button></div></div></article>';
+  }).join("");
+}
 
 async function loadDXAdminList() {
   if (!dxSupabase) return;
@@ -2133,6 +2156,7 @@ async function reviewDXListing(table, id, status) {
     ? itemLabel + " berhasil disetujui dan diterbitkan."
     : "Pengajuan " + itemLabel + " ditolak.");
   await loadDXAdminList();
+  if ($("dxAdminVerificationList")?.style.display !== "none") await loadDXAdminVerificationList(table);
   await loadDXStore();
 }
 
