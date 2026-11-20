@@ -864,13 +864,24 @@ function renderDXPurchaseToast() {
 }
 
 
+function filterDXSoldOutListings(rows) {
+  const tenMinutes = 10 * 60 * 1000;
+  const now = Date.now();
+  return rows.filter(item => {
+    if (item.sale_status !== "sold_out") return true;
+    const soldOutAt = Date.parse(item.sold_out_at || "");
+    // If a legacy row has no timestamp, keep it visible rather than hiding it prematurely.
+    return !Number.isFinite(soldOutAt) || now - soldOutAt < tenMinutes;
+  });
+}
+
 async function fetchDXPublicRows(table) {
   if (!["products", "account_listings"].includes(table)) throw new Error("Tabel katalog tidak valid.");
   let sdkError = null;
   if (dxSupabase) {
     try {
       const { data, error } = await dxSupabase.from(table).select("*").eq("status", "active").order("created_at", { ascending: false });
-      if (!error && Array.isArray(data) && data.length > 0) return data;
+      if (!error && Array.isArray(data) && data.length > 0) return filterDXSoldOutListings(data);
       sdkError = error;
     } catch (error) { sdkError = error; }
   }
