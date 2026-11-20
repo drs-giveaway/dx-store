@@ -1423,7 +1423,7 @@ async function submitDXSupportTicket(event){
   if(!order){feedback.textContent="ID pesanan wajib diisi untuk klaim garansi.";return;}
   const {data:purchase,error:purchaseError}=await dxSupabase.from("orders").select("id,item_type,item_id,status,created_at").eq("id",order).eq("buyer_id",currentUser.id).maybeSingle();
   if(purchaseError||!purchase){feedback.textContent="Pesanan tidak ditemukan pada akun ini.";return;}
-  if(purchase.status!=="paid"||purchase.item_type!=="product"||!purchase.item_id){feedback.textContent="Garansi hanya untuk produk resmi DX STORE yang sudah dibayar.";return;}
+  if(!["paid","processing","delivered","completed"].includes(purchase.status)||purchase.item_type!=="product"||!purchase.item_id){feedback.textContent="Garansi hanya berlaku untuk produk resmi DX STORE dengan pembayaran terverifikasi.";return;}
   const {data:product,error:productError}=await dxSupabase.from("products").select("warranty_days").eq("id",purchase.item_id).maybeSingle();
   if(productError||!product||Number(product.warranty_days??7)<=0){feedback.textContent="Produk ini tidak memiliki garansi.";return;}
   const expiresAt=new Date(purchase.created_at).getTime()+Number(product.warranty_days??7)*86400000;
@@ -2376,7 +2376,7 @@ async function saveDXAdminItem(event) {
     } else {
       // Data yang dibuat admin tetap langsung aktif; listing pengguna dikirim melalui formulir penjual dan selalu pending.
       payload.seller_id = currentUser.id;
-      payload.status = isAccount ? "pending" : "active";
+      payload.status = "active";
 
       result = await dxSupabase
         .from(dxAdminType)
