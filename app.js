@@ -2107,7 +2107,9 @@ async function loadDXPaymentOrders() {
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.message || "Pesanan gagal dimuat.");
-    if (!result.orders?.length) { container.textContent = "Belum ada pesanan."; return; }
+    const orders = Array.isArray(result.orders) ? result.orders : [];
+    if (!orders.length) { container.innerHTML = '<div class="dx-order-empty">Belum ada pesanan.</div>'; return; }
+
     const statusLabels = {
       pending: "Menunggu pembayaran",
       review: "Perlu verifikasi",
@@ -2115,7 +2117,7 @@ async function loadDXPaymentOrders() {
       rejected: "Ditolak",
       cancelled: "Dibatalkan"
     };
-    container.innerHTML = result.orders.map(order => {
+    const renderOrder = order => {
       const shortId = String(order.order_id || "").slice(-8);
       const status = String(order.status || "").toLowerCase();
       const statusLabel = statusLabels[status] || status;
@@ -2147,7 +2149,34 @@ async function loadDXPaymentOrders() {
           ` : ""}
         </article>
       `;
-    }).join("");
+    };
+
+    const activeOrders = orders.filter(order => ["review", "pending"].includes(String(order.status || "").toLowerCase()));
+    const paidOrders = orders.filter(order => String(order.status || "").toLowerCase() === "paid");
+    const rejectedOrders = orders.filter(order => String(order.status || "").toLowerCase() === "rejected");
+    const cancelledOrders = orders.filter(order => String(order.status || "").toLowerCase() === "cancelled");
+    const section = (title, items, cls = "") => items.length
+      ? `<section class="dx-order-section ${cls}" style="margin:0 0 18px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;border:1px solid #294466;border-radius:12px;background:#142642">
+            <strong style="color:#eaf2ff">${title}</strong>
+            <span style="font-size:12px;color:#9fc7ed">${items.length} pesanan</span>
+          </div>
+          <div class="dx-order-section-list">${items.map(renderOrder).join("")}</div>
+        </section>`
+      : "";
+    const history = [
+      section("Disetujui · Lunas", paidOrders, "is-paid"),
+      section("Ditolak", rejectedOrders, "is-rejected"),
+      section("Dibatalkan", cancelledOrders, "is-cancelled")
+    ].join("");
+    container.innerHTML = `
+      ${section("Antrean pembayaran & verifikasi", activeOrders, "is-active") || '<div class="dx-order-empty" style="padding:14px;color:#9fb2cc">Tidak ada pesanan yang perlu ditinjau.</div>'}
+      ${history ? `<details class="dx-order-history" style="margin-top:18px;border:1px solid #294466;border-radius:14px;padding:12px;background:#0c192d">
+        <summary style="cursor:pointer;font-weight:700;color:#b9d8fa">Riwayat keputusan <span style="color:#8ea9c9;font-weight:500">(${paidOrders.length + rejectedOrders.length + cancelledOrders.length})</span></summary>
+        <div style="padding-top:12px">${history}</div>
+      </details>` : ""}
+    `;
+
     container.querySelectorAll("[data-dx-product-image]").forEach(button => {
       button.addEventListener("click", () => {
         const src = button.getAttribute("data-dx-product-image");
@@ -2168,7 +2197,6 @@ async function loadDXPaymentOrders() {
     });
   } catch (error) { container.textContent = getDXError(error); }
 }
-
 
 /* DIALOG DX STORE — satu gaya untuk seluruh konfirmasi dan pesan */
 function dxDialog(message, options = {}) {
