@@ -1411,7 +1411,7 @@ async function loadDXOrderHistory(){
  const {data,error}=await dxSupabase.from("orders").select("id,item_name,total_amount,status,created_at").eq("buyer_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
  if(error){host.textContent="Riwayat gagal dimuat: "+getDXError(error);return;}
  if(!data?.length){host.textContent="Belum ada pesanan.";return;}
- host.innerHTML=data.map(o=>`<article class="dx-ticket-card" data-dx-order-history-id="${safeText(o.id)}"><b>${safeText(o.item_name||"Pesanan DX STORE")}</b><p>No. ${safeText(o.id)}</p><p>${formatPrice(o.total_amount)} · ${safeText(o.status)}</p><small>${new Date(o.created_at).toLocaleString(getDXCountry().locale||"id-ID")}</small></article>`).join("");
+ const labels={pending:"Menunggu pembayaran",review:"Menunggu verifikasi pembayaran",paid:"Lunas · menunggu diproses",processing:"Sedang diproses",delivered:"Sudah diserahkan · konfirmasi penerimaan",completed:"Selesai",cancelled:"Dibatalkan",rejected:"Ditolak",disputed:"Dalam penanganan"};host.innerHTML=data.map(o=>`<article class="dx-ticket-card" data-dx-order-history-id="${safeText(o.id)}"><b>${safeText(o.item_name||"Pesanan DX STORE")}</b><p>No. ${safeText(o.id)}</p><p>${formatPrice(o.total_amount)} · ${safeText(labels[o.status]||o.status)}</p><small>${new Date(o.created_at).toLocaleString(getDXCountry().locale||"id-ID")}</small>${o.status==="delivered"?`<p><button type="button" data-dx-confirm-received="${safeText(o.id)}">Konfirmasi Barang Diterima</button></p>`:""}</article>`).join("");host.querySelectorAll("[data-dx-confirm-received]").forEach(b=>b.addEventListener("click",()=>confirmDXOrderReceived(b.dataset.dxConfirmReceived)));
 }
 async function submitDXSupportTicket(event){
  event.preventDefault();if(!currentUser||!dxSupabase)return;
@@ -1959,7 +1959,7 @@ async function loadDXSellerApplicationState() {
  const {data,error}=await dxSupabase.from("seller_applications").select("id,store_name,status,admin_note,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
  if(error){state.textContent="Status pengajuan gagal dimuat: "+getDXError(error);return;}
  if(!data){state.textContent="Belum ada pengajuan. Isi formulir berikut untuk mulai berjualan.";form.hidden=false;return;}
- if(data.status==="approved"){const withdrawForm=$("dxSellerWithdrawForm");if(withdrawForm&&!withdrawForm.dataset.bound){withdrawForm.addEventListener("submit",submitDXSellerWithdrawal);withdrawForm.dataset.bound="1";}state.innerHTML='<strong style="color:#86efac">✓ Penjual disetujui: '+safeText(data.store_name)+'</strong><br>Silakan kirim produk atau akun game. Semua listing tetap menunggu persetujuan admin.';listingPanel.hidden=false;await Promise.all([loadDXMySellerListings(),loadDXSellerWithdrawals()]);return;}
+ if(data.status==="approved"){const withdrawForm=$("dxSellerWithdrawForm");if(withdrawForm&&!withdrawForm.dataset.bound){withdrawForm.addEventListener("submit",submitDXSellerWithdrawal);withdrawForm.dataset.bound="1";}state.innerHTML='<strong style="color:#86efac">✓ Penjual disetujui: '+safeText(data.store_name)+'</strong><br>Silakan kirim produk atau akun game. Semua listing tetap menunggu persetujuan admin.';listingPanel.hidden=false;await Promise.all([loadDXMySellerListings(),loadDXSellerOrders(),loadDXSellerWithdrawals()]);return;}
  if(data.status==="pending"){state.innerHTML='<strong style="color:#fde68a">Pengajuan sedang diperiksa admin.</strong><br>Nama toko: '+safeText(data.store_name)+'. Formulir jualan akan terbuka setelah disetujui.';return;}
  state.innerHTML='<strong style="color:#fca5a5">Pengajuan sebelumnya ditolak.</strong>'+(data.admin_note?'<br>Catatan admin: '+safeText(data.admin_note):'')+'<br>Kamu dapat mengajukan kembali.';form.hidden=false;
 }
@@ -2118,7 +2118,10 @@ async function loadDXPaymentOrders() {
       review: "Perlu verifikasi",
       paid: "Lunas",
       rejected: "Ditolak",
-      cancelled: "Dibatalkan"
+      cancelled: "Dibatalkan",
+      processing: "Sedang diproses",
+      delivered: "Sudah diserahkan",
+      completed: "Selesai"
     };
     const renderOrder = order => {
       const shortId = String(order.order_id || "").slice(-8);
@@ -2914,4 +2917,32 @@ async function reviewDXWithdrawal(id,status){
  const {error}=await dxSupabase.from("seller_withdrawals").update(patch).eq("id",id).eq("status",current.status);
  if(error){dxAlert("Gagal memperbarui pencairan: "+getDXError(error));return;}
  await loadDXAdminWithdrawals();dxAlert(status==="paid"?"Pencairan ditandai sudah ditransfer.":"Status pencairan berhasil diperbarui.");
+}
+
+
+async function loadDXSellerOrders(){
+ const host=$("dxSellerOrders");if(!host||!currentUser||!dxSupabase)return;
+ host.textContent="Memuat pesanan masuk...";
+ const {data,error}=await dxSupabase.from("orders").select("id,item_name,total_amount,status,created_at,item_type").order("created_at",{ascending:false}).limit(100);
+ if(error){host.textContent="Pesanan masuk gagal dimuat: "+getDXError(error);return;}
+ const rows=data||[];
+ if(!rows.length){host.textContent="Belum ada pesanan untuk listing toko ini.";return;}
+ const labels={paid:"Lunas · siap diproses",processing:"Sedang diproses",delivered:"Menunggu konfirmasi pembeli",completed:"Selesai"};
+ host.innerHTML=rows.map(o=>'<article style="padding:12px;margin:8px 0;border:1px solid #334b70;border-radius:11px;background:#0b1426"><strong>'+safeText(o.item_name||"Pesanan")+'</strong><p style="margin:5px 0">'+formatPrice(o.total_amount)+' · '+safeText(labels[o.status]||o.status)+'</p><small>'+ (o.item_type==="account"?"Akun game":"Market") +' · '+new Date(o.created_at).toLocaleString("id-ID")+' · #'+safeText(o.id.slice(-8))+'</small>'+(o.status==="paid"?'<p><button type="button" data-dx-seller-order="'+safeText(o.id)+'" data-dx-next-status="processing">Mulai Proses Pesanan</button></p>':o.status==="processing"?'<p><button type="button" data-dx-seller-order="'+safeText(o.id)+'" data-dx-next-status="delivered">Tandai Sudah Diserahkan</button></p>':'')+'</article>').join("");
+ host.querySelectorAll("[data-dx-seller-order]").forEach(b=>b.addEventListener("click",()=>updateDXSellerOrder(b.dataset.dxSellerOrder,b.dataset.dxNextStatus)));
+}
+async function updateDXSellerOrder(id,nextStatus){
+ if(!currentUser||!["processing","delivered"].includes(nextStatus))return;
+ const message=nextStatus==="processing"?"Mulai memproses pesanan ini?":"Pastikan produk sudah diserahkan kepada pembeli. Lanjutkan?";
+ if(!await dxDialog(message,{confirm:true,title:"Konfirmasi pesanan"}))return;
+ const {error}=await dxSupabase.rpc("dx_seller_update_order",{p_order_id:id,p_next_status:nextStatus});
+ if(error){dxAlert("Status pesanan gagal diperbarui: "+getDXError(error));return;}
+ await loadDXSellerOrders();dxAlert(nextStatus==="processing"?"Pesanan masuk ke tahap proses.":"Pesanan ditandai sudah diserahkan. Pembeli perlu mengonfirmasi penerimaan.");
+}
+async function confirmDXOrderReceived(id){
+ if(!currentUser)return;
+ if(!await dxDialog("Konfirmasi hanya jika barang digital sudah diterima dan sesuai pesanan. Setelah dikonfirmasi, pesanan selesai dan saldo penjual dapat dihitung.",{confirm:true,title:"Konfirmasi penerimaan"}))return;
+ const {error}=await dxSupabase.rpc("dx_buyer_confirm_order",{p_order_id:id});
+ if(error){dxAlert("Konfirmasi gagal: "+getDXError(error));return;}
+ await loadDXOrderHistory();dxAlert("Pesanan dikonfirmasi selesai.");
 }
