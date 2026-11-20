@@ -1311,13 +1311,13 @@ window.dxChatChannel = null;
 async function loadDXAdminChatConversations(){
  const box=$("dxAdminChatList");if(!box||!currentUser||!dxSupabase)return;
  const allowed=await checkDXAdmin();if(!allowed){box.textContent="Akses khusus admin.";return;}
- box.innerHTML='<h3>Obrolan Pengguna</h3><button type="button" id="dxAdminChatReload">Muat ulang</button><div id="dxAdminChatRows">Memuat percakapan...</div><div id="dxAdminChatThread" hidden style="margin-top:14px;border-top:1px solid #385477;padding-top:14px"><strong id="dxAdminChatTitle">Percakapan</strong><div id="dxAdminChatMessages" role="log" aria-live="polite" style="display:grid;gap:8px;max-height:360px;overflow:auto;padding:12px 0"></div><form id="dxAdminChatForm" style="display:grid;gap:8px"><label for="dxAdminChatComposer">Balas sebagai admin</label><textarea id="dxAdminChatComposer" rows="2" maxlength="2000" required></textarea><button type="submit" id="dxAdminChatSend">Kirim Balasan</button><p id="dxAdminChatFeedback" role="status"></p></form></div>';
+ box.innerHTML='<div class="dx-chat-header"><div><h3>Kotak Masuk</h3><p>Percakapan antara pembeli dan penjual</p></div><button type="button" id="dxAdminChatReload" class="dx-chat-reload">↻ Muat ulang</button></div><div id="dxAdminChatRows" class="dx-chat-rows"><div class="dx-chat-empty">Memuat percakapan…</div></div><div id="dxAdminChatThread" class="dx-chat-thread" hidden><div class="dx-chat-thread-head"><strong id="dxAdminChatTitle">Percakapan</strong><span>Mode administrator</span></div><div id="dxAdminChatMessages" role="log" aria-live="polite" class="dx-chat-messages"></div><form id="dxAdminChatForm" class="dx-chat-form"><label for="dxAdminChatComposer">Balas sebagai admin</label><textarea id="dxAdminChatComposer" rows="3" maxlength="2000" placeholder="Tulis balasan…" required></textarea><div class="dx-chat-form-foot"><small>Maksimal 2.000 karakter</small><button type="submit" id="dxAdminChatSend">Kirim Balasan</button></div><p id="dxAdminChatFeedback" role="status"></p></form></div>';
  $("dxAdminChatReload").addEventListener("click",loadDXAdminChatConversations);
  const {data,error}=await dxSupabase.from("dx_conversations").select("id,buyer_id,seller_id,listing_title,listing_type,created_at,updated_at").order("created_at",{ascending:false}).limit(100);
  const rows=$("dxAdminChatRows");
  if(error){rows.textContent="Gagal memuat obrolan: "+getDXError(error);return;}
- if(!data?.length){rows.textContent="Belum ada percakapan.";return;}
- rows.innerHTML=data.map(c=>'<button type="button" data-dx-admin-chat="'+safeText(c.id)+'" style="width:100%;display:block;text-align:left;padding:12px;margin:7px 0;border:1px solid #385477;border-radius:10px;background:#0b1426;color:white"><b>'+safeText(c.listing_title)+'</b><small style="display:block;color:#aab8d0;margin-top:4px">Pembeli: '+safeText(c.buyer_id.slice(0,8))+' · Penjual: '+safeText(c.seller_id.slice(0,8))+' · '+(c.listing_type==="account"?"Akun game":"Produk digital")+'</small></button>').join("");
+ if(!data?.length){rows.innerHTML='<div class="dx-chat-empty"><span class="dx-chat-empty-icon">✉</span><strong>Belum ada percakapan</strong><p>Pesan dari pembeli dan penjual akan muncul di sini.</p></div>';return;}
+ rows.innerHTML=data.map(c=>'<button type="button" class="dx-chat-row" data-dx-admin-chat="'+safeText(c.id)+'"><span class="dx-chat-avatar">✉</span><span class="dx-chat-row-main"><strong>'+safeText(c.listing_title||"Listing tanpa judul")+'</strong><small>Pembeli · '+safeText(c.buyer_id.slice(0,8))+'　Penjual · '+safeText(c.seller_id.slice(0,8))+'</small></span><span class="dx-chat-type">'+(c.listing_type==="account"?"Akun game":"Market")+'</span><span class="dx-chat-chevron">›</span></button>').join("");
  rows.querySelectorAll("[data-dx-admin-chat]").forEach(b=>b.addEventListener("click",()=>openDXAdminChatThread(b.dataset.dxAdminChat)));
 }
 async function openDXAdminChatThread(id){
@@ -1761,6 +1761,34 @@ function createDXAdminPanel() {
       .dx-verify-empty strong { color:#eaf6ff; }
       .dx-verify-empty p { margin-top:7px; color:#9aa9c4; font-size:12px; line-height:1.6; }
       @media(max-width:560px) { #dxAdminPanel { padding:15px !important; } .dx-verify-card { grid-template-columns:76px minmax(0,1fr); gap:10px; padding:10px; } .dx-verify-image { width:76px; height:76px; } .dx-verify-card-top { flex-direction:column; gap:5px; } #dxAdminPanel .dx-verify-actions button { flex:1; } }
+      #dxAdminPanel .dx-chat-header { display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 16px;padding-bottom:14px;border-bottom:1px solid #263d5d; }
+      #dxAdminPanel .dx-chat-header h3 { margin:0 0 5px;color:#eaf6ff;font-size:20px; }
+      #dxAdminPanel .dx-chat-header p { margin:0;color:#91a4c2;font-size:12px; }
+      #dxAdminPanel .dx-chat-reload { flex:none;margin:0;padding:9px 13px;border:1px solid #36577d;background:#172b49;color:#d8f5ff;font-size:12px; }
+      #dxAdminPanel .dx-chat-rows { display:grid;gap:9px; }
+      #dxAdminPanel .dx-chat-row { display:flex;align-items:center;gap:11px;width:100%;margin:0;padding:13px;text-align:left;border:1px solid #294363;background:linear-gradient(120deg,#12213b,#0b172b);border-radius:13px; }
+      #dxAdminPanel .dx-chat-row:hover { border-color:#38bdf8;background:#142a49; }
+      .dx-chat-avatar { display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:12px;background:#15385b;color:#7deaff;font-size:18px; }
+      .dx-chat-row-main { display:grid;gap:5px;min-width:0;flex:1; }
+      .dx-chat-row-main strong { color:#f0f7ff;font-size:13px;overflow-wrap:anywhere; }
+      .dx-chat-row-main small { color:#91a4c2;font-size:10px;overflow-wrap:anywhere; }
+      .dx-chat-type { flex:none;padding:5px 8px;border-radius:999px;background:#1c3554;color:#9feaff;font-size:10px; }
+      .dx-chat-chevron { color:#8ca7c8;font-size:22px; }
+      .dx-chat-empty { display:grid;justify-items:center;gap:7px;padding:32px 16px;border:1px dashed #365273;border-radius:14px;background:#0c192d;text-align:center; }
+      .dx-chat-empty-icon { display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#173453;color:#7deaff;font-size:22px; }
+      .dx-chat-empty strong { color:#eaf6ff;font-size:14px; }
+      .dx-chat-empty p { margin:0;color:#91a4c2;font-size:12px;line-height:1.5; }
+      #dxAdminPanel .dx-chat-thread { margin-top:16px;padding:14px;border:1px solid #2b4567;border-radius:14px;background:#0b172a; }
+      .dx-chat-thread-head { display:grid;gap:4px;padding-bottom:12px;border-bottom:1px solid #29415f; }
+      .dx-chat-thread-head strong { color:#f0f7ff;font-size:14px; }
+      .dx-chat-thread-head span { color:#8fa6c4;font-size:10px; }
+      #dxAdminPanel .dx-chat-messages { display:grid;gap:9px;max-height:360px;overflow:auto;padding:14px 2px; }
+      #dxAdminPanel .dx-chat-form { display:grid;gap:8px;padding-top:12px;border-top:1px solid #29415f; }
+      .dx-chat-form-foot { display:flex;align-items:center;justify-content:space-between;gap:10px; }
+      .dx-chat-form-foot small { color:#8297b5;font-size:10px; }
+      #dxAdminPanel .dx-chat-form button { margin:0; }
+      #dxAdminPanel #dxAdminChatFeedback { margin:0;font-size:12px;color:#9bdcf5; }
+      @media(max-width:520px) { #dxAdminPanel .dx-chat-header { align-items:flex-start; } #dxAdminPanel .dx-chat-row { gap:8px;padding:10px; } .dx-chat-avatar { width:34px;height:34px; } .dx-chat-type { font-size:9px; } .dx-chat-form-foot { align-items:flex-start;flex-direction:column; } }
       #dxAdminPanel input,
       #dxAdminPanel textarea {
         display:block;
