@@ -1325,9 +1325,11 @@ async function openDXAdminChatThread(id){
  const {data:conv,error}=await dxSupabase.from("dx_conversations").select("id,listing_title,buyer_id,seller_id").eq("id",id).maybeSingle();
  if(error||!conv){dxAlert("Percakapan tidak dapat diakses.");return;}
  window.dxAdminActiveChatId=id;
+ if(window.dxAdminChatChannel){dxSupabase.removeChannel(window.dxAdminChatChannel);window.dxAdminChatChannel=null;}
  $("dxAdminChatThread").hidden=false;
  $("dxAdminChatTitle").textContent=conv.listing_title+" · Admin";
  await loadDXAdminChatMessages(id);
+ window.dxAdminChatChannel=dxSupabase.channel("dx-admin-chat-"+id).on("postgres_changes",{event:"INSERT",schema:"public",table:"dx_messages",filter:"conversation_id=eq."+id},()=>loadDXAdminChatMessages(id)).subscribe();
  const form=$("dxAdminChatForm");
  if(!form.dataset.bound){form.addEventListener("submit",sendDXAdminChatMessage);form.dataset.bound="1";}
 }
@@ -1784,7 +1786,7 @@ function createDXAdminPanel() {
   $("dxAdminChats")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminChatList").style.display="block"; await loadDXAdminChatConversations(); });
   $("dxAdminVerifyProducts")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminVerificationList").style.display="block"; await loadDXAdminVerificationList("products"); });
   $("dxAdminVerifyAccounts")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminVerificationList").style.display="block"; await loadDXAdminVerificationList("account_listings"); });
-  const showListingAdmin=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminVerificationList").style.display="none"; $("dxAdminForm").style.display="block"; $("dxAdminList").style.display="block"; };
+  const showListingAdmin=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminVerificationList").style.display="none"; $("dxAdminChatList").style.display="none"; $("dxAdminForm").style.display="block"; $("dxAdminList").style.display="block"; };
   $("dxAdminProducts").addEventListener("click", () => {
     showListingAdmin();
     dxAdminType = "products";
