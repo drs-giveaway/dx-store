@@ -1830,9 +1830,12 @@ async function loadDXPaymentOrders() {
         : "";
       return `
         <article class="dx-admin-order-card" style="padding:14px;margin:10px 0;border:1px solid #294466;border-radius:14px;background:#101d33;color:#eaf2ff">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-            <strong style="font-size:15px">${safeText(order.item_name || "Pesanan")}</strong>
-            <strong style="font-size:14px">${formatPrice(order.amount)}</strong>
+          <div style="display:flex;align-items:center;gap:11px;min-width:0">
+            ${order.image_url ? `<button type="button" data-dx-product-image="${safeText(order.image_url)}" aria-label="Perbesar foto produk" style="flex:0 0 58px;width:58px;height:58px;padding:0;overflow:hidden;border:1px solid #36577e;border-radius:10px;background:#0b1528;cursor:zoom-in"><img src="${safeText(order.image_url)}" alt="Foto ${safeText(order.item_name || "produk")}" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover"></button>` : `<div aria-hidden="true" style="flex:0 0 58px;width:58px;height:58px;display:grid;place-items:center;border:1px solid #294466;border-radius:10px;background:#0b1528;color:#91a7c4;font-size:10px">Tanpa foto</div>`}
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex:1;min-width:0;flex-wrap:wrap">
+              <strong style="font-size:15px;overflow-wrap:anywhere">${safeText(order.item_name || "Pesanan")}</strong>
+              <strong style="font-size:14px;white-space:nowrap">${formatPrice(order.amount)}</strong>
+            </div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap">
             <span style="font-size:12px;color:#a9bdd8">#${safeText(shortId)}</span>
@@ -1851,6 +1854,24 @@ async function loadDXPaymentOrders() {
         </article>
       `;
     }).join("");
+    container.querySelectorAll("[data-dx-product-image]").forEach(button => {
+      button.addEventListener("click", () => {
+        const src = button.getAttribute("data-dx-product-image");
+        if (!src) return;
+        const overlay = document.createElement("div");
+        overlay.setAttribute("role", "dialog");
+        overlay.setAttribute("aria-modal", "true");
+        overlay.setAttribute("aria-label", "Foto produk");
+        overlay.style.cssText = "position:fixed;inset:0;z-index:100001;display:grid;place-items:center;padding:20px;background:rgba(2,7,18,.9);backdrop-filter:blur(7px);cursor:zoom-out";
+        const image = document.createElement("img");
+        image.src = src;
+        image.alt = "Foto produk yang dibeli";
+        image.style.cssText = "display:block;max-width:min(92vw,760px);max-height:86vh;object-fit:contain;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55)";
+        overlay.appendChild(image);
+        overlay.addEventListener("click", () => overlay.remove());
+        document.body.appendChild(overlay);
+      });
+    });
   } catch (error) { container.textContent = getDXError(error); }
 }
 
