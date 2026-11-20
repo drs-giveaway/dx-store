@@ -881,6 +881,23 @@
             <label>Alasan ingin berjualan<textarea id="dxSellerReason" minlength="10" maxlength="500" rows="3" required placeholder="Ceritakan produk yang ingin kamu jual..." style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"></textarea></label>
             <button id="dxSellerApplyButton" type="submit" class="dx-button">Kirim Pengajuan Penjual</button>
           </form>
+          <section id="dxSellerListingPanel" hidden style="margin-top:18px;padding-top:16px;border-top:1px solid #385477">
+            <h4 style="margin:0 0 8px;color:#86efac">Panel Penjual</h4>
+            <p style="font-size:13px;color:#c2d1e8">Kirim produk digital atau akun game. Foto wajib JPG, PNG, atau WEBP maksimal 5 MB. Listing baru tayang setelah disetujui admin.</p>
+            <form id="dxSellerListingForm" style="display:grid;gap:10px">
+              <label>Jenis listing<select id="dxSellerListingType" required style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"><option value="product">Produk digital</option><option value="account">Akun game</option></select></label>
+              <label id="dxSellerListingTitleLabel" for="dxSellerListingTitle">Nama produk</label>
+              <input id="dxSellerListingTitle" type="text" minlength="2" maxlength="100" required placeholder="Nama produk atau judul akun" style="padding:11px;border-radius:9px">
+              <div id="dxSellerGameWrap" hidden><label for="dxSellerGame">Nama game</label><input id="dxSellerGame" type="text" maxlength="80" placeholder="Contoh: Mobile Legends" style="width:100%;padding:11px;border-radius:9px"></div>
+              <label>Deskripsi<textarea id="dxSellerListingDescription" rows="3" maxlength="3000" placeholder="Jelaskan produk atau akun yang dijual" style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"></textarea></label>
+              <label>Harga (Rupiah)<input id="dxSellerListingPrice" type="number" min="1" step="1" required placeholder="Contoh: 40000" style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"></label>
+              <label>Foto listing (wajib · maks. 5 MB)<input id="dxSellerListingPhoto" type="file" accept="image/jpeg,image/png,image/webp" required style="display:block;width:100%;margin-top:5px"></label>
+              <div id="dxSellerListingPreview" hidden><img id="dxSellerListingPreviewImg" alt="Pratinjau foto listing" style="width:120px;height:120px;object-fit:cover;border-radius:10px"></div>
+              <button id="dxSellerListingSubmit" type="submit" class="dx-button">Kirim untuk Verifikasi</button>
+            </form>
+            <h4 style="margin:18px 0 8px;color:#7dd3fc">Listing Saya</h4>
+            <div id="dxMySellerListings" aria-live="polite">Belum ada listing.</div>
+          </section>
         </section>
         <div class="dx-catalog" id="accountGrid">
           <div class="dx-empty-card">
@@ -913,7 +930,7 @@
   <!-- JAVASCRIPT -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="app.js?v=76"></script>
+  <script src="app.js?v=77"></script>
   <script src="image-upload.js?v=7"></script>
 
 </body>
