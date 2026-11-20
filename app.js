@@ -543,6 +543,7 @@ function updateDXDashboardVisibility() {
         </article>
         <div class="dx-wallet-shortcuts">
           <button type="button" data-dx-profile-action="orders"><span>▤</span><strong>Pesanan</strong></button>
+          <button type="button" data-dx-profile-action="messages"><span>✉</span><strong>Obrolan</strong></button>
           <button type="button" data-dx-profile-action="help"><span>♧</span><strong>Bantuan</strong></button>
           <button type="button" data-dx-profile-action="country"><span>◎</span><strong>Wilayah</strong></button>
           <button type="button" data-dx-profile-action="edit"><span>✎</span><strong>Edit profil</strong></button>
@@ -562,6 +563,17 @@ function updateDXDashboardVisibility() {
         </article></details>
         <details class="dx-profile-accordion" id="dxOrderAccordion"><summary><span><small>TRANSAKSI</small><strong>Riwayat Pesanan</strong><em>Lihat status dan detail pesanan</em></span><b>⌄</b></summary>
         <section id="dxOrderHistory" class="dx-profile-card"><div class="dx-profile-card-head"><div><small>TRANSAKSI</small><h3>Riwayat Pesanan</h3></div><button type="button" id="dxRefreshOrders">Muat ulang</button></div><div id="dxOrderHistoryList">Memuat pesanan...</div></section></details>
+        <details class="dx-profile-accordion" id="dxChatAccordion"><summary><span><small>KOMUNIKASI</small><strong>Obrolan Penjual & Pembeli</strong><em>Diskusi langsung tentang produk dan pesanan</em></span><b>⌄</b></summary>
+        <section class="dx-profile-card" id="dxChatCenter">
+          <div class="dx-profile-card-head"><div><small>DX STORE MESSAGES</small><h3>Pesan Saya</h3></div><button type="button" id="dxChatRefresh">Muat ulang</button></div>
+          <div id="dxChatConversationList" aria-live="polite">Memuat percakapan...</div>
+          <div id="dxChatThread" hidden style="margin-top:14px;border-top:1px solid #385477;padding-top:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><strong id="dxChatThreadTitle">Percakapan</strong><button type="button" id="dxChatBack">Kembali</button></div>
+            <div id="dxChatMessages" role="log" aria-live="polite" style="display:grid;gap:8px;max-height:360px;overflow:auto;padding:12px 0"></div>
+            <form id="dxChatSendForm" style="display:grid;gap:8px"><label for="dxChatComposer">Tulis pesan</label><textarea id="dxChatComposer" rows="2" maxlength="2000" required placeholder="Tanyakan detail produk atau pesanan..."></textarea><button type="submit" class="dx-button" id="dxChatSend">Kirim Pesan</button></form>
+            <p id="dxChatFeedback" role="status" aria-live="polite"></p>
+          </div>
+        </section></details>
         <details class="dx-profile-accordion" id="dxHelpAccordion"><summary><span><small>DUKUNGAN</small><strong>Pusat Bantuan & Laporan</strong><em>Kirim laporan dan cek balasan admin</em></span><b>⌄</b></summary>
         <section id="dxHelpCenter" class="dx-profile-card"><div class="dx-profile-card-head"><div><small>DUKUNGAN PELANGGAN</small><h3>Pusat Bantuan &amp; Laporan</h3></div><span>?</span></div>
           <form id="dxSupportForm"><label for="dxSupportCategory">Kategori masalah</label><select id="dxSupportCategory" required><option>Pembayaran</option><option>Pesanan</option><option>Garansi</option><option>Produk</option><option>Akun</option><option>Login</option><option>Lainnya</option></select>
@@ -693,11 +705,15 @@ function updateDXDashboardVisibility() {
       const action = button.dataset.dxProfileAction;
       if (action === "country") { $("dxProfileSettingsAccordion").open = true; $("dxProfileSettingsAccordion")?.scrollIntoView({behavior:"smooth",block:"start"}); $("dxCountry")?.focus(); }
       if (action === "orders") { $("dxOrderAccordion").open = true; $("dxOrderHistory")?.scrollIntoView({behavior:"smooth",block:"start"}); loadDXOrderHistory(); }
+      if (action === "messages") { $("dxChatAccordion").open = true; $("dxChatCenter")?.scrollIntoView({behavior:"smooth",block:"start"}); loadDXChatConversations(); }
       if (action === "help") { $("dxHelpAccordion").open = true; $("dxHelpCenter")?.scrollIntoView({behavior:"smooth",block:"start"}); }
       if (action === "edit") { $("dxProfileEditAccordion").open = true; $("dxProfileEdit")?.scrollIntoView({behavior:"smooth",block:"start"}); }
     });
     button.dataset.bound = "1";
   });
+  if($("dxChatRefresh")&&!$("dxChatRefresh").dataset.bound){$("dxChatRefresh").addEventListener("click",loadDXChatConversations);$("dxChatRefresh").dataset.bound="1";}
+  if($("dxChatBack")&&!$("dxChatBack").dataset.bound){$("dxChatBack").addEventListener("click",()=>{ $("dxChatThread").hidden=true; window.dxActiveChatId=null; if(window.dxChatChannel){dxSupabase.removeChannel(window.dxChatChannel);window.dxChatChannel=null;} });$("dxChatBack").dataset.bound="1";}
+  if($("dxChatSendForm")&&!$("dxChatSendForm").dataset.bound){$("dxChatSendForm").addEventListener("submit",sendDXChatMessage);$("dxChatSendForm").dataset.bound="1";}
   if($("dxRefreshOrders")&&!$("dxRefreshOrders").dataset.bound){$("dxRefreshOrders").addEventListener("click",loadDXOrderHistory);$("dxRefreshOrders").dataset.bound="1";}
   if($("dxSellerApplicationForm")) loadDXSellerApplicationState();
   if($("dxSupportForm")&&!$("dxSupportForm").dataset.bound){$("dxSupportForm").addEventListener("submit",submitDXSupportTicket);$("dxSupportForm").dataset.bound="1";}
@@ -968,7 +984,7 @@ function selectItem(type, id) {
         modal = document.createElement("div");
         modal.id = "dxProductDetailModal";
         modal.className = "dx-detail-overlay";
-        modal.innerHTML = '<section class="dx-detail-panel" role="dialog" aria-modal="true" aria-labelledby="dxDetailName"><button type="button" class="dx-detail-close" aria-label="Tutup">&times;</button><div id="dxDetailPhoto" class="dx-detail-photo"></div><div class="dx-detail-copy"><span id="dxDetailType" class="dx-detail-label"></span><h2 id="dxDetailName"></h2><p id="dxDetailDescription"></p><strong id="dxDetailPrice" class="dx-detail-price"></strong><div id="dxDetailWarranty" class="dx-detail-warranty"></div><button type="button" id="dxDetailOrder" class="dx-button">Lanjutkan</button></div></section>';
+        modal.innerHTML = '<section class="dx-detail-panel" role="dialog" aria-modal="true" aria-labelledby="dxDetailName"><button type="button" class="dx-detail-close" aria-label="Tutup">&times;</button><div id="dxDetailPhoto" class="dx-detail-photo"></div><div class="dx-detail-copy"><span id="dxDetailType" class="dx-detail-label"></span><h2 id="dxDetailName"></h2><p id="dxDetailDescription"></p><strong id="dxDetailPrice" class="dx-detail-price"></strong><div id="dxDetailWarranty" class="dx-detail-warranty"></div><button type="button" id="dxDetailChat" class="dx-button" style="margin:8px 8px 8px 0;background:#172b4d;border:1px solid #51e5ff;color:#51e5ff">Chat Penjual</button><button type="button" id="dxDetailOrder" class="dx-button">Lanjutkan</button></div></section>';
         document.body.appendChild(modal);
         modal.querySelector(".dx-detail-close").addEventListener("click", () => modal.classList.remove("active"));
         modal.addEventListener("click", event => { if (event.target === modal) modal.classList.remove("active"); });
@@ -991,6 +1007,7 @@ function selectItem(type, id) {
         warrantyBox.innerHTML = "";
       }
       modal.querySelector("#dxDetailPhoto").innerHTML = image ? '<img src="' + safeText(image) + '" alt="' + safeText(name) + '">' : '<span>DX STORE</span>';
+      const chatButton=modal.querySelector("#dxDetailChat"); chatButton.hidden=!data.seller_id||data.seller_id===currentUser?.id; chatButton.onclick=()=>startDXSellerChat(type,data);
       const unavailable = data.status !== "active" || (data.sale_status || "available") !== "available";
       modal.querySelector("#dxDetailOrder").disabled = unavailable;
       modal.querySelector("#dxDetailOrder").textContent = data.sale_status === "pending" ? "PENDING — SEDANG DIPESAN" : data.sale_status === "sold_out" ? "SOLD OUT" : "Lanjutkan";
@@ -1286,6 +1303,64 @@ async function loadDXStore() {
 
 
 /* DX ACCOUNT SERVICES */
+
+/* OBROLAN PENJUAL & PEMBELI */
+window.dxActiveChatId = null;
+window.dxChatChannel = null;
+async function loadDXChatConversations(){
+ const host=$("dxChatConversationList"); if(!host||!currentUser||!dxSupabase)return;
+ host.textContent="Memuat percakapan...";
+ const {data,error}=await dxSupabase.from("dx_conversations").select("id,buyer_id,seller_id,listing_title,listing_type,updated_at,created_at").or("buyer_id.eq."+currentUser.id+",seller_id.eq."+currentUser.id).order("updated_at",{ascending:false}).limit(50);
+ if(error){host.textContent="Percakapan gagal dimuat: "+getDXError(error);return;}
+ if(!data?.length){host.textContent="Belum ada percakapan. Buka produk dan pilih Chat Penjual untuk memulai.";return;}
+ host.innerHTML=data.map(c=>{
+  const other=c.buyer_id===currentUser.id?"Penjual":"Pembeli";
+  return '<button type="button" data-dx-chat-open="'+safeText(c.id)+'" style="width:100%;display:flex;justify-content:space-between;gap:10px;text-align:left;padding:13px;margin:7px 0;border:1px solid #385477;border-radius:12px;background:#0b1426;color:#fff"><span><b>'+safeText(c.listing_title)+'</b><small style="display:block;color:#aab8d0;margin-top:4px">'+other+' · '+(c.listing_type==="account"?"Akun game":"Produk digital")+'</small></span><span>›</span></button>';
+ }).join("");
+ host.querySelectorAll("[data-dx-chat-open]").forEach(b=>b.addEventListener("click",()=>openDXChatThread(b.dataset.dxChatOpen)));
+}
+async function startDXSellerChat(type,item){
+ if(!currentUser){openAuth();showDXMessage("Masuk terlebih dahulu untuk menghubungi penjual.");return;}
+ if(!item?.seller_id||item.seller_id===currentUser.id){dxAlert("Obrolan hanya tersedia untuk menghubungi penjual lain.");return;}
+ if(!dxSupabase)return;
+ const payload={buyer_id:currentUser.id,seller_id:item.seller_id,listing_type:type,listing_id:item.id,listing_title:item.name||item.title||"Produk DX STORE"};
+ const {data:existing,error:findError}=await dxSupabase.from("dx_conversations").select("id").eq("buyer_id",payload.buyer_id).eq("seller_id",payload.seller_id).eq("listing_type",payload.listing_type).eq("listing_id",payload.listing_id).maybeSingle();
+ if(findError){dxAlert("Tidak dapat memeriksa percakapan: "+getDXError(findError));return;}
+ let id=existing?.id;
+ if(!id){const {data,error}=await dxSupabase.from("dx_conversations").insert(payload).select("id").single();if(error){dxAlert("Percakapan tidak dapat dibuat: "+getDXError(error));return;}id=data.id;}
+ const modal=$("dxProductDetailModal");if(modal)modal.classList.remove("active");
+ showDXView("profile");$("dxChatAccordion").open=true;$("dxChatCenter")?.scrollIntoView({behavior:"smooth",block:"start"});
+ await openDXChatThread(id);
+}
+async function openDXChatThread(id){
+ if(!currentUser||!dxSupabase)return;
+ const {data:conversation,error}=await dxSupabase.from("dx_conversations").select("id,buyer_id,seller_id,listing_title").eq("id",id).maybeSingle();
+ if(error||!conversation){dxAlert("Percakapan tidak ditemukan atau akses ditolak.");return;}
+ window.dxActiveChatId=id;
+ $("dxChatThread").hidden=false;
+ $("dxChatThreadTitle").textContent=conversation.listing_title;
+ await loadDXChatMessages(id);
+ if(window.dxChatChannel)dxSupabase.removeChannel(window.dxChatChannel);
+ window.dxChatChannel=dxSupabase.channel("dx-chat-"+id).on("postgres_changes",{event:"INSERT",schema:"public",table:"dx_messages",filter:"conversation_id=eq."+id},()=>loadDXChatMessages(id)).subscribe();
+}
+async function loadDXChatMessages(id){
+ const host=$("dxChatMessages");if(!host||!dxSupabase)return;
+ const {data,error}=await dxSupabase.from("dx_messages").select("id,sender_id,body,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(300);
+ if(error){host.textContent="Pesan gagal dimuat: "+getDXError(error);return;}
+ if(!data?.length){host.textContent="Belum ada pesan. Mulai percakapan dengan sopan dan jangan kirim kata sandi atau kode OTP.";return;}
+ host.innerHTML=data.map(m=>'<div style="justify-self:'+(m.sender_id===currentUser.id?"end":"start")+';max-width:88%;padding:10px 12px;border-radius:12px;background:'+(m.sender_id===currentUser.id?"#164e86":"#182844")+';color:#fff"><p style="white-space:pre-wrap;overflow-wrap:anywhere">'+safeText(m.body)+'</p><small style="display:block;margin-top:5px;color:#c1d1e8;font-size:10px">'+(m.sender_id===currentUser.id?"Kamu":"Lawan bicara")+' · '+new Date(m.created_at).toLocaleString(getDXCountry().locale||"id-ID")+'</small></div>').join("");
+ host.scrollTop=host.scrollHeight;
+}
+async function sendDXChatMessage(event){
+ event.preventDefault();const input=$("dxChatComposer"),button=$("dxChatSend"),feedback=$("dxChatFeedback"),body=input?.value.trim();
+ if(!currentUser||!window.dxActiveChatId||!body)return;
+ button.disabled=true;feedback.textContent="Mengirim...";
+ const {error}=await dxSupabase.from("dx_messages").insert({conversation_id:window.dxActiveChatId,sender_id:currentUser.id,body});
+ button.disabled=false;
+ if(error){feedback.textContent="Pesan gagal dikirim: "+getDXError(error);return;}
+ input.value="";feedback.textContent="Pesan terkirim.";await loadDXChatMessages(window.dxActiveChatId);
+}
+
 async function loadDXOrderHistory(){
  const host=$("dxOrderHistoryList");if(!host||!dxSupabase||!currentUser)return;
  host.textContent="Memuat pesanan...";
