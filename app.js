@@ -1225,6 +1225,18 @@ async function checkDXPaymentStatus() {
       : result.status === "rejected"
         ? "Bukti pembayaran ditolak. Hubungi admin DX STORE."
         : "Status terbaru berhasil dimuat: " + statusText + ".";
+    // Setelah status berhasil diperiksa, arahkan pengguna langsung ke halaman Riwayat Pesanan.
+    modal?.classList.remove("active");
+    showDXView("profile");
+    const orderAccordion = $("dxOrderAccordion");
+    if (orderAccordion) orderAccordion.open = true;
+    await loadDXOrderHistory();
+    const orderCard = document.querySelector(`[data-dx-order-history-id="${CSS.escape(String(orderId))}"]`);
+    (orderCard || $("dxOrderHistory"))?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (orderCard) {
+      orderCard.style.outline = "2px solid #38bdf8";
+      orderCard.style.outlineOffset = "4px";
+    }
   } catch (error) {
     if (message) message.textContent = "Status belum berhasil diperiksa: " + getDXError(error);
   } finally {
@@ -1267,7 +1279,7 @@ async function loadDXOrderHistory(){
  const {data,error}=await dxSupabase.from("orders").select("id,item_name,total_amount,status,created_at").eq("buyer_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
  if(error){host.textContent="Riwayat gagal dimuat: "+getDXError(error);return;}
  if(!data?.length){host.textContent="Belum ada pesanan.";return;}
- host.innerHTML=data.map(o=>`<article class="dx-ticket-card"><b>${safeText(o.item_name||"Pesanan DX STORE")}</b><p>No. ${safeText(o.id)}</p><p>${formatPrice(o.total_amount)} · ${safeText(o.status)}</p><small>${new Date(o.created_at).toLocaleString(getDXCountry().locale||"id-ID")}</small></article>`).join("");
+ host.innerHTML=data.map(o=>`<article class="dx-ticket-card" data-dx-order-history-id="${safeText(o.id)}"><b>${safeText(o.item_name||"Pesanan DX STORE")}</b><p>No. ${safeText(o.id)}</p><p>${formatPrice(o.total_amount)} · ${safeText(o.status)}</p><small>${new Date(o.created_at).toLocaleString(getDXCountry().locale||"id-ID")}</small></article>`).join("");
 }
 async function submitDXSupportTicket(event){
  event.preventDefault();if(!currentUser||!dxSupabase)return;
