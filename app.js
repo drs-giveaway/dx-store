@@ -699,7 +699,7 @@ function updateDXDashboardVisibility() {
     button.dataset.bound = "1";
   });
   if($("dxRefreshOrders")&&!$("dxRefreshOrders").dataset.bound){$("dxRefreshOrders").addEventListener("click",loadDXOrderHistory);$("dxRefreshOrders").dataset.bound="1";}
-  if($("dxSellerApplicationForm")&&!$("dxSellerApplicationForm").dataset.bound){$("dxSellerApplicationForm").addEventListener("submit",submitDXSellerApplication);$("dxSellerApplicationForm").dataset.bound="1";}
+  if($("dxSellerApplicationForm")) loadDXSellerApplicationState();
   if($("dxSupportForm")&&!$("dxSupportForm").dataset.bound){$("dxSupportForm").addEventListener("submit",submitDXSupportTicket);$("dxSupportForm").dataset.bound="1";}
   if(currentUser){loadDXOrderHistory();loadDXMyTickets();}
   const accountLogout = $("dxAccountLogout");
@@ -1760,17 +1760,60 @@ function resetDXAdminForm() {
 
 /* VERIFIKASI PENJUAL */
 async function loadDXSellerApplicationState() {
- const area=$("dxSellerArea"),form=$("dxSellerApplicationForm"),state=$("dxSellerApplicationState"); if(!area||!form||!state)return;
- if (!currentUser) { area.hidden=true; form.hidden=true; return; }
- if (await checkDXAdmin()) { area.hidden=true; form.hidden=true; return; }
+ const area=$("dxSellerArea"),form=$("dxSellerApplicationForm"),state=$("dxSellerApplicationState"),listingPanel=$("dxSellerListingPanel"),listingForm=$("dxSellerListingForm");
+ if(!area||!form||!state||!listingPanel||!listingForm)return;
+ if(!currentUser){area.hidden=true;form.hidden=true;listingPanel.hidden=true;return;}
+ if(await checkDXAdmin()){area.hidden=true;form.hidden=true;listingPanel.hidden=true;return;}
  area.hidden=false;
- form.hidden=true;state.textContent="Memeriksa status pengajuan...";
+ if(!form.dataset.bound){form.addEventListener("submit",submitDXSellerApplication);form.dataset.bound="1";}
+ if(!listingForm.dataset.bound){listingForm.addEventListener("submit",submitDXSellerListing);listingForm.dataset.bound="1";}
+ const photo=$("dxSellerListingPhoto");
+ if(photo&&!photo.dataset.bound){photo.addEventListener("change",()=>{const f=photo.files?.[0],preview=$("dxSellerListingPreview"),img=$("dxSellerListingPreviewImg");if(!f||!preview||!img)return;if(!["image/jpeg","image/png","image/webp"].includes(f.type)||f.size>5*1024*1024){photo.value="";preview.hidden=true;dxAlert("Foto harus JPG, PNG, atau WEBP maksimal 5 MB.");return;}img.src=URL.createObjectURL(f);preview.hidden=false;});photo.dataset.bound="1";}
+ const type=$("dxSellerListingType"),gameWrap=$("dxSellerGameWrap");
+ if(type&&!type.dataset.bound){type.addEventListener("change",()=>{gameWrap.hidden=type.value!=="account";$("dxSellerListingTitleLabel").textContent=type.value==="account"?"Judul akun":"Nama produk";});type.dataset.bound="1";}
+ form.hidden=true;listingPanel.hidden=true;state.textContent="Memeriksa status pengajuan...";
  const {data,error}=await dxSupabase.from("seller_applications").select("id,store_name,status,admin_note,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
  if(error){state.textContent="Status pengajuan gagal dimuat: "+getDXError(error);return;}
  if(!data){state.textContent="Belum ada pengajuan. Isi formulir berikut untuk mulai berjualan.";form.hidden=false;return;}
- if(data.status==="approved"){state.innerHTML='<strong style="color:#86efac">✓ Pengajuan penjual disetujui.</strong><br>Setiap produk atau akun yang dikirim tetap harus diperiksa admin sebelum tampil.';return;}
- if(data.status==="pending"){state.innerHTML='<strong style="color:#fde68a">Pengajuan sedang diperiksa admin.</strong><br>Nama toko: '+safeText(data.store_name)+'. Tunggu keputusan admin.';return;}
+ if(data.status==="approved"){state.innerHTML='<strong style="color:#86efac">✓ Penjual disetujui: '+safeText(data.store_name)+'</strong><br>Silakan kirim produk atau akun game. Semua listing tetap menunggu persetujuan admin.';listingPanel.hidden=false;await loadDXMySellerListings();return;}
+ if(data.status==="pending"){state.innerHTML='<strong style="color:#fde68a">Pengajuan sedang diperiksa admin.</strong><br>Nama toko: '+safeText(data.store_name)+'. Formulir jualan akan terbuka setelah disetujui.';return;}
  state.innerHTML='<strong style="color:#fca5a5">Pengajuan sebelumnya ditolak.</strong>'+(data.admin_note?'<br>Catatan admin: '+safeText(data.admin_note):'')+'<br>Kamu dapat mengajukan kembali.';form.hidden=false;
+}
+async function loadDXMySellerListings(){
+ const host=$("dxMySellerListings");if(!host||!currentUser||!dxSupabase)return;
+ host.textContent="Memuat listing kamu...";
+ const [p,a]=await Promise.all([
+  dxSupabase.from("products").select("id,name,price,status,image_url,created_at").eq("seller_id",currentUser.id).order("created_at",{ascending:false}),
+  dxSupabase.from("account_listings").select("id,title,game,price,status,image_url,created_at").eq("seller_id",currentUser.id).order("created_at",{ascending:false})
+ ]);
+ if(p.error||a.error){host.textContent="Listing gagal dimuat: "+getDXError(p.error||a.error);return;}
+ const rows=[...(p.data||[]).map(x=>({...x,label:x.name,kind:"Produk digital"})),...(a.data||[]).map(x=>({...x,label:x.title,kind:"Akun game"}))].sort((x,y)=>new Date(y.created_at)-new Date(x.created_at));
+ if(!rows.length){host.textContent="Belum ada produk atau akun yang kamu kirim.";return;}
+ host.innerHTML=rows.map(x=>'<article style="display:flex;gap:10px;align-items:center;padding:10px;margin:8px 0;border:1px solid #334b70;border-radius:10px;background:#0b1426">'+(safeImageUrl(x.image_url)?'<img src="'+safeText(safeImageUrl(x.image_url))+'" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px">':'')+'<div><strong>'+safeText(x.label)+'</strong><p style="margin:3px 0">'+safeText(x.kind)+' · '+formatPrice(x.price)+'</p><small>Status: '+(x.status==="active"?"Disetujui dan tayang":x.status==="rejected"?"Ditolak":"Menunggu verifikasi")+'</small></div></article>').join("");
+}
+async function submitDXSellerListing(event){
+ event.preventDefault();if(!currentUser||!dxSupabase){dxAlert("Silakan masuk terlebih dahulu.");return;}
+ const button=$("dxSellerListingSubmit"),type=$("dxSellerListingType").value,title=$("dxSellerListingTitle").value.trim(),game=$("dxSellerGame").value.trim(),description=$("dxSellerListingDescription").value.trim(),price=Number($("dxSellerListingPrice").value),file=$("dxSellerListingPhoto").files?.[0];
+ if(!title||!Number.isFinite(price)||price<=0||!file||(type==="account"&&!game)){dxAlert("Lengkapi nama, harga, foto, dan nama game untuk akun game.");return;}
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>5*1024*1024){dxAlert("Foto harus JPG, PNG, atau WEBP maksimal 5 MB.");return;}
+ button.disabled=true;button.textContent="Mengirim...";
+ let objectPath=null;
+ try{
+  const ext=({"image/jpeg":"jpg","image/png":"png","image/webp":"webp"})[file.type];
+  objectPath=currentUser.id+"/seller/"+crypto.randomUUID()+"."+ext;
+  const {error:uploadError}=await dxSupabase.storage.from("marketplace-images").upload(objectPath,file,{contentType:file.type,cacheControl:"3600",upsert:false});
+  if(uploadError)throw uploadError;
+  const {data:publicData}=dxSupabase.storage.from("marketplace-images").getPublicUrl(objectPath);
+  if(!publicData?.publicUrl)throw new Error("URL foto tidak berhasil dibuat.");
+  const common={seller_id:currentUser.id,description:description||null,price,image_url:publicData.publicUrl,status:"pending",sale_status:"available",updated_at:new Date().toISOString()};
+  const payload=type==="account"?{...common,game,title}:{...common,name:title,warranty_days:0,warranty_terms:"Listing penjual pihak ketiga; tidak termasuk garansi resmi DX STORE."};
+  const {error}=await dxSupabase.from(type==="account"?"account_listings":"products").insert(payload);
+  if(error)throw error;
+  $("dxSellerListingForm").reset();$("dxSellerListingPreview").hidden=true;$("dxSellerGameWrap").hidden=true;
+  await loadDXMySellerListings();await loadDXStore();
+  dxAlert("Listing berhasil dikirim. Status: Menunggu verifikasi admin.");
+ }catch(error){if(objectPath)await dxSupabase.storage.from("marketplace-images").remove([objectPath]);dxAlert("Listing gagal dikirim: "+getDXError(error));}
+ finally{button.disabled=false;button.textContent="Kirim untuk Verifikasi";}
 }
 async function submitDXSellerApplication(event){
  event.preventDefault();if(!currentUser||!dxSupabase){dxAlert("Silakan masuk terlebih dahulu.");return;}
@@ -2092,14 +2135,9 @@ async function saveDXAdminItem(event) {
         .update(payload)
         .eq("id", editId);
     } else {
-      // Semua produk wajib memiliki pemilik; akun pengguna tetap menunggu moderasi.
+      // Data yang dibuat admin tetap langsung aktif; listing pengguna dikirim melalui formulir penjual dan selalu pending.
       payload.seller_id = currentUser.id;
-      if (isAccount) {
-        payload.status = "pending";
-      } else {
-        // Produk digital yang dibuat admin langsung aktif.
-        payload.status = "active";
-      }
+      payload.status = isAccount ? "pending" : "active";
 
       result = await dxSupabase
         .from(dxAdminType)
