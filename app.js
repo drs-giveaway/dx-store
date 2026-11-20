@@ -2156,26 +2156,45 @@ async function loadDXPaymentOrders() {
     const rejectedOrders = orders.filter(order => String(order.status || "").toLowerCase() === "rejected");
     const cancelledOrders = orders.filter(order => String(order.status || "").toLowerCase() === "cancelled");
     const section = (title, items, cls = "") => items.length
-      ? `<section class="dx-order-section ${cls}" style="margin:0 0 18px">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;border:1px solid #294466;border-radius:12px;background:#142642">
-            <strong style="color:#eaf2ff">${title}</strong>
-            <span style="font-size:12px;color:#9fc7ed">${items.length} pesanan</span>
+      ? `<section class="dx-order-section ${cls}" style="margin:0 0 14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border:1px solid #294466;border-radius:11px;background:#142642">
+            <strong style="color:#eaf2ff;font-size:13px">${title}</strong>
+            <span style="font-size:11px;color:#9fc7ed">${items.length}</span>
           </div>
-          <div class="dx-order-section-list">${items.map(renderOrder).join("")}</div>
+          <div class="dx-order-section-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:9px;margin-top:9px">${items.map(renderOrder).join("")}</div>
         </section>`
       : "";
+    const historyCount = paidOrders.length + rejectedOrders.length + cancelledOrders.length;
     const history = [
       section("Disetujui · Lunas", paidOrders, "is-paid"),
       section("Ditolak", rejectedOrders, "is-rejected"),
       section("Dibatalkan", cancelledOrders, "is-cancelled")
     ].join("");
+    const activeContent = section("Daftar yang perlu ditangani", activeOrders, "is-active")
+      || '<div style="padding:14px;border:1px dashed #36577e;border-radius:12px;color:#9fb2cc;text-align:center">Tidak ada pesanan yang perlu ditinjau.</div>';
     container.innerHTML = `
-      ${section("Antrean pembayaran & verifikasi", activeOrders, "is-active") || '<div class="dx-order-empty" style="padding:14px;color:#9fb2cc">Tidak ada pesanan yang perlu ditinjau.</div>'}
-      ${history ? `<details class="dx-order-history" style="margin-top:18px;border:1px solid #294466;border-radius:14px;padding:12px;background:#0c192d">
-        <summary style="cursor:pointer;font-weight:700;color:#b9d8fa">Riwayat keputusan <span style="color:#8ea9c9;font-weight:500">(${paidOrders.length + rejectedOrders.length + cancelledOrders.length})</span></summary>
-        <div style="padding-top:12px">${history}</div>
-      </details>` : ""}
+      <div class="dx-order-tabs" style="display:flex;gap:8px;margin:0 0 12px;flex-wrap:wrap">
+        <button type="button" data-dx-order-tab="active" aria-pressed="true" style="border:1px solid #3984c8;border-radius:10px;padding:9px 13px;background:#173b61;color:#eaf6ff;font-weight:700">Antrean (${activeOrders.length})</button>
+        <button type="button" data-dx-order-tab="history" aria-pressed="false" style="border:1px solid #294466;border-radius:10px;padding:9px 13px;background:#101d33;color:#b7c9e2;font-weight:600">Riwayat (${historyCount})</button>
+      </div>
+      <div data-dx-order-panel="active">${activeContent}</div>
+      <div data-dx-order-panel="history" hidden>${history || '<div style="padding:14px;color:#9fb2cc">Belum ada riwayat keputusan.</div>'}</div>
     `;
+    container.querySelectorAll("[data-dx-order-tab]").forEach(tab => {
+      tab.addEventListener("click", () => {
+        const selected = tab.dataset.dxOrderTab;
+        container.querySelectorAll("[data-dx-order-panel]").forEach(panel => {
+          panel.hidden = panel.dataset.dxOrderPanel !== selected;
+        });
+        container.querySelectorAll("[data-dx-order-tab]").forEach(button => {
+          const chosen = button === tab;
+          button.setAttribute("aria-pressed", String(chosen));
+          button.style.background = chosen ? "#173b61" : "#101d33";
+          button.style.borderColor = chosen ? "#3984c8" : "#294466";
+          button.style.color = chosen ? "#eaf6ff" : "#b7c9e2";
+        });
+      });
+    });
 
     container.querySelectorAll("[data-dx-product-image]").forEach(button => {
       button.addEventListener("click", () => {
