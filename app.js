@@ -1668,7 +1668,7 @@ function createDXAdminPanel() {
   $("dxAdminTickets")?.addEventListener("click", event => { const b=event.target.closest("[data-dx-ticket-save]"); if(b) updateDXAdminTicket(b.dataset.dxTicketSave); });
   $("dxPaymentOrders").addEventListener("click", event => {
     const button = event.target.closest("[data-dx-order][data-dx-decision]");
-    if (button) reviewDXPayment(button.dataset.dxOrder, button.dataset.dxDecision);
+    if (button) reviewDXPayment(button.dataset.dxOrder, button.dataset.dxDecision, button.dataset.dxSourceStatus);
   });
   $("dxImageFile")?.addEventListener("change", () => {
     const file = $("dxImageFile").files?.[0];
@@ -1842,11 +1842,11 @@ async function loadDXPaymentOrders() {
           ${order.proof_url ? `<p style="margin:9px 0"><a href="${safeText(order.proof_url)}" target="_blank" rel="noopener">Lihat bukti pembayaran</a></p>` : ""}
           ${status === "review" ? `
             <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-              <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="paid">Setujui</button>
-              <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Tolak</button>
+              <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="paid" data-dx-source-status="review">Setujui</button>
+              <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected" data-dx-source-status="review">Tolak</button>
             </div>
           ` : status === "pending" ? `
-            <div style="margin-top:10px"><button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Batalkan pesanan</button></div>
+            <div style="margin-top:10px"><button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected" data-dx-source-status="pending">Batalkan pesanan</button></div>
           ` : ""}
         </article>
       `;
@@ -1900,12 +1900,17 @@ function dxDialog(message, options = {}) {
 function dxAlert(message, title) { return dxDialog(message, { title }); }
 function dxConfirm(message, title, okText) { return dxDialog(message, { confirm: true, title, okText }); }
 
-async function reviewDXPayment(orderId, status) {
+async function reviewDXPayment(orderId, status, sourceStatus) {
   if (!currentUser || !(await checkDXAdmin())) { dxAlert("Akses admin diperlukan."); return; }
+  const isCancellation = status === "rejected" && sourceStatus === "pending";
   const message = status === "paid"
-    ? "Pastikan dana benar-benar sudah masuk ke DANA Bisnis sebelum menyetujui. Lanjutkan?"
-    : "Tolak bukti pembayaran ini?";
-  if (!(await dxConfirm(message, "Verifikasi pembayaran", status === "paid" ? "Ya, verifikasi" : "Ya, tolak"))) return;
+    ? "Pastikan dana benar-benar sudah masuk sebelum menyetujui pembayaran. Lanjutkan?"
+    : isCancellation
+      ? "Batalkan pesanan ini dan lepaskan barang dari reservasi?"
+      : "Tolak bukti pembayaran ini?";
+  const title = isCancellation ? "Batalkan pesanan" : "Verifikasi pembayaran";
+  const okText = status === "paid" ? "Setujui" : isCancellation ? "Ya, batalkan" : "Tolak";
+  if (!(await dxConfirm(message, title, okText))) return;
   try {
     const session = (await dxSupabase.auth.getSession()).data.session;
     const response = await fetch(new URL("api/admin/orders/" + encodeURIComponent(orderId), DX_CONFIG.paymentApiUrl + "/"), {
