@@ -82,13 +82,24 @@ const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   }
 }
 async function isAdmin(userId: string) {
-                                              const { data, error } = await adminClient
-                                                  .from("profiles")
-                                                      .select("role")
-                                                          .eq("id", userId)
-                                                              .maybeSingle();
-                                                                return !error && data?.role === "admin";
-                                                                }
+  const { data, error } = await adminClient
+    .from("profiles")
+    .select("id, role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Admin role lookup failed:", error.message, error.code);
+    return false;
+  }
+  if (!data) {
+    console.error("Admin role profile missing for user:", userId);
+    return false;
+  }
+  const allowed = String(data.role || "").trim().toLowerCase() === "admin";
+  if (!allowed) console.error("Admin role denied:", { userId, role: data.role });
+  return allowed;
+}
 
                                                                 Deno.serve(async (req: Request) => {
                                                                   const origin = req.headers.get("Origin");
