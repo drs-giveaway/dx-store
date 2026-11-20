@@ -1616,11 +1616,13 @@ function createDXAdminPanel() {
       <button type="button" id="dxAdminProducts">Kelola Produk</button>
       <button type="button" id="dxAdminAccounts">Kelola Akun Game</button>
       <button type="button" id="dxAdminChats">Obrolan Pengguna</button>
+      <button type="button" id="dxAdminWithdrawals">Pencairan Penjual</button>
     </div>
 
     <section id="dxAdminSellerApplications" style="display:none;margin:12px 0"></section>
     <section id="dxAdminVerificationList" style="display:none;margin:12px 0"></section>
     <section id="dxAdminChatList" style="display:none;margin:12px 0"></section>
+    <section id="dxAdminWithdrawalsList" style="display:none;margin:12px 0"></section>
     <form id="dxAdminForm">
       <input type="hidden" id="dxEditId">
 
@@ -1840,12 +1842,13 @@ function createDXAdminPanel() {
     document.head.appendChild(style);
   }
 
-  const hideAdminListingAreas=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminVerificationList").style.display="none"; $("dxAdminChatList").style.display="none"; $("dxAdminForm").style.display="none"; $("dxAdminList").style.display="none"; };
+  const hideAdminListingAreas=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminVerificationList").style.display="none"; $("dxAdminChatList").style.display="none"; $("dxAdminWithdrawalsList").style.display="none"; $("dxAdminForm").style.display="none"; $("dxAdminList").style.display="none"; };
   $("dxAdminSellers")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminSellerApplications").style.display="block"; await loadDXAdminSellerApplications(); });
   $("dxAdminChats")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminChatList").style.display="block"; await loadDXAdminChatConversations(); });
+  $("dxAdminWithdrawals")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminWithdrawalsList").style.display="block"; await loadDXAdminWithdrawals(); });
   $("dxAdminVerifyProducts")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminVerificationList").style.display="block"; await loadDXAdminVerificationList("products"); });
   $("dxAdminVerifyAccounts")?.addEventListener("click", async () => { hideAdminListingAreas(); $("dxAdminVerificationList").style.display="block"; await loadDXAdminVerificationList("account_listings"); });
-  const showListingAdmin=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminVerificationList").style.display="none"; $("dxAdminChatList").style.display="none"; $("dxAdminForm").style.display="block"; $("dxAdminList").style.display="block"; };
+  const showListingAdmin=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminVerificationList").style.display="none"; $("dxAdminChatList").style.display="none"; $("dxAdminWithdrawalsList").style.display="none"; $("dxAdminForm").style.display="block"; $("dxAdminList").style.display="block"; };
   $("dxAdminProducts").addEventListener("click", () => {
     showListingAdmin();
     dxAdminType = "products";
@@ -1956,7 +1959,7 @@ async function loadDXSellerApplicationState() {
  const {data,error}=await dxSupabase.from("seller_applications").select("id,store_name,status,admin_note,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
  if(error){state.textContent="Status pengajuan gagal dimuat: "+getDXError(error);return;}
  if(!data){state.textContent="Belum ada pengajuan. Isi formulir berikut untuk mulai berjualan.";form.hidden=false;return;}
- if(data.status==="approved"){state.innerHTML='<strong style="color:#86efac">✓ Penjual disetujui: '+safeText(data.store_name)+'</strong><br>Silakan kirim produk atau akun game. Semua listing tetap menunggu persetujuan admin.';listingPanel.hidden=false;await loadDXMySellerListings();return;}
+ if(data.status==="approved"){const withdrawForm=$("dxSellerWithdrawForm");if(withdrawForm&&!withdrawForm.dataset.bound){withdrawForm.addEventListener("submit",submitDXSellerWithdrawal);withdrawForm.dataset.bound="1";}state.innerHTML='<strong style="color:#86efac">✓ Penjual disetujui: '+safeText(data.store_name)+'</strong><br>Silakan kirim produk atau akun game. Semua listing tetap menunggu persetujuan admin.';listingPanel.hidden=false;await Promise.all([loadDXMySellerListings(),loadDXSellerWithdrawals()]);return;}
  if(data.status==="pending"){state.innerHTML='<strong style="color:#fde68a">Pengajuan sedang diperiksa admin.</strong><br>Nama toko: '+safeText(data.store_name)+'. Formulir jualan akan terbuka setelah disetujui.';return;}
  state.innerHTML='<strong style="color:#fca5a5">Pengajuan sebelumnya ditolak.</strong>'+(data.admin_note?'<br>Catatan admin: '+safeText(data.admin_note):'')+'<br>Kamu dapat mengajukan kembali.';form.hidden=false;
 }
@@ -2860,4 +2863,55 @@ if (document.readyState === "loading") {
   );
 } else {
   initializeDXStore();
+}
+
+
+/* SALDO DAN PENCAIRAN PENJUAL — transfer dilakukan manual oleh admin */
+async function loadDXSellerWithdrawals(){
+ const available=$("dxSellerAvailableBalance"),pending=$("dxSellerPendingBalance"),history=$("dxSellerWithdrawHistory");
+ if(!currentUser||!dxSupabase||!available||!history)return;
+ available.textContent="Memuat...";pending.textContent="Memuat...";history.textContent="Memuat riwayat...";
+ const [summary,rows]=await Promise.all([dxSupabase.rpc("dx_seller_withdrawal_summary"),dxSupabase.from("seller_withdrawals").select("id,amount,payout_method,provider,status,admin_note,transfer_reference,created_at,paid_at").eq("seller_id",currentUser.id).order("created_at",{ascending:false}).limit(30)]);
+ if(summary.error){available.textContent="Tidak tersedia";pending.textContent="—";history.textContent="Saldo gagal dimuat: "+getDXError(summary.error);return;}
+ const s=Array.isArray(summary.data)?summary.data[0]:summary.data;
+ available.textContent=formatPrice(s?.available_balance||0);pending.textContent=formatPrice(s?.pending_amount||0);
+ if(rows.error){history.textContent="Riwayat gagal dimuat: "+getDXError(rows.error);return;}
+ const labels={pending:"Menunggu pemeriksaan",approved:"Disetujui · menunggu transfer",paid:"Sudah ditransfer",rejected:"Ditolak"};
+ history.innerHTML=(rows.data||[]).map(w=>'<article style="padding:10px;margin:8px 0;border:1px solid #334b70;border-radius:10px;background:#0b1426"><strong>'+formatPrice(w.amount)+'</strong><p style="margin:4px 0">'+safeText(w.provider)+' · '+(w.payout_method==="bank"?"Bank":"E-wallet")+'</p><small>Status: '+(labels[w.status]||safeText(w.status))+' · '+new Date(w.created_at).toLocaleString("id-ID")+'</small>'+(w.admin_note?'<p>Catatan admin: '+safeText(w.admin_note)+'</p>':'')+(w.transfer_reference?'<p>Referensi transfer: '+safeText(w.transfer_reference)+'</p>':'')+'</article>').join("")||"Belum ada permintaan pencairan.";
+}
+async function submitDXSellerWithdrawal(event){
+ event.preventDefault();if(!currentUser||!dxSupabase)return;
+ const button=$("dxSellerWithdrawSubmit"),feedback=$("dxSellerWithdrawFeedback");
+ const amount=Number($("dxSellerWithdrawAmount").value),method=$("dxSellerWithdrawMethod").value,provider=$("dxSellerWithdrawProvider").value.trim(),accountName=$("dxSellerWithdrawAccountName").value.trim(),accountNumber=$("dxSellerWithdrawAccountNumber").value.trim();
+ if(!Number.isSafeInteger(amount)||amount<=0||!provider||!accountName||accountNumber.length<5){feedback.textContent="Periksa kembali nominal dan detail rekening/e-wallet.";return;}
+ button.disabled=true;feedback.textContent="Mengirim permintaan...";
+ try{const {error}=await dxSupabase.rpc("dx_request_seller_withdrawal",{p_amount:amount,p_method:method,p_provider:provider,p_account_name:accountName,p_account_number:accountNumber});if(error)throw error;
+  $("dxSellerWithdrawForm").reset();feedback.textContent="Permintaan pencairan terkirim. Admin akan memeriksa dan melakukan transfer manual.";await loadDXSellerWithdrawals();
+ }catch(error){feedback.textContent="Permintaan gagal: "+getDXError(error);}finally{button.disabled=false;}
+}
+async function loadDXAdminWithdrawals(){
+ const host=$("dxAdminWithdrawalsList");if(!host||!currentUser||!(await checkDXAdmin()))return;
+ host.textContent="Memuat permintaan pencairan...";
+ const {data,error}=await dxSupabase.from("seller_withdrawals").select("*").order("created_at",{ascending:false}).limit(100);
+ if(error){host.textContent="Permintaan pencairan gagal dimuat: "+getDXError(error);return;}
+ if(!data?.length){host.textContent="Belum ada permintaan pencairan.";return;}
+ const labels={pending:"Menunggu pemeriksaan",approved:"Disetujui · menunggu transfer",paid:"Sudah ditransfer",rejected:"Ditolak"};
+ host.innerHTML=data.map(w=>'<article style="padding:14px;margin:10px 0;border:1px solid #334b70;border-radius:12px;background:#0b1426"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>'+formatPrice(w.amount)+'</strong><b>'+safeText(labels[w.status]||w.status)+'</b></div><p>Penjual: '+safeText(w.seller_id)+'</p><p>Tujuan: '+safeText(w.provider)+' · '+(w.payout_method==="bank"?"Bank":"E-wallet")+'</p><p>Nama pemilik: '+safeText(w.account_name)+'</p><p>Nomor rekening/akun: '+safeText(w.account_number)+'</p><small>Diajukan: '+new Date(w.created_at).toLocaleString("id-ID")+'</small>'+(w.admin_note?'<p>Catatan: '+safeText(w.admin_note)+'</p>':'')+(w.transfer_reference?'<p>Referensi transfer: '+safeText(w.transfer_reference)+'</p>':'')+(w.status==="pending"?'<div style="display:grid;gap:8px;margin-top:10px"><input id="dxWithdrawNote-'+safeText(w.id)+'" maxlength="300" placeholder="Catatan admin (opsional)" style="width:100%;padding:9px"><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-dx-withdraw-id="'+safeText(w.id)+'" data-dx-withdraw-status="approved">Setujui</button><button type="button" data-dx-withdraw-id="'+safeText(w.id)+'" data-dx-withdraw-status="rejected">Tolak</button></div></div>':w.status==="approved"?'<div style="margin-top:10px"><label>Referensi / nomor bukti transfer<input id="dxWithdrawRef-'+safeText(w.id)+'" maxlength="120" placeholder="Isi setelah transfer manual" style="display:block;width:100%;padding:9px;margin:6px 0"></label><button type="button" data-dx-withdraw-id="'+safeText(w.id)+'" data-dx-withdraw-status="paid">Tandai sudah ditransfer</button></div>':'')+'</article>').join("");
+ host.querySelectorAll("[data-dx-withdraw-id]").forEach(button=>button.addEventListener("click",()=>reviewDXWithdrawal(button.dataset.dxWithdrawId,button.dataset.dxWithdrawStatus)));
+}
+async function reviewDXWithdrawal(id,status){
+ if(!currentUser||!(await checkDXAdmin())||!["approved","rejected","paid"].includes(status)){dxAlert("Akses admin diperlukan.");return;}
+ const {data:current,error:readError}=await dxSupabase.from("seller_withdrawals").select("status").eq("id",id).maybeSingle();
+ if(readError||!current){dxAlert("Permintaan pencairan tidak ditemukan.");return;}
+ if((status==="approved"||status==="rejected")&&current.status!=="pending"){dxAlert("Permintaan ini sudah diproses.");return;}
+ if(status==="paid"&&current.status!=="approved"){dxAlert("Setujui permintaan dan lakukan transfer manual terlebih dahulu.");return;}
+ const ref=status==="paid"?$("dxWithdrawRef-"+id)?.value.trim():"";
+ if(status==="paid"&&!ref){dxAlert("Isi nomor referensi transfer setelah uang benar-benar dikirim.");return;}
+ const patch={status,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString(),updated_at:new Date().toISOString()};
+ if(status==="paid"){patch.paid_at=new Date().toISOString();patch.transfer_reference=ref;}
+ if(status==="rejected")patch.admin_note=$("dxWithdrawNote-"+id)?.value.trim()||"Permintaan ditolak admin.";
+ if(status==="approved")patch.admin_note=$("dxWithdrawNote-"+id)?.value.trim()||null;
+ const {error}=await dxSupabase.from("seller_withdrawals").update(patch).eq("id",id).eq("status",current.status);
+ if(error){dxAlert("Gagal memperbarui pencairan: "+getDXError(error));return;}
+ await loadDXAdminWithdrawals();dxAlert(status==="paid"?"Pencairan ditandai sudah ditransfer.":"Status pencairan berhasil diperbarui.");
 }
