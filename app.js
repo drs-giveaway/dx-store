@@ -1814,21 +1814,43 @@ async function loadDXPaymentOrders() {
     const result = await response.json();
     if (!response.ok) throw new Error(result.message || "Pesanan gagal dimuat.");
     if (!result.orders?.length) { container.textContent = "Belum ada pesanan."; return; }
-    container.innerHTML = result.orders.map(order => `
-      <article>
-        <h4>${safeText(order.item_name)} — ${safeText(order.order_id)}</h4>
-        <p>Nominal: <strong>${formatPrice(order.amount)}</strong></p>
-        <p>Status: <strong>${safeText(order.status)}</strong></p>
-        <p>Dibuat: ${new Date(order.created_at).toLocaleString("id-ID")}</p>
-        ${order.proof_url ? `<p><a href="${safeText(order.proof_url)}" target="_blank" rel="noopener">Lihat bukti pembayaran</a></p>` : "<p>Belum ada bukti pembayaran.</p>"}
-        ${order.status === "review" ? `
-          <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="paid">Verifikasi Pembayaran</button>
-          <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Tolak bukti</button>
-        ` : order.status === "pending" ? `
-          <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Batalkan pesanan / lepaskan barang</button>
-        ` : ""}
-      </article>
-    `).join("");
+    const statusLabels = {
+      pending: "Menunggu pembayaran",
+      review: "Perlu verifikasi",
+      paid: "Lunas",
+      rejected: "Ditolak",
+      cancelled: "Dibatalkan"
+    };
+    container.innerHTML = result.orders.map(order => {
+      const shortId = String(order.order_id || "").slice(-8);
+      const status = String(order.status || "").toLowerCase();
+      const statusLabel = statusLabels[status] || status;
+      const created = order.created_at
+        ? new Date(order.created_at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })
+        : "";
+      return `
+        <article class="dx-admin-order-card" style="padding:14px;margin:10px 0;border:1px solid #294466;border-radius:14px;background:#101d33;color:#eaf2ff">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <strong style="font-size:15px">${safeText(order.item_name || "Pesanan")}</strong>
+            <strong style="font-size:14px">${formatPrice(order.amount)}</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <span style="font-size:12px;color:#a9bdd8">#${safeText(shortId)}</span>
+            <span style="font-size:12px;font-weight:700;padding:4px 9px;border-radius:20px;background:#203957;color:#bfe8ff">${safeText(statusLabel)}</span>
+          </div>
+          ${created ? `<small style="display:block;margin-top:7px;color:#91a7c4">${safeText(created)}</small>` : ""}
+          ${order.proof_url ? `<p style="margin:9px 0"><a href="${safeText(order.proof_url)}" target="_blank" rel="noopener">Lihat bukti pembayaran</a></p>` : ""}
+          ${status === "review" ? `
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+              <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="paid">Setujui</button>
+              <button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Tolak</button>
+            </div>
+          ` : status === "pending" ? `
+            <div style="margin-top:10px"><button type="button" data-dx-order="${safeText(order.order_id)}" data-dx-decision="rejected">Batalkan pesanan</button></div>
+          ` : ""}
+        </article>
+      `;
+    }).join("");
   } catch (error) { container.textContent = getDXError(error); }
 }
 
