@@ -897,6 +897,25 @@
             </form>
             <h4 style="margin:18px 0 8px;color:#7dd3fc">Listing Saya</h4>
             <div id="dxMySellerListings" aria-live="polite">Belum ada listing.</div>
+            <section id="dxSellerWithdrawPanel" style="margin-top:18px;padding-top:16px;border-top:1px solid #385477">
+              <h4 style="margin:0 0 8px;color:#7dd3fc">Saldo &amp; Pencairan</h4>
+              <p style="font-size:12px;color:#9fb2cc;margin:0 0 10px">Saldo hanya dihitung dari pesanan yang sudah selesai dan dikonfirmasi. Dana yang masih dalam proses tidak dapat dicairkan.</p>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin-bottom:12px">
+                <article style="padding:12px;border:1px solid #315477;border-radius:11px;background:#0b1426"><small style="color:#9fb2cc">Saldo tersedia</small><strong id="dxSellerAvailableBalance" style="display:block;font-size:19px;color:#86efac">Memuat...</strong></article>
+                <article style="padding:12px;border:1px solid #315477;border-radius:11px;background:#0b1426"><small style="color:#9fb2cc">Menunggu pencairan</small><strong id="dxSellerPendingBalance" style="display:block;font-size:19px;color:#fde68a">Memuat...</strong></article>
+              </div>
+              <form id="dxSellerWithdrawForm" style="display:grid;gap:9px">
+                <label>Nominal pencairan (Rupiah)<input id="dxSellerWithdrawAmount" type="number" min="1" step="1" required placeholder="Contoh: 100000" style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"></label>
+                <label>Tujuan pencairan<select id="dxSellerWithdrawMethod" required style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"><option value="bank">Rekening bank</option><option value="ewallet">E-wallet</option></select></label>
+                <label>Nama bank / e-wallet<input id="dxSellerWithdrawProvider" type="text" maxlength="60" required placeholder="Contoh: BCA / DANA / GoPay" style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"></label>
+                <label>Nama pemilik rekening<input id="dxSellerWithdrawAccountName" type="text" maxlength="100" required style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"></label>
+                <label>Nomor rekening / akun<input id="dxSellerWithdrawAccountNumber" type="text" inputmode="numeric" maxlength="40" required style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"></label>
+                <button id="dxSellerWithdrawSubmit" type="submit" class="dx-button">Ajukan Pencairan</button>
+                <p id="dxSellerWithdrawFeedback" role="status" aria-live="polite"></p>
+              </form>
+              <h4 style="margin:16px 0 8px;color:#7dd3fc">Riwayat Pencairan</h4>
+              <div id="dxSellerWithdrawHistory" aria-live="polite">Memuat riwayat...</div>
+            </section>
           </section>
         </section>
         <div class="dx-catalog" id="accountGrid">
@@ -930,7 +949,7 @@
   <!-- JAVASCRIPT -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="app.js?v=86"></script>
+  <script src="app.js?v=87"></script>
   <script src="image-upload.js?v=7"></script>
 
 </body>
