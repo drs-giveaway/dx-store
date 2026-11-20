@@ -871,6 +871,17 @@
           <p>Jelajahi pilihan akun game yang tersedia.</p>
         </div>
 
+        <section id="dxSellerArea" style="margin:22px 0;padding:18px;border:1px solid #38bdf855;border-radius:16px;background:linear-gradient(135deg,#101e39,#151a36)">
+          <h3 style="margin:0 0 6px;color:#7dd3fc">Mulai Berjualan di DX STORE</h3>
+          <p style="margin:0 0 14px;color:#c2d1e8;font-size:13px">Ajukan verifikasi penjual terlebih dahulu. Tidak perlu mengunggah KTP atau dokumen identitas.</p>
+          <div id="dxSellerApplicationState" role="status" aria-live="polite" style="margin-bottom:12px;color:#dbeafe">Memeriksa status pengajuan...</div>
+          <form id="dxSellerApplicationForm" style="display:grid;gap:10px">
+            <label>Nama toko<input id="dxSellerStoreName" type="text" minlength="2" maxlength="60" required placeholder="Contoh: Delta Game Store" style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"></label>
+            <label>Kontak WhatsApp<input id="dxSellerWhatsapp" type="tel" minlength="8" maxlength="24" required placeholder="Contoh: 08xxxxxxxxxx" style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"></label>
+            <label>Alasan ingin berjualan<textarea id="dxSellerReason" minlength="10" maxlength="500" rows="3" required placeholder="Ceritakan produk yang ingin kamu jual..." style="display:block;width:100%;margin-top:5px;padding:11px;border-radius:9px"></textarea></label>
+            <button id="dxSellerApplyButton" type="submit" class="dx-button">Kirim Pengajuan Penjual</button>
+          </form>
+        </section>
         <div class="dx-catalog" id="accountGrid">
           <div class="dx-empty-card">
             Akun game akan ditampilkan di sini.
