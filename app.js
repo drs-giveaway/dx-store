@@ -2498,6 +2498,9 @@ async function initializeDXStore() {
   await loadDXStore();
   await loadDXRecentPurchaseActivity();
   if (!window.dxPurchaseActivityRefresh) window.dxPurchaseActivityRefresh = setInterval(loadDXRecentPurchaseActivity, 60000);
+  if (!window.dxSoldOutCatalogRefresh) window.dxSoldOutCatalogRefresh = setInterval(() => {
+    if (!document.hidden) loadDXStore();
+  }, 30000);
 
   dxSupabase.auth.onAuthStateChange((event, session) => {
     currentUser = session?.user || null;
