@@ -581,6 +581,7 @@ function updateDXDashboardVisibility() {
   const storeBanner = $("dxStoreNoticeBanner");
   if (storeBanner && storeBanner.parentElement !== main) main.insertBefore(storeBanner, dashboard);
   const visible = !!currentUser;
+  loadDXSellerApplicationState();
   loadDXStoreAvailability();
   dashboard.hidden = !visible;
   hero.hidden = visible;
@@ -698,6 +699,7 @@ function updateDXDashboardVisibility() {
     button.dataset.bound = "1";
   });
   if($("dxRefreshOrders")&&!$("dxRefreshOrders").dataset.bound){$("dxRefreshOrders").addEventListener("click",loadDXOrderHistory);$("dxRefreshOrders").dataset.bound="1";}
+  if($("dxSellerApplicationForm")&&!$("dxSellerApplicationForm").dataset.bound){$("dxSellerApplicationForm").addEventListener("submit",submitDXSellerApplication);$("dxSellerApplicationForm").dataset.bound="1";}
   if($("dxSupportForm")&&!$("dxSupportForm").dataset.bound){$("dxSupportForm").addEventListener("submit",submitDXSupportTicket);$("dxSupportForm").dataset.bound="1";}
   if(currentUser){loadDXOrderHistory();loadDXMyTickets();}
   const accountLogout = $("dxAccountLogout");
@@ -1486,9 +1488,10 @@ function createDXAdminPanel() {
       DX STORE - ADMINISTRATOR
     </h2>
 
-    <p>Kelola produk digital dan marketplace akun game.</p>
+    <p>Kelola verifikasi penjual, produk digital, dan akun game.</p>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin:20px 0;">
+      <button type="button" id="dxAdminSellers">Verifikasi Penjual</button>
       <button type="button" id="dxAdminProducts">
         Produk Digital
       </button>
@@ -1499,6 +1502,7 @@ function createDXAdminPanel() {
 
     </div>
 
+    <section id="dxAdminSellerApplications" style="display:none;margin:12px 0"></section>
     <form id="dxAdminForm">
       <input type="hidden" id="dxEditId">
 
@@ -1659,7 +1663,10 @@ function createDXAdminPanel() {
     document.head.appendChild(style);
   }
 
+  $("dxAdminSellers")?.addEventListener("click", async () => { $("dxAdminSellerApplications").style.display="block"; $("dxAdminForm").style.display="none"; $("dxAdminList").style.display="none"; await loadDXAdminSellerApplications(); });
+  const showListingAdmin=()=>{ $("dxAdminSellerApplications").style.display="none"; $("dxAdminForm").style.display="block"; $("dxAdminList").style.display="block"; };
   $("dxAdminProducts").addEventListener("click", () => {
+    showListingAdmin();
     dxAdminType = "products";
     resetDXAdminForm();
     loadDXAdminList();
@@ -1667,6 +1674,7 @@ function createDXAdminPanel() {
   });
 
   $("dxAdminAccounts").addEventListener("click", () => {
+    showListingAdmin();
     dxAdminType = "account_listings";
     resetDXAdminForm();
     loadDXAdminList();
@@ -1748,6 +1756,42 @@ function resetDXAdminForm() {
    DX STORE - BAGIAN 5 DARI 5
    SIMPAN, EDIT, HAPUS, DAN INISIALISASI
 ========================================= */
+
+
+/* VERIFIKASI PENJUAL */
+async function loadDXSellerApplicationState() {
+ const area=$("dxSellerArea"),form=$("dxSellerApplicationForm"),state=$("dxSellerApplicationState"); if(!area||!form||!state)return;
+ area.hidden=!currentUser;
+ if(!currentUser){state.textContent="Masuk ke akun DX STORE untuk mengajukan diri sebagai penjual.";form.hidden=true;return;}
+ form.hidden=true;state.textContent="Memeriksa status pengajuan...";
+ const {data,error}=await dxSupabase.from("seller_applications").select("id,store_name,status,admin_note,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
+ if(error){state.textContent="Status pengajuan gagal dimuat: "+getDXError(error);return;}
+ if(!data){state.textContent="Belum ada pengajuan. Isi formulir berikut untuk mulai berjualan.";form.hidden=false;return;}
+ if(data.status==="approved"){state.innerHTML='<strong style="color:#86efac">✓ Pengajuan penjual disetujui.</strong><br>Setiap produk atau akun yang dikirim tetap harus diperiksa admin sebelum tampil.';return;}
+ if(data.status==="pending"){state.innerHTML='<strong style="color:#fde68a">Pengajuan sedang diperiksa admin.</strong><br>Nama toko: '+safeText(data.store_name)+'. Tunggu keputusan admin.';return;}
+ state.innerHTML='<strong style="color:#fca5a5">Pengajuan sebelumnya ditolak.</strong>'+(data.admin_note?'<br>Catatan admin: '+safeText(data.admin_note):'')+'<br>Kamu dapat mengajukan kembali.';form.hidden=false;
+}
+async function submitDXSellerApplication(event){
+ event.preventDefault();if(!currentUser||!dxSupabase){dxAlert("Silakan masuk terlebih dahulu.");return;}
+ const button=$("dxSellerApplyButton"),payload={user_id:currentUser.id,store_name:$("dxSellerStoreName").value.trim(),whatsapp:$("dxSellerWhatsapp").value.trim(),reason:$("dxSellerReason").value.trim(),status:"pending"};
+ if(payload.store_name.length<2||payload.whatsapp.length<8||payload.reason.length<10){dxAlert("Lengkapi nama toko, WhatsApp, dan alasan berjualan.");return;}
+ button.disabled=true;button.textContent="Mengirim...";
+ try{const {error}=await dxSupabase.from("seller_applications").insert(payload);if(error)throw error;$("dxSellerApplicationForm").reset();await loadDXSellerApplicationState();dxAlert("Pengajuan penjual berhasil dikirim dan menunggu pemeriksaan admin.");}
+ catch(error){dxAlert("Pengajuan gagal dikirim: "+getDXError(error));}finally{button.disabled=false;button.textContent="Kirim Pengajuan Penjual";}
+}
+async function loadDXAdminSellerApplications(){
+ const box=$("dxAdminSellerApplications");if(!box||!currentUser||!(await checkDXAdmin()))return;box.textContent="Memuat pengajuan penjual...";
+ const {data,error}=await dxSupabase.from("seller_applications").select("*").order("created_at",{ascending:false});
+ if(error){box.textContent="Pengajuan gagal dimuat: "+getDXError(error);return;}if(!data?.length){box.textContent="Belum ada pengajuan penjual.";return;}
+ box.innerHTML=data.map(item=>{const status=item.status==="approved"?"Disetujui":item.status==="rejected"?"Ditolak":"Menunggu";
+ return '<article style="padding:13px;margin:10px 0;border:1px solid #334b70;border-radius:12px;background:#0b1426"><strong>'+safeText(item.store_name)+'</strong><p>WhatsApp: '+safeText(item.whatsapp)+'</p><p>Alasan: '+safeText(item.reason)+'</p><small>Status: '+status+' · User: '+safeText(item.user_id.slice(0,8))+'</small>'+(item.admin_note?'<p>Catatan: '+safeText(item.admin_note)+'</p>':'')+(item.status==="pending"?'<div style="margin-top:9px"><input id="dxSellerNote-'+safeText(item.id)+'" maxlength="300" placeholder="Catatan admin (opsional)" style="width:100%;padding:9px;margin-bottom:6px"><button type="button" onclick="reviewDXSellerApplication(\''+safeText(item.id)+'\',\'approved\')">Setujui Penjual</button><button type="button" onclick="reviewDXSellerApplication(\''+safeText(item.id)+'\',\'rejected\')">Tolak</button></div>':'')+'</article>';}).join("");
+}
+async function reviewDXSellerApplication(id,status){
+ if(!currentUser||!(await checkDXAdmin())||!["approved","rejected"].includes(status)){dxAlert("Akses admin diperlukan.");return;}
+ const note=$("dxSellerNote-"+id)?.value.trim()||null;
+ const {error}=await dxSupabase.from("seller_applications").update({status,admin_note:note,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id,updated_at:new Date().toISOString()}).eq("id",id).eq("status","pending");
+ if(error){dxAlert("Gagal memverifikasi penjual: "+getDXError(error));return;}await loadDXAdminSellerApplications();dxAlert(status==="approved"?"Penjual berhasil diverifikasi.":"Pengajuan penjual ditolak.");
+}
 
 /* DAFTAR DATA ADMIN */
 
